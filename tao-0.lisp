@@ -1,3 +1,4 @@
+(in-readtable :tao-compat)
 (in-package #:tao-compat)
 
 ;;; ＠
