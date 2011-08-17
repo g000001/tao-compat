@@ -18,8 +18,9 @@
   :description "TAO Compatible package for CL"
   :author "CHIBA Masaomi <chiba.masaomi@gmail.com>"
   :maintainer "CHIBA Masaomi <chiba.masaomi@gmail.com>"
-  :version "0.0.1"
+  :version "0.0.2"
   :components ((:file "package")
+               (:file "readtable" :depends-on ("package"))
 	       (:file "tao-0" :depends-on ("package"))
 	       (:file "tao-a" :depends-on ("package"))
 	       (:file "tao-b" :depends-on ("package"))
@@ -41,5 +42,5 @@
 	       (:file "tao-v" :depends-on ("package"))
 	       (:file "tao-x" :depends-on ("package"))
 	       (:file "tao-z" :depends-on ("package")))
-  :depends-on (#:cl-ppcre))
+  :depends-on (#:cl-ppcre #:named-readtables))
 

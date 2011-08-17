@@ -2,8 +2,8 @@
 
 (defpackage #:tao-compat.setagaya.mc
   (:nicknames #:tao-compat)
-  (:use #:cl)
-  (:shadow 
+  (:use #:cl #:named-readtables)
+  (:shadow
    #:**
    #:apply
    #:length
@@ -18,7 +18,7 @@
    #:string-capitalize
    #:zerop
    )
-  (:export 
+  (:export
    ;; 0
    #:!
    #:&
