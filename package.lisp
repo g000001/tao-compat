@@ -1,22 +1,20 @@
 (in-package #:cl-user)
 
-(defpackage #:tao-compat.setagaya.mc
-  (:nicknames #:tao-compat)
-  (:use #:cl #:named-readtables)
-  (:shadow
-   #:**
-   #:apply
-   #:length
-   #:listp
-   #:loop
-   #:make-string
-   #:package-name
-   #:read
-   #:rem
-   #:schar
-   #:sort
-   #:string-capitalize
-   #:zerop
+(defpackage #:tao
+  (:use #:named-readtables)
+  (:export
+   :**
+   :length
+   :listp
+   :loop
+   :make-string
+   :package-name
+   :read
+   :rem
+   :schar
+   :sort
+   :string-capitalize
+   :zerop
    )
   (:export
    ;; 0
@@ -27,40 +25,43 @@
    #:selfass                            ;!!
    #:togap                              ;^
    ;; a
-   #:as-char
-   #:ass
-   #:assign-cons
-   #:assignee-cons
-   #:assq
-   #:assql
-   #:assqu
-   #:apply
+   :apply
+   :apply*
+   :as-char
+   :ass
+   :assign-cons
+   :assignee-cons
+   :assq
+   :assql
+   :assqu
    ;; b
    #:belongs-to
    #:bins
    #:blank
    #:blanks
    ;; c
-   #:cadblep
-   #:caseq
-   #:catch-x
-   #:catcher
-   #:catcher-case
-   #:cdr!
-   #:circular-list
-   #:closure
-   #:comment
-   #:commentp
-   #:cons!
-   #:copy
-   #:crlf
-   #:find-throw
+   :cadblep
+   :caseq
+   :catch-x
+   :catcher
+   :catcher-case
+   :cdr!
+   :circular-list
+   :closure
+   :comment
+   :commentp
+   :cons!
+   :copy
+   :crlf
+   :find-throw
+   :current-dir
    ;; d
    #:day-of-week-string
    #:de
    #:dec
    #:define
    #:do-forever
+   :dye
    ;; e
    #:exit-for
    #:exit-loop
@@ -88,7 +89,7 @@
    #:imagen
    #:index
    #:intersectionq
-   #:tao-ignore                         ;ignore
+   #:ignore
    ;; j
    ;; k
    ;; l
@@ -202,6 +203,7 @@
    #:unionq
    #:unquote
    ;; v -
+   :vprint
    ;; w
    ;; x
    #:xcons
@@ -209,3 +211,7 @@
    ;; z
    #:zerop
    ))
+
+
+(defpackage #:tao-internal
+  (:use #:cl #:named-readtables))

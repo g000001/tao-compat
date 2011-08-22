@@ -1,7 +1,8 @@
 ;; -*- Mode: LISP; Syntax: COMMON-LISP; Coding:utf-8; -*-
-(in-package #:tao-compat)
+(in-package #:tao-internal)
+(in-readtable :tao)
 
-(defun zerop (number)
+(defun tao:zerop (number)
   "zerop                                  関数[#!subr]
 
 <説明>
@@ -16,5 +17,3 @@ number が 0 ならば 0 を返し、それ以外なら nil を返す。
         (zerop nil) エラー
         (zerop \"0\") エラー"
   (and (cl:zerop number) 0))
-
-

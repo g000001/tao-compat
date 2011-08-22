@@ -1,5 +1,5 @@
-(in-readtable :tao-compat)
-(in-package #:tao-compat)
+(in-package #:tao-internal)
+(in-readtable :tao)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; ＠
@@ -96,7 +96,7 @@
 ;;; <例>
 ;;;         (cadar '((a (b) (c)))) -> (b)
 
-(defun cadblep (object)
+(defun tao:cadblep (object)
   "cadblep                                関数[#!subr]
 
 <説明>
@@ -204,7 +204,7 @@ object が car 関数でも cdr 関数でもエラーにならないならば、
 ;;;         (foo 'bar) -> 7
 ;;; ＠
 
-(defmacro caseq (key &body cases)
+(defmacro tao:caseq (key &body cases)
   "caseq                                  関数[#!macro]
 
 <説明>
@@ -591,7 +591,7 @@ throw はすべて tagN が受け取り、tagN に結び付けられたレシー
 ;; ＠
 
 ;; cdr!                                   関数[#!subr]
-(defmacro cdr! (list)
+(defmacro tao:cdr! (list)
   "<説明>
   形式 : cdr! list
 \(cdr! list) = (!list (cdr list)) 。
@@ -1047,7 +1047,7 @@ throw はすべて tagN が受け取り、tagN に結び付けられたレシー
 ;;;                                     (b integer nil))
 ;;; ＠
 
-(defun circular-list (&rest objects)
+(defun tao:circular-list (&rest objects)
   "circular-list                          関数[#!expr]
 
 <説明>
@@ -1201,7 +1201,7 @@ object1 object2 ... objectN を要素とする巡回リストを作成し返す�
 ;;; ＠
 
 
-(defmacro closure (var-list func)
+(defmacro tao:closure (var-list func)
   "closure                                関数[#!subr]
 
 <説明>
@@ -1346,7 +1346,7 @@ object1 object2 ... objectN を要素とする巡回リストを作成し返す�
 ;;;         (coerce 7/2 'comlex) -> #c(7/2 0)
 ;;; ＠
 
-(defmacro comment (&body objects)
+(defmacro tao:comment (&body objects)
   "comment                                関数[#!expr]
 
 <説明>
@@ -1360,7 +1360,7 @@ object1 object2 ... objectN を要素とする巡回リストを作成し返す�
   ''comment)
 
 ;; 謎 コメントならtを返すんじゃないのか？
-(defmacro commentp (object)
+(defmacro tao:commentp (object)
   "commentp                               関数[#!subr]
 
 <説明>
@@ -1581,7 +1581,7 @@ object がコメントなら t を返し、それ以外なら nil を返す。
 ;;;         (cons 'a nil) -> (a)
 ;;;         (cons '(a b) '(c d)) -> ((a b) c d)
 
-(defmacro cons! (object1 object2)
+(defmacro tao:cons! (object1 object2)
   "cons!                                  関数[#!macro]
 
 <説明>
@@ -1639,7 +1639,7 @@ object がコメントなら t を返し、それ以外なら nil を返す。
 ;;;         (jstringp foo) -> {dnil}1
 ;;; ＠
 
-(defun copy (object)
+(defun tao:copy (object)
   "copy                                   関数[#!subr]
 
 <説明>
@@ -1880,7 +1880,7 @@ copy-tree 参照。
 ;;; semaphore を必要とする。
 ;;; ＠
 
-(defun crlf (&optional stream)
+(defun tao:crlf (&optional stream)
   "crlf                                   関数[#!subr]
 
 <説明>
@@ -1918,7 +1918,7 @@ stream に復帰文字と改行文字を出力し、t を返す。stream が省�
 ;;;                                  (integer 'integer)))
 ;;; ＠
 
-(defun current-dir ()
+(defun tao:current-dir ()
   "current-dir                            関数[#!expr]
 
 <説明>

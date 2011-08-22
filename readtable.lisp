@@ -1,4 +1,4 @@
-(in-package :tao-compat)
+(in-package :tao-internal)
 
 #+sbcl
 (defun tao-read-list (stream ignore)
@@ -10,14 +10,14 @@
             `(or ,@(sb-impl::read-list stream ignore)))
          ((#\!)
             (read-char stream)
-            `(tao-compat:selfass
+            `(tao:selfass
               ,@(sb-impl::read-list stream ignore)))
          (otherwise
             `(setf ,@(sb-impl::read-list stream ignore)))))
     (otherwise
        (sb-impl::read-list stream ignore))))
 
-(defreadtable :tao-compat
+(defreadtable :tao
   (:merge :standard)
-  (:macro-char #\( #'TAO-READ-LIST 'T)
+  (:macro-char #\( #'tao-internal::TAO-READ-LIST 'T)
   (:case :upcase))

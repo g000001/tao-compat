@@ -1,4 +1,5 @@
-(in-package #:tao-compat)
+(in-package #:tao-internal)
+(in-readtable :tao)
 
 #|
 day-of-week-string                     関数[#!expr]
@@ -15,7 +16,7 @@ number に対応する曜日名を文字列で返す。number が 0〜6 以外�
 |#
 
 
-(defun day-of-week-string (number)
+(defun tao:day-of-week-string (number)
   (case number
     (0 "Sun")
     (1 "Mon")
@@ -26,7 +27,7 @@ number に対応する曜日名を文字列で返す。number が 0〜6 以外�
     (6 "Sut")
     (otherwise nil)))
 
-(defmacro dec (var &optional (val 1))
+(defmacro tao:dec (var &optional (val 1))
   "dec                                    関数[#!macro]
 
 <説明>
@@ -44,7 +45,7 @@ var の値から val の値を引き、その結果を返す。 val の既定値
         (dec 3) -> エラー"
   `(setq ,var (- ,var ,val)))
 
-(defmacro define (symbol applobj)
+(defmacro tao:define (symbol applobj)
   "define                                 関数[#!expr]
 
 <説明>
@@ -64,7 +65,7 @@ symbol を関数オブジェクト applobj に結び付ける。
 ;; deは、define exprの略
 ;; defunとの差異が不明 拡張されたlambdaリストが取れるのが、
 ;; defunかもしれない。
-(defmacro de (fn var-list &body body)
+(defmacro tao:de (fn var-list &body body)
   "de                                     関数[#!expr]
 
 <説明>
@@ -85,7 +86,7 @@ fn が関数名、var-list が引数リストである expr 型関数、すな�
      ,@body))
 
 
-(defmacro do-forever (&body body)
+(defmacro tao:do-forever (&body body)
   "do-forever                             関数[#!macro]
 
 <説明>
@@ -107,7 +108,7 @@ body の中のどこかで return を実行するまで body の中の式の実�
 
 ;; コンパイラが自動でスペシャルにするのを期待するという手抜き
 ;; 本格的にはCodewalkerを利用しないと駄目
-(defmacro dye (fn var-list &body body)
+(defmacro tao:dye (fn var-list &body body)
   "dye                                    関数[#!expr]
 
 <説明>

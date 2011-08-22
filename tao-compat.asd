@@ -2,14 +2,13 @@
 (in-package #:cl-user)
 
 (defpackage #:tao-compat-asd
-  (:use #:cl #:asdf))
+  (:use #:cl #:asdf)
+  (:export :*tao-compat-version-string*))
 
 (in-package #:tao-compat-asd)
 
-(defvar *tao-compat-version-string* "0.0.2"
+(defvar *tao-compat-version-string* "0.0.3"
   "Tao-compat's version number as a string.")
-(export '*tao-compat-version-string*)
-
 
 (in-package #:cl-user)
 
@@ -18,7 +17,7 @@
   :description "TAO Compatible package for CL"
   :author "CHIBA Masaomi <chiba.masaomi@gmail.com>"
   :maintainer "CHIBA Masaomi <chiba.masaomi@gmail.com>"
-  :version "0.0.2"
+  :version tao-compat-asd:*tao-compat-version-string*
   :components ((:file "package")
                (:file "readtable" :depends-on ("package"))
 	       (:file "tao-0" :depends-on ("package"))

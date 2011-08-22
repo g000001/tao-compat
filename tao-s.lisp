@@ -1,6 +1,7 @@
-(in-package #:tao-compat)
+(in-package #:tao-internal)
+(in-readtable :tao)
 
-(defun sass (pred item a-list func)
+(defun tao:sass (pred item a-list func)
   "sass     未インプリメント              関数[#!subr]
 
 <説明>
@@ -10,7 +11,7 @@
   (cond ((assoc item a-list :test pred))	;thenret
 	('T (funcall func))))
 
-(defun sassq (item alist func)
+(defun tao:sassq (item alist func)
   "sassq                                  関数[#!subr]
 
 <説明>
@@ -23,19 +24,19 @@
         (sassq 'a xx (lambda () (!z 5))) -> (a . 1)
         (sassq 'e xx (lambda () (!z 5))) -> 5
         (sassq '(d e) xx (lambda () (!z 5))) -> 5"
-  (sass #'eq item alist func))
+  (tao:sass #'eq item alist func))
 
-(defun sassql (item alist func)
+(defun tao:sassql (item alist func)
   "sassql 未インプリメント                関数[#!subr]
 
 <説明>
   形式 : sassql item a-list func
 連想リスト a-list 中に、第 1 要素が item と eql なペアがあれば、その
 ペアを返し、なければ func を評価し、その結果を返す。"
-  (sass #'eql item alist func))
+  (tao:sass #'eql item alist func))
 
 
-(defun sassqu (item alist func)
+(defun tao:sassqu (item alist func)
   "sassqu                                 関数[#!subr]
 
 <説明>
@@ -48,24 +49,24 @@
         (sassqu 'a xx (lambda () (!z 5))) -> (a . 1)
         (sassqu '(d e) xx (lambda () (!z 5))) -> ((d e) . 4)
         (sassqu 'f xx (lambda () (!z 5))) -> 5"
-  (sass #'equal item alist func))
+  (tao:sass #'equal item alist func))
 
 ;;; ＠
 ;;; save-sstatus                           関数[#!expr]
-;;; 
+;;;
 ;;; <説明>
 ;;;   形式 : save-sstatus &opt terno
 ;;; ターミナル terno の状態をセーブする。terno の既定値はこの関数が入力さ
 ;;; れたターミナル。
 ;;; ＠
 ;;; sbit                                   関数[#!subr]
-;;; 
+;;;
 ;;; <説明>
 ;;;   形式 : sbit bit-array &rest subscripts
 ;;; 関数 bit と同じ働きをする。
 ;;; ビット配列 bit-array の、添字 subscripts により指定されたビットを返す。
 ;;; bit-array は単純ビット配列でなければならない。
-;;; 
+;;;
 ;;; <例>
 ;;;         (!x (make-array 3))
 ;;;         	-> {vector}77794(common:simple-general-vector . 3)
@@ -75,19 +76,19 @@
 ;;;         (sbit y 1 1) -> #0
 ;;; ＠
 ;;; scale-float                            関数[#!expr]
-;;; 
+;;;
 ;;; <説明>
 ;;;   形式 : scale-float number integer
 ;;; number は、浮動小数点。(* number (expt (float b number) integer)) の
 ;;; 結果を返す。 b は number の内部表現に使われる基数。
-;;; 
+;;;
 ;;; <例>
 ;;;         (scale-float 1.0 3) -> 8.0
 ;;;         (scale-float -1.0 3) -> -8.0
 ;;;         (scale-float 12.3 2) -> 49.2
 ;;; ＠
 
-(defun schar (string index)
+(defun tao:schar (string index)
   "schar                                  関数[#!subr]
 
 <説明>
@@ -104,7 +105,7 @@ string の長さより小さくなければならない。
       (coerce (list (char string index)) 'string)))
 
 
-(defun sconc (&rest strings)
+(defun tao:sconc (&rest strings)
   "sconc                                  関数[#!subr]
 
 <説明>
@@ -115,11 +116,24 @@ string1 string2 ... stringN を 1 つの文字列に結合し、その結果を�
         (sconc \"a\" \"b\") -> \"ab\"
         (sconc \"123\" \"45\" \"6789\") -> \"123456789\"
         (sconc \"abc\" nil) -> \"abc\""
-  (apply #'concatenate 'string strings))
-
+  (declare (optimize (safety 0) (speed 3))
+           (dynamic-extent strings))
+  (let ((len 0)
+        (pos 0))
+    (declare (fixnum len pos))
+    (dolist (s strings)
+      (declare (simple-string s))
+      (incf len (length s)))
+    (let ((result (make-string len)))
+      (declare (simple-string result))
+      (dolist (s strings)
+        (declare (simple-string s))
+        (loop :for c :across s
+              :do (setf (schar result pos) c) (incf pos)))
+      result)))
 
 ;;; screen                                 関数[#!expr]
-;;; 
+;;;
 ;;; <説明>
 ;;;   形式 : screen &opt terno
 ;;; ターミナル terno を screen モードにする。terno の既定値はこの関数が入力
@@ -128,15 +142,15 @@ string1 string2 ... stringN を 1 つの文字列に結合し、その結果を�
 ;;; ハードコピーを取るというような、いくつかの関数を利用できる。
 ;;; ＠
 ;;; search                                 関数[#!macro]
-;;; 
+;;;
 ;;; <説明>
 ;;;   形式 : search seq1 seq2 &key :from-end :test :test-not :key  :start1
 ;;;                                :end1 :start2 :end2
 ;;; シーケンス seq1 の :start1 から :end1 までの文字が、seq2 の :start2
-;;; から :end2 までに含まれているか探し、あれば seq2 の左端 (:from-end で 
+;;; から :end2 までに含まれているか探し、あれば seq2 の左端 (:from-end で
 ;;; nil でない値が指定された場合は右端) の要素の添字番号を返し、なかった場
 ;;; 合はnil を返す。
-;;; 
+;;;
 ;;; <例>
 ;;;         (search '(b c) '(a b c d e)) -> 1
 ;;;         (search '(a b c) '(a b c d e) :start1 2 :end1 3) -> 2
@@ -144,16 +158,16 @@ string1 string2 ... stringN を 1 つの文字列に結合し、その結果を�
 ;;;         	:start2 3 end2 7) -> 6
 ;;; ＠
 ;;; second                                 関数[#!macro]
-;;; 
+;;;
 ;;; <説明>
 ;;;   形式 : second list
 ;;; list の 2 番目の要素の値を返す (最初の要素が 1 番目)。
-;;; 
+;;;
 ;;; <例>
 ;;;         (second '(a b c))  ->  b
 ;;; ＠
 
-(defmacro select (item &body cases)
+(defmacro tao:select (item &body cases)
   "select                                 関数[#!macro]
 
 <説明>
@@ -161,18 +175,18 @@ string1 string2 ... stringN を 1 つの文字列に結合し、その結果を�
                      (case2 form21 form22 ...)
                      ...
 順に case1 case2 ... が item と eq かどうか調べ、最初に eq になった
-後のフォームを順に評価し、結果を返す。一番最後の caseK を t または 
+後のフォームを順に評価し、結果を返す。一番最後の caseK を t または
 otherwise に指定し、それまでの全てが、eq でなかった時は、その後にくる
 フォームを無条件に評価する。各 casei は item と比較される前に評価される。
 casej がリストのときには eq のかわりに memq でテストを行なう。
 
 <例>
         (select 3 ((3 4) 'abc) (t 'xyz)) -> abc
-        (select 'd ((a) \"a\") ((b) \"b\") ((c) \"c\")) 
+        (select 'd ((a) \"a\") ((b) \"b\") ((c) \"c\"))
                 -> (unbound-variable a)"
   (let ((v (gensym)))
     `(let ((,v ,item))
-       (cond 
+       (cond
 	 ,@(mapcar (lambda (x)
 		     (let ((case (car x))
 			   (forms (cdr x)))
@@ -188,14 +202,14 @@ casej がリストのときには eq のかわりに memq でテストを行な�
 			     ('T nil))))
 		   cases)))))
 
-(defmacro selector (item fn &body cases)
+(defmacro tao:selector (item fn &body cases)
   "selector                               関数[#!macro]
 
 <説明>
   形式 : selector item fn (case1 form11 form12 ...)
                           (case2 form21 form22 ...)
                            ...
-selector は selectq と同じ。ただし selector では、eq の代わりに equal 
+selector は selectq と同じ。ただし selector では、eq の代わりに equal
 greaterp, string-lessp, などが利用できる。
 
 <例>
@@ -204,8 +218,8 @@ greaterp, string-lessp, などが利用できる。
              (2 \"2\")
              (t \"3\")) -> \"3\""
   (let ((itm (gensym)))
-    (let ((ecases 
-	   (mapcar (lambda (xx) 
+    (let ((ecases
+	   (mapcar (lambda (xx)
 		     (let ((key (car xx)))
 		       (cond ((or (eq t key)
 				  (equal '(quote t) key)
@@ -220,7 +234,7 @@ greaterp, string-lessp, などが利用できる。
       `(let ((,itm ,item))
 	 (cond ,@ecases)))))
 
-(defmacro selectq (item &body cases)
+(defmacro tao:selectq (item &body cases)
   "selectq                                関数[#!subr]
 
 <説明>
@@ -228,7 +242,7 @@ greaterp, string-lessp, などが利用できる。
                       (case2 form21 form22 ...)
                        ...
 順に case1 case2 ... が item と eq かどうか調べ、最初に eq になった
-後のフォームを順に評価し、結果を返す。一番最後の caseK を t または 
+後のフォームを順に評価し、結果を返す。一番最後の caseK を t または
 otherwise に指定し、それまでの全てが、eq でなかった時は、その後にくる
 フォームを無条件に評価する。casej がリストのときには eq のかわりに
 memq でテストを行なう。
@@ -244,7 +258,7 @@ memq でテストを行なう。
           (otherwise (report-error)) )"
   (let ((v (gensym)))
     `(let ((,v ,item))
-       (cond 
+       (cond
 	 ,@(mapcar (lambda (x)
 		     (let ((case (car x))
 			   (forms (cdr x)))
@@ -259,7 +273,7 @@ memq でテストを行なう。
 			     ('T nil))))
 		   cases)))))
 
-(defmacro selectq-every (item &body cases)
+(defmacro tao:selectq-every (item &body cases)
   "selectq-every                          関数[#!macro]
 
 <説明>
@@ -279,18 +293,18 @@ memq でテストを行なう。
                           (a (!y 4))) -> 4
         x = 1, y = 4"
   (let ((uqitem (cadr item)))
-    (let ((picked-cases 
+    (let ((picked-cases
 	   (remove-if-not (lambda (x)
 			    (cond ((or (equal '(quote t) x) (eq t x)) 'T)
 				  ((consp x)
 				   (member uqitem x :test #'eq))
-				  ((atom x) 
+				  ((atom x)
 				   (or (eq uqitem x) (eq 'otherwise x)))
 				  ('T nil)))
 			  cases :key #'car)))
     `(progn ,@(mapcan #'cdr picked-cases)))))
 
-(defun self-eval-form-p (form)
+(defun tao:self-eval-form-p (form)
   "self-eval-form-p                       関数[#!expr]
 
 <説明>
@@ -313,7 +327,7 @@ arg が self-eval 式ならば t 、そうでなければ nilを返す。self-ev
 	;; applobj
 	('T nil)))
 
-(defun selfass-cons (object1 object2)
+(defun tao:selfass-cons (object1 object2)
   "selfass-cons                           関数[#!expr]
 
 <説明>
@@ -326,7 +340,7 @@ cons と同じだが自己投入式を作るのに用いられる。
   (cons (intern (concatenate 'string "!!" (string object1)))
 	object2))
 
-(defun selfass-list (&rest x)
+(defun tao:selfass-list (&rest x)
   "selfass-list                           関数[#!expr]
 
 <説明>
@@ -343,16 +357,16 @@ list と同じだが自己投入式を作るのに用いられる。
 
 ;;; ＠
 ;;; selfassp                               関数[#!subr]
-;;; 
+;;;
 ;;; <説明>
 ;;;   形式 : salfassp arg
 ;;; arg が自己投入式なら、それを返し、そうでなければ nil を返す。
-;;; 
+;;;
 ;;; <例>
 ;;;         (selfassp '(!!cons 1234 !x)) -> (!!cons 1234 !x)
 ;;; ＠
 ;;; semaphore                              クラス
-;;; 
+;;;
 ;;; <説明>
 ;;;   CPU が、ただ 1 つの入出力リソースを持っている場合に、2 つのプロセス
 ;;; P と Q が、そのリソースを要求したとする。この場合 P と Q がそのリソース
@@ -365,12 +379,12 @@ list と同じだが自己投入式を作るのに用いられる。
 ;;; が必要。:process の値は、セマフォを占有しているプロセスを表す。
 ;;; ＠
 ;;; semi-globals                           関数[#!expr]
-;;; 
+;;;
 ;;; <説明>
 ;;;   形式 : semi-globals &rest 'var
 ;;; var が指定された時は、それらをセミグローバル変数として定義し、nil に
 ;;; 初期化する。指定されない時は、セミグローバル変数の名前と値を返す。
-;;; 
+;;;
 ;;; <例>
 ;;;         (semi-globals a b c) ->
 ;;;         	(+ - * / ** ++ // *** *prompt-function*
@@ -381,23 +395,23 @@ list と同じだが自己投入式を作るのに用いられる。
 ;;;         c -> nil
 ;;; ＠
 ;;; send                                   関数[#!macro]
-;;; 
+;;;
 ;;; <説明>
 ;;;   形式 : send receiver list-message-and-arg
 ;;; メッセージをインスタンスに送る。receiver で、メッセージを受け取る
 ;;; インスタンスを指定し、list-message-and-arg で、送られるメッセージの名前
 ;;; と送られたメッセージにより呼び出されるメソッドで使われる引数のリストを
 ;;; 書く。
-;;; 
+;;;
 ;;; <例>
 ;;;         (send 1 '(+ 10)) -> 11
 ;;; ＠
 ;;; send-class-message                     関数[#!subr]
-;;; 
+;;;
 ;;; <説明>
 ;;;   形式 : send-class-message 'class-name 'message &rest 'args
 ;;; クラスメッセージ message を、クラス class-name へ送る。
-;;; 
+;;;
 ;;; <例>
 ;;;         (defclass a (q) () ()) -> a
 ;;;         (defclass-method (a abc) () (!(cvar q) 10)) -> abc
@@ -406,17 +420,17 @@ list と同じだが自己投入式を作るのに用いられる。
 ;;;         (class-variable 'q (class-of 'a)) -> 10
 ;;; ＠
 ;;; send-mail                              関数[#!subr]
-;;; 
+;;;
 ;;; <説明>
 ;;;   形式 : send-mail mailbox mail
 ;;; メイル mail を、メイルボックス mailbox に送る。
-;;; 
+;;;
 ;;; <例>
 ;;;         (!m-box (make-instance 'mailbox)) -> m-box
 ;;;         (send-mail m-box 12345) -> 12345
 ;;; ＠
 
-(defmacro seq (&rest forms)
+(defmacro tao:seq (&rest forms)
   "seq                                    関数[#!subr]
 
 <説明>
@@ -430,7 +444,7 @@ form1 form2 ... formN を順に実行し、最後のフォームの値を返す�
   `(block nil
      ,@forms))
 
-(defmacro seqt (&rest forms)
+(defmacro tao:seqt (&rest forms)
   "seqt                                   関数[#!subr]
 
 <説明>
@@ -446,7 +460,7 @@ form1 form2 ... formN を順に評価し、t を返す。ロジックプログ�
      ,@forms
      t))
 
-(defun sequal (string1 string2)
+(defun tao:sequal (string1 string2)
   "sequal                                 関数[#!subr]
 
 <説明>
@@ -466,7 +480,7 @@ stirng1 と string2 を比較し、一致した場合、string2 の値を返し�
 	 (string-downcase string2))
 	('T nil)))
 
-(defun sequencep (arg)
+(defun tao:sequencep (arg)
   "sequencep                              関数[#!expr]
 
 <説明>
@@ -478,11 +492,11 @@ arg がシーケンスなら arg を返し、それ以外なら nil を返す。
 
 ;;; ＠
 ;;; set                                    関数[#!subr]
-;;; 
+;;;
 ;;; <説明>
 ;;;   形式 : set x val
 ;;; x に val を代入する。
-;;; 
+;;;
 ;;; <例>
 ;;;         (!x 'a) -> a, ここで x = a
 ;;;         (set x '(p q r)) -> (p q r)
@@ -491,12 +505,12 @@ arg がシーケンスなら arg を返し、それ以外なら nil を返す。
 ;;;         p -> 123
 ;;; ＠
 ;;; set-char-bit                           関数[#!expr]
-;;; 
+;;;
 ;;; <説明>
 ;;;   形式 : set-char-bit char bit flag
 ;;; 文字 char のビット属性のうち、bit をクリアまたはセットした文字のデータ
 ;;; を返す。flag が nilならクリアし、 nil 以外ならセットする。
-;;; 
+;;;
 ;;; <例>
 ;;;         (set-char-bit #¥c :control t) -> #¥control-c
 ;;;         (set-char-bit #control-x :control t) -> #¥control-x
@@ -504,23 +518,23 @@ arg がシーケンスなら arg を返し、それ以外なら nil を返す。
 ;;;         (set-char-bit #¥x :meta t) -> "x"
 ;;; ＠
 ;;; set-date                               関数[#!expr]
-;;; 
+;;;
 ;;; <説明>
 ;;;   西暦日付及び時間を設定する。
-;;; 
+;;;
 ;;; <例>
 ;;;         (set-date)
 ;;;         System assumes today is  6-Apr-87.
 ;;;         Input [date and] time: dd-mmm-yy hh:mm 07-Apr-87 17:31
 ;;; ＠
 ;;; set-default-keep-generation-count      関数[#!expr]
-;;; 
+;;;
 ;;; <説明>
 ;;;   形式 : set-default-keep-generation-count pathname &opt kgc
 ;;; ディレクトリ pathname について、ファイルの世代をいくつにするかを決定
 ;;; する。例えば、kgc が 3 のとき、最新バーションを含めてそれより古い 3 世
 ;;; 代のバージョンを保存する。kgc の既定値は 1 。
-;;; 
+;;;
 ;;; <例>
 ;;;         (set-default-keep-generation-count "cs:<dire>" 3) -> 3
 ;;;         vdir "test.tao"
@@ -534,18 +548,18 @@ arg がシーケンスなら arg を返し、それ以外なら nil を返す。
 ;;;                     .4
 ;;; ＠
 ;;; set-difference                         関数[#!macro]
-;;; 
+;;;
 ;;; <説明>
 ;;;   形式 : set-difference list1 list2 &key :test :test-not :key
 ;;; list1 と list2 を対比し、list1 には存在するが list2 には含まれていない
 ;;; 要素を抽出し、リストにして返す。nset-difference は破壊版。
-;;; 
+;;;
 ;;; <例>
 ;;;         (set-difference  '(1 2 3)  '(2 4 6))  ->  (1 3)
 ;;;         (set-difference  '(1 2 3)  '(1 2 3))  ->  nil
 ;;; ＠
 
-(defun set-differenceq (list1 &rest lists)
+(defun tao:set-differenceq (list1 &rest lists)
   "set-differenceq                        関数[#!subr]
 
 <説明>
@@ -568,7 +582,7 @@ list1 には含まれているが、list2 ... listN には含まれていない�
 
 ;;; ＠
 ;;; set-dispatch-macro-character           関数[#!expr]
-;;; 
+;;;
 ;;; <説明>
 ;;;   形式 : set-dispatch-macro-character char1 char2 func &opt readtable
 ;;; 読み込み表 readtable にディスパッチ文字として登録されている char1 の
@@ -576,11 +590,11 @@ list1 には含まれているが、list2 ... listN には含まれていない�
 ;;; を X、char2 の表す文字を Y とするとき、read が "XY" で始まるデータを
 ;;; 読み込む際には、入力ストリームと char2、nil を引数として func が呼び
 ;;; 出される。"XnY" で始まるデータを読み込む際には，n の表す数値が func
-;;; への第 3 引数となる。ここで n はある非負整数の 10 表現である。 
+;;; への第 3 引数となる。ここで n はある非負整数の 10 表現である。
 ;;; make-dispatch-macro-charactor、get-dispatch-macro-charactor 参照。
 ;;; ＠
 ;;; set-error-function                     関数[#!expr]
-;;; 
+;;;
 ;;; <説明>
 ;;;   形式 : set-error-function f-name &opt process
 ;;; process において、f-name をエラー廃棄関数として定義する。
@@ -590,22 +604,22 @@ list1 には含まれているが、list2 ... listN には含まれていない�
 ;;; 情報（大抵の場合、エラーを起こした不正引数 (illegal argument) を表す）。
 ;;; ＠
 ;;; set-exclusive-or                       関数[#!macro]
-;;; 
+;;;
 ;;; <説明>
 ;;;   形式 : set-exclusive-or list1 list2 &key :test :test-not :key
 ;;; list1 または list2 のいずれか一方に含まれている要素を抽出し、リストに
 ;;; して返す。nset-exclusive-or は破壊版。
-;;; 
+;;;
 ;;; <例>
 ;;;         (set-exclusive-or  '(1 2 3) '(a b c))  ->  (1 2 3 a b c)
 ;;;         (set-exclusive-or  '(1 2 3) '())  ->  (1 2 3)
 ;;; ＠
 ;;; set-in-instance                        関数[#!macro]
-;;; 
+;;;
 ;;; 説明
 ;;;   形式 : set-in-instance instance var-name value
 ;;; instance のインスタンス変数 var-name に値 value を設定し、その値を返す。
-;;; 
+;;;
 ;;; <例>
 ;;;         (defclass a () (x y) () :gettable :settable) -> a
 ;;;         (!bb (make-instance 'a x 5 y 6)) -> {udo}43848a
@@ -615,20 +629,20 @@ list1 には含まれているが、list2 ... listN には含まれていない�
 ;;;         [bb x] -> 10
 ;;; ＠
 ;;; set-job-name                           関数[#!expr]
-;;; 
+;;;
 ;;; <説明>
 ;;;   形式 : set-job-name j-name &opt process
 ;;; process に、ジョブ名 j-name を与える。process が省略されるとカレント
 ;;; プロセスが使われる。
 ;;; ＠
 ;;; set-keep-generation-count              関数[#!expr]
-;;; 
+;;;
 ;;; <説明>
 ;;;   形式 : set-keep-generation-count pathname &opt kgc
 ;;; ファイル pathname が、ファイルシステムで何世代保存されるかを決定する。
 ;;; 例えば、kgc が 3 のとき、pathname の最新バーションを含めてそれより古い
 ;;;  3 世代のバージョンを保存する。kgc の既定値は 1 。
-;;; 
+;;;
 ;;; <例>
 ;;;         (set-keep-generation-count "cs:<dire>test.tao" 3) -> 3
 ;;;         vdir "test.tao"
@@ -642,25 +656,25 @@ list1 には含まれているが、list2 ... listN には含まれていない�
 ;;;                     .4
 ;;; ＠
 ;;; set-loc-offset                         関数[#!subr]
-;;; 
+;;;
 ;;; <説明>
 ;;;   形式 : set-loc-offset x y
-;;; ロックビット x のオフセット を、y (メモリブロック内の語アドレスを示す 
+;;; ロックビット x のオフセット を、y (メモリブロック内の語アドレスを示す
 ;;; 0 から始まる数字) にセットする。ロックビットのオフセットへのアクセス
 ;;; 関数は、loc-ossset 。
-;;; 
+;;;
 ;;; <例>
-;;;         (!a (get-memblk #!8b-memblk 16)) -> 
+;;;         (!a (get-memblk #!8b-memblk 16)) ->
 ;;;         	{memblk}489557(#!8b-memblk . {dnil}16)
-;;;         (!b (locbit a 10)) -> 
+;;;         (!b (locbit a 10)) ->
 ;;;             {locbit}{memblk}489557(#!8b-memblk . {dnil}16) . {dnil}10)
 ;;;         (loc-offset b) -> 10
-;;;         (set-loc-offset b 1) -> 
+;;;         (set-loc-offset b 1) ->
 ;;;             {locbit}{memblk}489557(#!8b-memblk . {dnil}16) . {dnil}1)
 ;;;         (loc-offset b) -> 1
 ;;; ＠
 ;;; set-macro-character                    関数[#!expr]
-;;; 
+;;;
 ;;; <説明>
 ;;;   形式 : set-macro-character char func
 ;;;         	 &opt non-terminating-p readtable
@@ -670,33 +684,33 @@ list1 には含まれているが、list2 ... listN には含まれていない�
 ;;; 込まれることができる。get-macro-character 参照。
 ;;; ＠
 ;;; set-priority                           関数[#!expr]
-;;; 
+;;;
 ;;; <説明>
 ;;;   形式 : set-priority n &opt process
 ;;; process に優先順位 n を与える。process が省略されるとカレントプロセス
 ;;; が使われる。
 ;;; ＠
 ;;; set-quantum                            関数[#!expr]
-;;; 
+;;;
 ;;; <説明>
 ;;;   形式 : set-quantunm n &opt process
 ;;; process に quantum 値 n を与える。process が省略されるとカレント
 ;;; プロセスが使われる。
 ;;; ＠
 ;;; set-syntax-from-char                   関数[#!expr]
-;;; 
+;;;
 ;;; <説明>
 ;;;   形式 set-syntax-from-char to-char from-char
 ;;;         	 &opt to-readtable from-readtable
 ;;; 読み込み表 to-readtable 中の to-char を、読み込み表 from-readtable 中
-;;; の from-char と同一にする。to-readtable の既定値は現在の読み込み表 
-;;; (変数 *readtable* の値) 。from-readtable の既定値は nil で、標準の 
+;;; の from-char と同一にする。to-readtable の既定値は現在の読み込み表
+;;; (変数 *readtable* の値) 。from-readtable の既定値は nil で、標準の
 ;;; Lisp 読み込み表からの構文を用いることを意味している。
 ;;; ＠
 ;;; set-sysmode                            関数[#!expr]
-;;; 
+;;;
 ;;; <説明>
-;;;   形式 : set-sysmode &key :car-nil-error :cdr-nil-error 
+;;;   形式 : set-sysmode &key :car-nil-error :cdr-nil-error
 ;;;                     :one-char-string :common-lisp :negation-as-failure
 ;;; カレントプロセスの処理モードをセットする。
 ;;; (1)  :car-nil-error が nil 以外の値なら、フォーム (car nil) はエラー
@@ -704,7 +718,7 @@ list1 には含まれているが、list2 ... listN には含まれていない�
 ;;; (2)  :cdr-nil-error が nil 以外の値なら、フォーム (cdr nil) はエラー
 ;;; になる。 nil なら、nil を返す。既定値は nil 。
 ;;; (3)  :one-char-string の値が nil 以外なら、キャラクタ "a" は "a" として
-;;; 読まれる。nil なら、キャラクタ "a" は #¥a として読まれる。キャラクタ 
+;;; 読まれる。nil なら、キャラクタ "a" は #¥a として読まれる。キャラクタ
 ;;; #¥a は、この引数の値が nil であろうとなかろうと #¥a として読まれる。
 ;;; 既定値は nil 。
 ;;; (4)  :common-lisp の値が nil 以外なら、以下の 4 つのことが行われる。
@@ -718,23 +732,23 @@ list1 には含まれているが、list2 ... listN には含まれていない�
 ;;; で、エラー "unbound variable" となると、バックトラックが起こる。つまり、
 ;;; "unbound variable" は nil と同じであると見なされる。値が nil なら、
 ;;; エラー "unbound variable" はエラーそのまま。既定値は nil 。
-;;; 
+;;;
 ;;; <例>
 ;;;         (set-sysmode :common-lisp t) -> ok
 ;;;         (set-sysmode :car-nil-error t) -> ok
 ;;; ＠
 ;;; sys:set-tage                           関数[#!subr]
-;;; 
+;;;
 ;;; <説明>
 ;;;   形式 : sys:set-tage x
 ;;; tage ビットが on になり、x が返る。
-;;; 
+;;;
 ;;; <例>
 ;;;         (sys:set-tage nil) -> ()
 ;;;         (sys:set-tage 100) -> #144 [8進の shortnum にする]
 ;;; ＠
 ;;; set-terminal-type                      関数[#!expr]
-;;; 
+;;;
 ;;; <説明>
 ;;;   形式 : set-terminal-type def-type
 ;;; ユーザに terminal タイプを次の様に尋ねる。
@@ -744,14 +758,14 @@ list1 には含まれているが、list2 ... listN には含まれていない�
 ;;; のターミナルになる。login するとき使用される。
 ;;; ＠
 ;;; setf                                   関数[#!macro]
-;;; 
+;;;
 ;;; <説明>
 ;;;   形式 : setf &rest place datum
 ;;; datum が place に格納される。datum を格納できる場所を示しうる関数に、
 ;;; car,cdr, cadr,nth,first,symbol-value,nthv,array,shead,substring 等が
 ;;; ある。これらの関数は setf の最初の引数として使用可能。
 ;;; TAO では、setf の代わりにスペシャルシンボルマクロ ! を使う方が良い。
-;;; 
+;;;
 ;;; <例>
 ;;;         (setf x 1 y 2) -> 2
 ;;;         x = 1, y = 2
@@ -763,13 +777,13 @@ list1 には含まれているが、list2 ... listN には含まれていない�
 ;;;         y -> "qweasdf"
 ;;; ＠
 ;;; setq                                   関数[#!macro]
-;;; 
+;;;
 ;;; <説明>
 ;;;   形式 : setq &rest x1 val1 x2 val2 ...
 ;;; まず val1 を評価しその結果を x1 に格納する。次に val2 を評価しその結果
 ;;; を x2 に格納する。 ...  そして、代入された最後の値を返す。
 ;;; setq より ! のほうが速い。
-;;; 
+;;;
 ;;; <例>
 ;;;         (setq x 1 y 2 z 3) -> 3
 ;;;         x = 1, y = 2 , z = 3
@@ -777,30 +791,30 @@ list1 には含まれているが、list2 ... listN には含まれていない�
 ;;;         x = 5, y = 8 ,z = 13
 ;;; ＠
 ;;; seventh                                関数[#!macro]
-;;; 
+;;;
 ;;; <説明>
 ;;;   形式 : seventh list
 ;;; list の 7 番目の要素の値を返す (最初の要素が 1 番目)。
-;;; 
+;;;
 ;;; <例>
 ;;;         (seventh '(0 1 2 3 4 5 6 7 8))  ->  6
 ;;; ＠
 ;;; sg-value                               関数[#!subr]
-;;; 
+;;;
 ;;; <説明>
 ;;;   形式 : sg-value var
 ;;; セミグローバル変数 var の値を返す。
-;;; 
+;;;
 ;;; <例>
 ;;;         (semi-globals abc) ->
-;;;         (+ - * / ** ¥++ // *** *prompt-function* 
+;;;         (+ - * / ** ¥++ // *** *prompt-function*
 ;;;          *history-command-overwrite* it that ¥*** /// *screen-outfile*
 ;;;          *ansi$caution-type* abc)
 ;;;         (!abc '(a b c)) -> (a b c)
 ;;;         (sg-value 'abc) -> (a b c)
 ;;; ＠
 ;;; shadow                                 関数[#!expr]
-;;; 
+;;;
 ;;; <説明>
 ;;;   形式 : shadow symbol &opt package
 ;;; symbol と同じ印字名のシンボルが package に存在しなければ新しいシンボル
@@ -816,7 +830,7 @@ list1 には含まれているが、list2 ... listN には含まれていない�
 ;;;         (if 2) -> 2
 ;;; ＠
 ;;; shadowing-import                       関数[#!expr]
-;;; 
+;;;
 ;;; <説明>
 ;;;   形式 : shadowing-import symbol &opt package
 ;;; import と同じ操作を行なうが symbol が package 中にすでにアクセス可能な
@@ -873,12 +887,12 @@ n < 0 のときは、object の最後の n 文字から成る部分ストリン�
 
 ;;; ＠
 ;;; shift#                                 ロカティブオペレータ
-;;; 
+;;;
 ;;; <説明>
 ;;; 形式 : loc shift# n
 ;;;   loc について論理シフト操作を行う。 n で左へ何ビットシフトされるかが
 ;;; 指定される。
-;;; 
+;;;
 ;;; <例>
 ;;;         (signed-integer-locatives p q r s) -> (p q r s)
 ;;;         (p <- #5252) -> 2730
@@ -886,13 +900,13 @@ n < 0 のときは、object の最後の n 文字から成る部分ストリン�
 ;;;         (s <- (p shift# 2 )) -> 1365 (#2525)
 ;;; ＠
 ;;; shiftf                                 関数[#!macro]
-;;; 
+;;;
 ;;; <説明>
 ;;;   形式 : shiftf &rest x1 x2 ... xn value
 ;;; x1 x2 x3 ... value を評価し、各値を右から左にシフトする。
 ;;; x2 の値は、x1 に格納され、... value は xnに格納され、x1 のもとの値が
 ;;; 返される。
-;;; 
+;;;
 ;;; <例>
 ;;;         (setq x (list 'a 'b 'c)) -> (a b c)
 ;;;         (shiftf (cadr x ) 'd) -> b
@@ -902,35 +916,35 @@ n < 0 のときは、object の最後の n 文字から成る部分ストリン�
 ;;;         x -> (a b c d)
 ;;; ＠
 ;;; short-float-epsilon                    定数
-;;; 
+;;;
 ;;; <説明>
 ;;;   システムで処理し得る最小の負の short-float が格納されている
 ;;; システム定数であり、本システムでは、5.72204e-6。
 ;;; ＠
 ;;; short-float-negative-epsilon           定数
-;;; 
+;;;
 ;;; <説明>
 ;;;   システムで処理し得る最小の負の short-float が格納されている
 ;;; システム定数であり、本システムでは、3.8147e-6。
 ;;; ＠
 ;;; short-site-name                        関数[#!expr]
-;;; 
+;;;
 ;;; <説明>
 ;;;   形式 : short-site-name
 ;;; コンピュータハードウェアの物理的な位置を識別する文字列を短い名前で返す。
 ;;; ELIS システムでは、"NUE group" が返る。
-;;; 
+;;;
 ;;; <例>
 ;;;         "NUE group"
 ;;;         "MIT AI Lab"
 ;;;         "CMU-CSD"
 ;;; ＠
 ;;; shortfloatp                            関数[#!subr]
-;;; 
+;;;
 ;;; <説明>
 ;;;   形式 : shortfloatp number
 ;;; number が shortfloat なら、number を返し、それ以外なら nil を返す。
-;;; 
+;;;
 ;;; <例>
 ;;;         (shortfloatp 3.6) -> 3.6
 ;;;         (shortfloatp 3.6f0) -> nil
@@ -938,12 +952,12 @@ n < 0 のときは、object の最後の n 文字から成る部分ストリン�
 ;;;         (shortfloatp 10) -> nil
 ;;; ＠
 ;;; shortnump                              関数[#!subr]
-;;; 
+;;;
 ;;; <説明>
 ;;;   形式 : shortnump number
 ;;; number が shortnum ( -2**23 から 2**23-1) ならば、number を返し、それ
 ;;; 以外なら nil を返す。
-;;; 
+;;;
 ;;; <例>
 ;;;         (shortnump 1) -> 1
 ;;;         (shortnump -8388608) -> -8388608 (the smallest shortnum)
@@ -951,11 +965,11 @@ n < 0 のときは、object の最後の n 文字から成る部分ストリン�
 ;;;         (shortnump 12345678) -> nil
 ;;; ＠
 ;;; show-bit-vector                        関数[#!expr]
-;;; 
+;;;
 ;;; <説明>
 ;;;   形式 : show-bit-vector arg
 ;;; arg がビットベクタであれば、そのビットベクタの各要素の値を返す。
-;;; 
+;;;
 ;;; <例>
 ;;;         (!m (make-array 5 :element-type 'bit)) ->
 ;;;         	{memblk}488998(#!1b-memblk . {dnil}5)
@@ -969,46 +983,46 @@ n < 0 のときは、object の最後の n 文字から成る部分ストリン�
 ;;;         (show-bit-vector c) -> (#0 #0 #0 #0 #0 #0)
 ;;; ＠
 ;;; show-class                             関数[#!macro]
-;;; 
+;;;
 ;;; <説明>
 ;;;   形式 : show-class class
 ;;; class のクラスベクタの内容を表示する。
-;;; 
+;;;
 ;;; <例>
 ;;;         (defclass abc () ((a 1) (b 2)) () :gettable :settable) -> abc
 ;;;         (show-class 'abc)   (クラスベクタの内容を表示)
 ;;; ＠
 ;;; show-class-variables                   関数[#!expr]
-;;; 
+;;;
 ;;; <説明>
 ;;;   形式 : show-class-variables class
 ;;; class のクラス変数の内容を表示する。
-;;; 
+;;;
 ;;; <例>
-;;; 
+;;;
 ;;;         (defclass test () ((a 1) (b 2)) () :gettable :settable)
 ;;;         	-> test
 ;;;         (show-class-variables test) -> No class vars for test
 ;;;         			       t
 ;;;         (defclass abc (x) ((a 1) (b 2)) () :gettable :settable) -> abc
-;;;         (show-class-variables abc) -> 
+;;;         (show-class-variables abc) ->
 ;;;         	vtitle: {vector}1811502(class . 12) vsize:2
 ;;;         	0 kdr: x
 ;;;         	1 kar: nil
 ;;;         {vector}1806440({vector}1811502(class . 12) .2)
 ;;; ＠
 ;;; show-terminal                          関数[#!expr]
-;;; 
+;;;
 ;;; <説明>
 ;;;   形式 : show-terminal
 ;;; 現在のターミナルの状態を表示する。
 ;;; ＠
 ;;; show-vector                            関数[#!expr]
-;;; 
+;;;
 ;;; <説明>
 ;;;   形式 : show-vector vector
 ;;; vector の内容をプリントする。トップレベルで使用すること。
-;;; 
+;;;
 ;;; <例>
 ;;;         (!x (vcons 'asd 3)) -> {vector}57961(asd . 3)
 ;;;         (show-vector x) ->  vtitle:asd vsize:3
@@ -1017,20 +1031,20 @@ n < 0 のときは、object の最後の n 文字から成る部分ストリン�
 ;;;                                 2 kdr: nil
 ;;; ＠
 ;;; signed-integer-locative-arrays         関数[#!macro]
-;;; 
+;;;
 ;;; <説明>
 ;;;   形式 : signed-integer-locative-arrays &rest array-spec
-;;; 要素のデータ型が符号付き整数ロカティブである配列を生成し、array-spec 
+;;; 要素のデータ型が符号付き整数ロカティブである配列を生成し、array-spec
 ;;; をリストにして返す。array-spec は、(var dimension) という形式。ここで、
 ;;; var は生成される配列の名前であり、dimension は配列の次元を指定する整数
 ;;; のリスト。
-;;; 
+;;;
 ;;; <例>
 ;;;         (signed-integer-locative-arrays (a1 10) (a2 (-5 4) 47))
 ;;;         -> ((a1 10) (a2 (-5 4) 47))
 ;;;         2 つの配列 a1 a2 が生成。
 ;;;         a1 は、ランクが 1 で、次元が 0 から 9 である配列。
-;;;         a2 は、ランクが 2 で、第 1 次元が -5 から 4 、第 2 次元が 
+;;;         a2 は、ランクが 2 で、第 1 次元が -5 から 4 、第 2 次元が
 ;;;         0 から 46 である配列。
 ;;;         ((a1 5) <- 123) -> 123
 ;;;         (a1 5) -> 123
@@ -1038,26 +1052,26 @@ n < 0 のときは、object の最後の n 文字から成る部分ストリン�
 ;;;         (a2 -3 39) -> 456
 ;;; ＠
 ;;; signed-integer-locatives               関数[#!exprdyn]
-;;; 
+;;;
 ;;; <説明>
 ;;;   形式 : signed-integer-locatives &rest var1 var2 ... varN
 ;;; N 個の 64 ビット符号つき整数ロカティブを生成し、それらを対応する各々の
 ;;; 変数に代入し、リスト (var1 var2 ... varN) を返す。初期設定は行わない。
-;;; 
+;;;
 ;;; <例>
 ;;;         (signed-integer-locatives d e f g h) -> (d e f g h)
 ;;;         d -> 476365
 ;;;         e -> 476366
 ;;; ＠
 ;;; signum                                 関数[#!subr]
-;;; 
+;;;
 ;;; <説明>
 ;;;   形式 : signum number
 ;;; 有理数 number の値に対応して以下の値を返す。
 ;;;         負      -1
 ;;;         0        0
 ;;;         正       1
-;;; 
+;;;
 ;;; <例>
 ;;;         (signum 0) -> 0
 ;;;         (signum -3.7l5) -> -1.0
@@ -1066,109 +1080,109 @@ n < 0 のときは、object の最後の n 文字から成る部分ストリン�
 ;;;         (signum #c(0.0 -14.7)) -> #c(0.0f0 -1.0f0)
 ;;; ＠
 ;;; common:simple-array-p                  関数[#!expr]
-;;; 
+;;;
 ;;; <説明>
 ;;;   形式 : common:simple-array-p array
 ;;; array が単純配列 なら、array を返し、それ以外なら nil を返す。単純配列
 ;;; とは、共有されてなく、かつ adjustable でなくさらにフィルポインタを持た
 ;;; ない配列のこと。
-;;; 
+;;;
 ;;; <例>
 ;;;         (!x (array '(2 2))) -> {applobj}1783962(#!array . 8)
 ;;;         (common:simple-array-p x) -> {applobj}1783962(#!array . 8)
 ;;; ＠
 ;;; common:simple-bit-vector-p             関数[#!expr]
-;;; 
+;;;
 ;;; <説明>
 ;;;   形式 : common:simple-bit-vector-p vector
 ;;; vector が単純ビットベクタであれば vector を、それ以外なら nil を返す。
 ;;; ＠
 ;;; common:simple-string-p                 関数[#!expr]
-;;; 
+;;;
 ;;; <説明>
 ;;;   形式 : common:simple-string-p string
 ;;; string が単純文字列であれば string を、それ以外なら nil を返す。
-;;; 
+;;;
 ;;; <例>
 ;;;         (common:simple-string-p "abcd") -> "abcd"
 ;;;         (common:simple-string-p "TAO") -> "TAO"
 ;;;         (common:simple-string-p "a") -> nil
 ;;; ＠
 ;;; common:simple-vector-p                 関数[#!macro]
-;;; 
+;;;
 ;;; <説明>
 ;;;   形式 : common:simple-vector-p vector
 ;;; vector が単純ベクタであれば t を、それ以外なら nil を返す。
-;;; 
+;;;
 ;;; <例>
 ;;;         (common:simple-vector-p #(1 2 3 4 5))
 ;;;         	-> {vector}80775(simple-vector . 5)
 ;;; ＠
 ;;; sin                                    関数[#!subr]
-;;; 
+;;;
 ;;; <説明>
 ;;;   形式 : sin number
 ;;; numbner (単位:ラジアン) に対応する正弦値を返す。
-;;; 
+;;;
 ;;; <例>
 ;;;         (sin [pi / 6]) -> 0.50f0
 ;;;         (sin [pi / 4]) -> 0.707106781186548f0
 ;;; ＠
 ;;; single-float-epsilon                   定数
-;;; 
+;;;
 ;;; <説明>
 ;;;   システムで処理し得る最小の正の single-float が格納されている
 ;;; システム定数であり、本システムでは、1.11022302462516f-16。
 ;;; ＠
 ;;; single-float-negative-epsilon          定数
-;;; 
+;;;
 ;;; <説明>
 ;;;   システムで処理し得る最小の負の single-float が格納されている
 ;;; システム定数であり、本システムでは、5.55111512312579f-17。
 ;;; ＠
 ;;; singlefloatp                           関数[#!subr]
-;;; 
+;;;
 ;;; <説明>
 ;;;   形式 : singlefloatp number
 ;;; number が単精度の浮動小数点数なら t 、それ以外なら nil を返す。
-;;; 
+;;;
 ;;; <例>
 ;;;         (singlefloatp 1.23) -> nil
 ;;;         (singlefloatp 1.23f0) -> t
 ;;; ＠
 ;;; sinh                                   関数[#!subr]
-;;; 
+;;;
 ;;; <説明>
 ;;;   形式 : sinh number
 ;;; number の値 (単位:ラジアン) に対応する双曲的正弦値を返す。
-;;; 
+;;;
 ;;; <例>
 ;;;         (sinh 0.5f0) -> 0.521095305493748f0
 ;;;         (sinh 1.0f0) -> 1.1752011936438f0
 ;;; ＠
 ;;; sixth                                  関数[#!macro]
-;;; 
+;;;
 ;;; <説明>
 ;;;   形式 : sixth list
 ;;; list の 6 番目の要素の値を返す (最初の要素が 1 番目)。
-;;; 
+;;;
 ;;; <例>
 ;;;         (sixth '(0 1 2 3 4 5 6 7 8))  ->  5
 ;;; ＠
 ;;; sleep                                  関数[#!expr]
-;;; 
+;;;
 ;;; <説明>
 ;;;   形式 : sleep number &opt integer
 ;;; 実時間で、number とほぼ同じ秒数の間、実行を止め、その後、実行を再開する。
 ;;; 返される値は、t 。
-;;; 
+;;;
 ;;; <例>
 ;;;         (sleep 8.)     8 秒間実行をやめ、その後実行を続ける。
 ;;;         (sleep 1 30) 1.5 秒   		"
 ;;;         (sleep 2.4)  2.4 秒    		"
 ;;; ＠
 
-(defun slength (string)
+(defun tao:slength (string)
   "slength                                関数[#!subr]
 
 <説明>
@@ -1179,9 +1193,10 @@ string の長さを返す。
         (slength \"\") -> 0
         (slength \"a\") -> 1
         (slength \"abcdefghijkl\") -> 12"
+  (declare (string string))
   (cl:length string))
 
-(defun slex (string1 string2)
+(defun tao:slex (string1 string2)
   "slex                                   関数[#!subr]
 
 <説明>
@@ -1206,13 +1221,13 @@ string2 の値を返し、そうでなければ nil を返す。大文字と小�
 	   (do ((str string2 (subseq str 1))
 		(cnt len2 (1- cnt)))
 	       ((cond ((funcall eql= string1 (subseq str 0 len1)))
-		      ((and (= cnt len1) 
+		      ((and (= cnt len1)
 			    (funcall (complement eql=) string1 str))
 		       (return nil))
 		      ('T nil))
 		(- len2 cnt)))))))
 
-(defun smemq (string1 string2)
+(defun tao:smemq (string1 string2)
   "smemq                                  関数[#!subr]
 
 <説明>
@@ -1232,7 +1247,7 @@ string1 の文字列パターンが、string2 の部分ストリングとして�
         (smemq \"あ\" \"ぁっ\") -> nil"
   (smemq* string1 string2 #'string-equal))
 
-(defun smemq-case (string1 string2)
+(defun tao:smemq-case (string1 string2)
   "smemq-case                             関数[#!subr]
 
 <説明>
@@ -1249,7 +1264,7 @@ string1 の文字列パターンが、string2 の部分ストリングとして�
         (smemq-case \"あ\" \"ぁっ\") -> nil"
   (smemq* string1 string2 #'string=))
 
-(defun snull (string)
+(defun tao:snull (string)
   "snull                                  関数[#!subr]
 
 <説明>
@@ -1266,11 +1281,11 @@ string が null ストリング (\"\") なら、\"\" を返し、そうでなけ
 
 ;;; ＠
 ;;; software-type                          関数[#!expr]
-;;; 
+;;;
 ;;; <説明>
 ;;;   現在サポートされているソフトウェアの一般的な名前を識別する文字列を
 ;;; 返す。ELIS システムでは、"NUE" が返る。
-;;; 
+;;;
 ;;; <例>
 ;;;         "NUE"
 ;;;         "Spice"
@@ -1278,29 +1293,29 @@ string が null ストリング (\"\") なら、\"\" を返し、そうでなけ
 ;;;         "ITS"
 ;;; ＠
 ;;; software-version                       関数[#!expr]
-;;; 
+;;;
 ;;; <説明>
 ;;;   現在サポートされているソフトウェアのバージョンを識別する文字列を返す。
-;;; 
+;;;
 ;;; <例>
 ;;;         "0.26 [25-Apr-87] Lap file becomes bex"
 ;;; ＠
 ;;; some                                   関数[#!expr]
-;;; 
+;;;
 ;;; <説明>
 ;;;   形式 : some pred seq1 &rest seq2 ... seqN
-;;; 条件 pred をシーケンス seq1 seq2 ... seqN に順番に適用し、最初に、nil 
+;;; 条件 pred をシーケンス seq1 seq2 ... seqN に順番に適用し、最初に、nil
 ;;; 以外の値になったところで、直ちにその値を返し、最後まで nil であった場合
 ;;; には、nil を返す。シーケンスの数は、pred がとる引数の数と同じでなければ
 ;;; ならない。
-;;; 
+;;;
 ;;; <例>
 ;;;         (some #'oddp '(1 2 3)) -> 1
 ;;;         (some #'oddp '(2 4 6)) -> nil
 ;;;         (some #'integerp '(1.2 3.4 5 6.7)) -> 5
 ;;;         (some #'> '(1 2 3 4 5) '(0.5 1.4 2 5.9 3)) -> 2
 
-(defun sort (list func)
+(defun tao:sort (list func)
   "sort                                   関数[#!subr]
 
 <説明>
@@ -1318,11 +1333,11 @@ list の全ての要素を、関数 func に従い並べ変え、その結果を
   (cl:sort list func))
 
 ;;; common:sort                            関数[#!macro]
-;;; 
+;;;
 ;;; <説明>
 ;;;   形式 : common:sort seq pred &key :key
 ;;; シーケンス seq を条件 pred に従って並びかえ、結果を返す。
-;;; 
+;;;
 ;;; <例>
 ;;;         (!a '("abc" "qwe" "dfg" "ert"))
 ;;;         (!b (common:sort a #'string-lessp))
@@ -1330,13 +1345,13 @@ list の全ての要素を、関数 func に従い並べ変え、その結果を
 ;;;         b -> ("abc" "dfg" "ert" "qwe")
 ;;; ＠
 
-(defun sortcar (list func)
+(defun tao:sortcar (list func)
   "sortcar                                関数[#!expr]
 
 <説明>
   形式 : sortcar list func
 list の各要素を各々の car 部に着目して、関数 func に従って並べかえ、
-結果を返す。並べかえ処理が list それ自身に対してでなく,各要素の 
+結果を返す。並べかえ処理が list それ自身に対してでなく,各要素の
 car に対して適用されるということを除けば、sort と同じ。
 
 <例>
@@ -1350,15 +1365,15 @@ car に対して適用されるということを除けば、sort と同じ。
 
 ;;; ＠
 ;;; special-form-p                         関数[#!expr]
-;;; 
+;;;
 ;;; <説明>
 ;;;   形式 : special-form-p symbol
 ;;; symbol が特殊形式なら t、そうでないならば nilを返す。特殊形式の例は
-;;; block, catch, compiler-let, declare, eval-when, flet,common-function, 
+;;; block, catch, compiler-let, declare, eval-when, flet,common-function,
 ;;; go, if, labels, let, let*, macrolet, multiple-value-call,
 ;;; multiple-value-prog1, progn, progv, quote, return-from, setq,
 ;;; common:tagbody, the, throw, unwind-protect 等。
-;;; 
+;;;
 ;;; <例>
 ;;;         (special-form-p 'if -> {applobj}36593(#!macro . 6)
 ;;;         (special-form-p 'setq) -> {applobj}36470(#!macro . 6)
@@ -1367,7 +1382,7 @@ car に対して適用されるということを除けば、sort と同じ。
 ;;;         (special-form-p 'cond -> {applobj}32990(#!subr . 6)
 ;;; ＠
 ;;; special-stream                         クラス
-;;; 
+;;;
 ;;; <説明>
 ;;;   ターミナルクラス、文字列入力ストリーム、文字列出力ストリーム、
 ;;; 双方向ストリーム、エコーストリーム、ブロードキャストストリーム、
@@ -1377,32 +1392,32 @@ car に対して適用されるということを除けば、sort と同じ。
 ;;; 作れる。それは、micro-code プログラムによってサポートされている。
 ;;; ＠
 ;;; special-stream-p                       関数[#!expr]
-;;; 
+;;;
 ;;; <説明>
 ;;;   形式 : special-stream-p stream
 ;;; stream が normal-stream ならば stream を返し、そうでなければ nil を返す。
 ;;; ＠
 ;;; special-variables                      関数[#!subr]
-;;; 
+;;;
 ;;; <説明>
 ;;;   形式 : special-variables &rest var1 var2 ... varN
 ;;; var1 var2 ... varN をスペシャル変数、つまり静的スコープの外側から
 ;;; アクセスできる変数として宣言し、その名前を返す。これらの変数を宣言する
 ;;; これは、プログラムの本体もしくは関数の本体の 1 番最初に指定する。
-;;; 
+;;;
 ;;; <例>
 ;;;         (de main-func (x y &aux status line)
 ;;;             (special-variables status line)
 ;;;                  ... )
 ;;; ＠
 ;;; speed                                  関数[#!expr]
-;;; 
+;;;
 ;;; <説明>
 ;;;   形式 : speed form
 ;;; form を実行するのに費やされたネット時間を返す。
 ;;; ＠
 
-(defmacro spop (object &optional (n 1))
+(defmacro tao:spop (object &optional (n 1))
   "spop                                   関数[#!subr]
 
 <説明>
@@ -1426,17 +1441,17 @@ object はストリングかアトムでなければならない。
 
 ;;; ＠
 ;;; spy                                    関数[#!expr]
-;;; 
+;;;
 ;;; <説明>
 ;;;   形式 : spy terno
 ;;; ターミナル terno をスパイする。
 ;;; ＠
 ;;; sqrt                                   関数[#!subr]
-;;; 
+;;;
 ;;; <説明>
 ;;;   形式 : sqrt number
 ;;; number の主平方根の値を返す。number が負の場合、複素数になる。
-;;; 
+;;;
 ;;; <例>
 ;;;         (sqrt 9.0) -> 3.0
 ;;;         (sqrt -9.0) -> エラー
@@ -1444,7 +1459,7 @@ object はストリングかアトムでなければならない。
 ;;;         (sqrt -9) -> #c(0.0f0 3.0f0)
 ;;; ＠
 
-(defun sreverse (string)
+(defun tao:sreverse (string)
   "sreverse                               関数[#!subr]
 
 <説明>
@@ -1459,13 +1474,13 @@ string を反対に並び換え、そのコピーを返す。
 
 ;;; ＠
 ;;; sstatus                                関数[#!expr]
-;;; 
+;;;
 ;;; <説明>
-;;;   形式 : sstatus bas:option char bas:arg &opt bas:chn login 
+;;;   形式 : sstatus bas:option char bas:arg &opt bas:chn login
 ;;;                                               bas:meaning
-;;; キーボードのキー割り当てを変更する。現在、ttyint だけが、bas:option 
+;;; キーボードのキー割り当てを変更する。現在、ttyint だけが、bas:option
 ;;; に対して許された値。
-;;; 
+;;;
 ;;; <例>
 ;;;         (seq (sstatus ttyint #101 #102) (sstatus ttyint #102 #101) )
 ;;;         (それがターミナルなら) *standard-input* についてのキーボード
@@ -1474,7 +1489,7 @@ string を反対に並び換え、そのコピーを返す。
 ;;;         元のキーボード指定に戻す。
 ;;;         (sstatus ttyint #1 'xoff)
 ;;;         ctrl-A の内容を xoff code にセットする。
-;;;         (sstatus ttyint #2 'xon) 
+;;;         (sstatus ttyint #2 'xon)
 ;;;         ctrl-B の内容を xon code にセットする。
 ;;;         (sstatus ttyint #1 'break)
 ;;;         ctrl-A の内容を通常の ctrl-C としてセットする。
@@ -1488,14 +1503,14 @@ string を反対に並び換え、そのコピーを返す。
 ;;;         ctrl-A に新しいキーボード中断関数を登録する。
 ;;; ＠
 ;;; common:stable-sort   未インプリメント  関数[#!macro]
-;;; 
+;;;
 ;;; <説明>
-;;;   形式 : common:stable-sort seq pred &key :key 
+;;;   形式 : common:stable-sort seq pred &key :key
 ;;; シーケンス seq を条件 pred に従って並べ変え、その結果を返す。
 ;;; 安定なソート。
 ;;; ＠
 
-(defun stail (string &optional (n 1))
+(defun tao:stail (string &optional (n 1))
   "stail                                  関数[#!subr]
 
 <説明>
@@ -1513,7 +1528,7 @@ n < 0 のとき、string の最後から n 文字を取り除いた部分文字�
         (stail \"string\" 0) -> \"string\"
         (stail \"\" 3) -> \"\"
         (stail \"さようなら\" 3) -> \"なら\""
-  (let ((string 
+  (let ((string
 	 (typecase string
 	   (string string)
 	   (atom   (string string))
@@ -1525,11 +1540,11 @@ n < 0 のとき、string の最後から n 文字を取り除いた部分文字�
 
 ;;; ＠
 ;;; standard-char-p                        関数[#!subr]
-;;; 
+;;;
 ;;; <説明>
 ;;;   形式 : standard-char-p char
 ;;; char が標準文字であれば char を返し、それ以外なら nil を返す。
-;;; 
+;;;
 ;;; <例>
 ;;;         (standard-char-p #¥a) -> "a"
 ;;;         (standard-char-p #¥space) -> #¥space
@@ -1541,20 +1556,20 @@ n < 0 のとき、string の最後から n 文字を取り除いた部分文字�
 ;;;         (standard-char-p #¥Page) -> nil
 ;;; ＠
 ;;; standard-read                          関数[#!expr]
-;;; 
+;;;
 ;;; <説明>
 ;;;   形式 : standard-read &opt stream
 ;;; *read-base* が 10 、*read-eof-value* が :eof のような既定値をとる
 ;;; パラメータで read を実行する。
 ;;; ＠
 ;;; standard-write                         関数[#!expr]
-;;; 
+;;;
 ;;; <説明>
 ;;;   形式 : standard-write object &ot stream
-;;; *print-base* が 10、*print-case* が :downcase、*print-package* が t 
+;;; *print-base* が 10、*print-case* が :downcase、*print-package* が t
 ;;; 等のように標準値をとるパラメータによって write を実行する。stream が
 ;;; 省略されると、*standard-output* の値が使われる。object を返す。
-;;; 
+;;;
 ;;; <例>
 ;;;         (standard-write 'abc) -> abc
 ;;;         			 abc
@@ -1564,13 +1579,13 @@ n < 0 のとき、string の最後から n 文字を取り除いた部分文字�
 ;;;         			      "abc def"
 ;;; ＠
 ;;; step                                   関数[#!expr]
-;;; 
+;;;
 ;;; <説明>
 ;;;   形式 : step &rest func
 ;;; func を評価し、func が返すものを返す。このとき、評価は 1 ステップずつ
 ;;; 逐次解釈的に進められる。ユーザは、会話的に 1 ステップずつ評価を進行させ
 ;;; ることもできる。
-;;; 
+;;;
 ;;; <例>
 ;;;           step
 ;;;           step>(car '(a b c))
@@ -1578,24 +1593,24 @@ n < 0 のとき、string の最後から n 文字を取り除いた部分文字�
 ;;;           stepper-end
 ;;; ＠
 ;;; stream-element-type                    関数[#!expr]
-;;; 
+;;;
 ;;; <説明>
 ;;;   形式 : stream-element-type stream
 ;;; stream から読み出される、あるいはそれに対して書き込まれるオブジェクト
 ;;; を表す型指定子を返す。
 ;;; ＠
 ;;; streamp                                関数[#!subr]
-;;; 
+;;;
 ;;; <説明>
 ;;;   形式 : streamp stream
 ;;; stream がストリームなら、stream を返し、それ以外なら nil を返す。
-;;; 
+;;;
 ;;; <例>
 ;;;         (!x (open "test.tao") -> {udo}1785013file-stream
 ;;;         (streamp x) -> {udo}1785013file-stream
 ;;; ＠
 
-(defun strh-to-char (string)
+(defun tao:strh-to-char (string)
   "strh-to-char                           関数[#!subr]
 
 <説明>
@@ -1608,7 +1623,7 @@ string を文字又はシンボルに変換し、その結果を返す。
   (cl:schar string 0))
 
 ;;; string                                 関数[#!expr]
-;;; 
+;;;
 ;;; <説明>
 ;;;   形式 : string arg
 ;;; arg の属性を評価し、その属性により以下の処理を行なう。
@@ -1616,7 +1631,7 @@ string を文字又はシンボルに変換し、その結果を返す。
 ;;;       文字                            -----> オブジェクトの値
 ;;;       シンボル                        -----> 印字名
 ;;;       文字列文字(string-char型の文字) -----> 1 個の文字を含む文字列
-;;; 
+;;;
 ;;; <例>
 ;;;         (string "ab") -> "ab"
 ;;;         (string 'ab) -> "ab"
@@ -1626,7 +1641,7 @@ string を文字又はシンボルに変換し、その結果を返す。
 ;;;         (string "1") -> "1"
 ;;; ＠
 ;;; string                                 クラス
-;;; 
+;;;
 ;;; <説明>
 ;;;   インスタンスは "anpontan", "a", "noroma" のように文字も文字列も可。
 ;;; 文字には 8 ビット文字と、16 ビット文字の 2 種類ある。8 ビット文字は文字、
@@ -1637,7 +1652,7 @@ string を文字又はシンボルに変換し、その結果を返す。
 ;;; ＠
 
 
-(defun string-append (&rest strings)
+(defun tao:string-append (&rest strings)
   "string-append                          関数[#!subr]
 
 <説明>
@@ -1649,22 +1664,22 @@ string1 string2 ... stringN を連結した文字列を作成し、返す。
         (string-append \"va\" nil \"la\") -> \"vala\" ( \"vanilla\"ではない)
         (string-append) -> \"\"
         (string-append \"漢\" \"字\" \"と\" \"ひらがな\") -> \"漢字とひらがな\""
-  (apply #'concatenate 'string 
-	 (mapcar 
-	  (lambda (s) (if (stringp s) 
-			  s 
-			  (string-downcase (string s)))) 
+  (apply #'concatenate 'string
+	 (mapcar
+	  (lambda (s) (if (stringp s)
+			  s
+			  (string-downcase (string s))))
 	  (remove nil strings))))
 
 ;(load "tests/test-tao-string-append")
 
 ;;; ＠
 ;;; string-byte-count                      関数[#!subr]
-;;; 
+;;;
 ;;; <説明>
 ;;;   形式 : string-byte-count string
 ;;; string のバイト数を返す。
-;;; 
+;;;
 ;;; <例>
 ;;;         (!x "a b c")
 ;;;         (string-byte-count x) -> 5
@@ -1672,7 +1687,7 @@ string1 string2 ... stringN を連結した文字列を作成し、返す。
 ;;;         (string-byte-count "あいうえお") -> 10
 ;;;         (string-byte-count "今日は") -> 6
 
-(defun string-capitalize (string &optional (start 0) end)
+(defun tao:string-capitalize (string &optional (start 0) end)
   "string-capitalize                      関数[#!subr]
 
 <説明>
@@ -1690,12 +1705,12 @@ start,end の既定値は、それぞれ 0 、string の長さ。
   (cl:string-capitalize string :start start :end end))
 
 ;;; common:string-capitalize               関数[#!macro]
-;;; 
+;;;
 ;;; <説明>
 ;;;   形式 : common:string-capitalize string &key :start :end
 ;;; string の :start と :end の範囲の単語の先頭文字を大文字にして返す。
 ;;; :start,:end の既定値は、それぞれ 0 、string の長さ。
-;;; 
+;;;
 ;;; <例>
 ;;;         (common:string-capitalize "hello") -> "Hello"
 ;;;         (common:string-capitalize "hello" :start 2) -> "heLlo"
@@ -1703,7 +1718,7 @@ start,end の既定値は、それぞれ 0 、string の長さ。
 ;;;                        -> "this Book is nice"
 ;;; ＠
 
-(defun string-char-p (char)
+(defun tao:string-char-p (char)
   "string-char-p                          関数[#!subr]
 
 <説明>
@@ -1727,7 +1742,7 @@ start,end の既定値は、それぞれ 0 、string の長さ。
 	  ((setq i (funcall elt> x y)) (- (1+ i)))
 	  ('T nil))))
 
-(defun string-compare (object1 object2)
+(defun tao:string-compare (object1 object2)
   "string-compare                         関数[#!subr]
 
 <説明>
@@ -1750,7 +1765,7 @@ object1 と object2 (文字列又はアトム) を比較し、その結果に従
   (string-compare-* object1 object2
 		    #'string-equal #'string-greaterp #'string-lessp))
 
-(defun string-compare-case (object1 object2)
+(defun tao:string-compare-case (object1 object2)
   "string-compare-case                    関数[#!subr]
 
 <説明>
@@ -1780,13 +1795,13 @@ object1 と object2 (文字列又はアトム) を比較し、その結果に従
 
 ;;; ＠
 ;;; string-downcase                        関数[#!subr]
-;;; 
+;;;
 ;;; <説明>
 ;;;   形式 : string-downcase string &opt start end
 ;;; string において、start と end の範囲の大文字をすべて対応する小文字に
 ;;; 変換し、その結果を返す。start,end の既定値は、それぞれ 0 、string の
 ;;; 長さ。
-;;; 
+;;;
 ;;; <例>
 ;;;         (string-downcase "ABCDEF" 2 4)
 ;;;                       -> "ABcdEF"
@@ -1796,12 +1811,12 @@ object1 と object2 (文字列又はアトム) を比較し、その結果に従
 ;;;                       -> "I like ORANGES"
 ;;; ＠
 ;;; common:string-downcase                 関数[#!macro]
-;;; 
+;;;
 ;;; <説明>
 ;;;   形式 : common:string-downcase string &key :start :end
 ;;; string の、:start と :end の文字列内の大文字を小文字に変換し、
 ;;; その結果を返す。:start,:end の既定値は、それぞれ 0 、string の長さ。
-;;; 
+;;;
 ;;; <例>
 ;;;         (common:string-downcase "ABCDEF" :start 2)
 ;;;                              -> "ABcdef"
@@ -1813,12 +1828,12 @@ object1 と object2 (文字列又はアトム) を比較し、その結果に従
 ;;;                              -> "I like APPLES"
 ;;; ＠
 ;;; string-equal                           関数[#!subr]
-;;; 
+;;;
 ;;; <説明>
 ;;;   形式 : string-equal string1 string2
 ;;; string1 と string2 を比較し、一致していれば string1 を返し、
 ;;; そうでなければ nil を返す。大文字と小文字の相違は無視する。
-;;; 
+;;;
 ;;; <例>
 ;;;         (string-equal "abc" "xyz") -> nil
 ;;;         (string-equal "abc" "abc") -> "abc"
@@ -1826,13 +1841,13 @@ object1 と object2 (文字列又はアトム) を比較し、その結果に従
 ;;;         (string-equal "さくら" "さく") -> nil
 ;;; ＠
 ;;; common:string-equal                    関数[#!macro]
-;;; 
+;;;
 ;;; <説明>
 ;;;   形式 : common:string-equal string1 string2
 ;;;         	     &key :start1 :end1 :start2 :end2
 ;;; string1 と string2 を比較し、一致していれば string1 を返し、
 ;;; そうでなければ nil を返す。大文字と小文字の相違は無視する。
-;;; 
+;;;
 ;;; <例>
 ;;;         (!x "a")
 ;;;         (!y "a")
@@ -1843,7 +1858,7 @@ object1 と object2 (文字列又はアトム) を比較し、その結果に従
 ;;;         (common:string-equal x y) -> nil
 ;;; ＠
 
-(defun string-fill (string character &optional (start 0) end)
+(defun tao:string-fill (string character &optional (start 0) end)
   "string-fill                            関数[#!subr]
 
 <説明>
@@ -1863,26 +1878,26 @@ string において、start と end の範囲の全ての文字を、character �
   (let ((len1 (cl:length string)))
     (if (< len1 start) ;範囲を越えた場合(> start end)というケースがあるのかは不明
 	string
-	(let ((fill-string (make-string len1 character)))
+	(let ((fill-string (tao:make-string len1 character)))
 	  (replace string fill-string :start1 start :end1 end)))))
 
 ;;; ＠
 ;;; common:string-fill                     関数[#!macro]
-;;; 
+;;;
 ;;; <説明>
 ;;;   形式 : common:string-fill string character &key :start :end
 ;;; string において、start と end の範囲の全ての文字を、character に変更
 ;;; し、その結果を返す。:start,:end の既定値は、それぞれ 0 、string の長さ。
-;;; 
+;;;
 ;;; <例>
 ;;;         (common:string-fill "abcdefg" 'c :start 1 :end 4)
 ;;;                          -> "acccefg"
 ;;;         (common:string-fill "かきくけこ" 'さ )
 ;;;                          -> "さささささ"
 ;;; ＠
-;;; 
+;;;
 
-(defun string-fill-pointer (string)
+(defun tao:string-fill-pointer (string)
   "string-fill-pointer                    関数[#!subr]
 
 <説明>
@@ -1902,13 +1917,13 @@ string において、start と end の範囲の全ての文字を、character �
 
 
 
-(declaim (inline string-greater-or-equal))
-(defun string-greater-or-equal (string1 string2)
+(declaim (inline tao:string-greater-or-equal))
+(defun tao:string-greater-or-equal (string1 string2)
   "string-greater-or-equal                関数[#!subr]
 
 <説明>
   形式 : string-greater-or-equal string1 string2
-string1 と string2 の値を比較し、辞書的に等しいか大きければ、string2 
+string1 と string2 の値を比較し、辞書的に等しいか大きければ、string2
 の値を返し、そうでなければ nil を返す。大文字と小文字の相違は無視する。
 <例>
         (string-greater-or-equal \"ab \" \"a\") -> \"a\"
@@ -1920,12 +1935,12 @@ string1 と string2 の値を比較し、辞書的に等しいか大きければ
       (string-equal string1 string2)))
 
 ;;; string-greaterp                        関数[#!subr]
-;;; 
+;;;
 ;;; <説明>
 ;;;   形式 : string-greaterp string1 string2
 ;;; string1 の値が、string2 の値より辞書順的に大きい場合、string2 の値を
 ;;; 返し、そうでなければ nil を返す。大文字と小文字の相違は無視する。
-;;; 
+;;;
 ;;; <例>
 ;;;         (string-greaterp "story" 'store) -> "store"
 ;;;         (string-greaterp "かたかな" 'ひらがな) -> nil
@@ -1937,7 +1952,7 @@ string1 と string2 の値を比較し、辞書的に等しいか大きければ
 ;;;    		 &key :start1 :end1 :start2 :end2
 ;;; string1 が string2 より辞書順的に大きい場合、その一致しない最初の文字
 ;;; 位置を返し、そうでなければ nil を返す。大文字と小文字の相違は無視する。
-;;; 
+;;;
 ;;; <例>
 ;;;         (common:string-greaterp "123" "4") -> nil
 ;;;         (common:string-greaterp "cd" "a") -> 0
@@ -1946,20 +1961,20 @@ string1 と string2 の値を比較し、辞書的に等しいか大きければ
 ;;;         (common:string-greaterp "aBcd" "abc") -> 3
 ;;; ＠
 ;;; string-input-stream                    クラス
-;;; 
+;;;
 ;;; <説明>
 ;;;   インスタンスが文字列入力ストリームであるクラス。
 ;;; 文字列データは、このストリームからとられる。
 ;;; ＠
 ;;; string-left-trim                       関数[#!subr]
-;;; 
+;;;
 ;;; <説明>
 ;;;   形式 : string-left-trim string1 string2
 ;;; string2 の文字列を左から右へ調べて行き、string1 の中のいずれかの文字
 ;;; と等しい文字を捜す。等しい文字があれば、その文字を string2 から抜き取り、
 ;;; さらに検索を進める。なければそこで検索を終える。そして、抜き取られ短く
 ;;; なった文字列を返す。
-;;; 
+;;;
 ;;; <例>
 ;;;         (string-left-trim "abc" "acbcaxyabcpqbcaba")
 ;;;                              -> "xyabcpqbcaba"
@@ -1971,7 +1986,7 @@ string1 と string2 の値を比較し、辞書的に等しいか大きければ
 ;;;         (string-left-trim "か" "かかかかきくけこ") -> "きくけこ"
 ;;; ＠
 ;;; common:string-left-trim                関数[#!expr]
-;;; 
+;;;
 ;;; <説明>
 ;;;  形式 : common:string-left-trim char-bag string
 ;;; string の文字列を左から右へ調べて行き、char-bag の中のいずれかの文字と
@@ -1979,7 +1994,7 @@ string1 と string2 の値を比較し、辞書的に等しいか大きければ
 ;;; さらに検索を進める。なければそこで検索を終える。そして、抜き取られ短く
 ;;; なった文字列を返す。 char-bag はストリング、文字のリスト、アトムの
 ;;; リストのどれかでよい。
-;;; 
+;;;
 ;;; <例>
 ;;;         (!p "acbcaxyabcpqbcaba") -> "acbcaxyabcpqbcaba"
 ;;;         (common:string-left-trim "abc" p) -> "xyabcpqbcaba"
@@ -1991,7 +2006,7 @@ string1 と string2 の値を比較し、辞書的に等しいか大きければ
 ;;;         r -> "カタカナとひらがな"
 ;;; ＠
 
-(defun string-length (string)
+(defun tao:string-length (string)
   "string-length                          関数[#!subr]
 
 <説明>
@@ -2006,8 +2021,8 @@ string の文字列の長さを返す。
   (etypecase string
     (string (cl:length string))))
 
-(declaim (inline string-less-or-equal))
-(defun string-less-or-equal (string1 string2)
+(declaim (inline tao:string-less-or-equal))
+(defun tao:string-less-or-equal (string1 string2)
   "string-less-or-equal                   関数[#!subr]
 
 <説明>
@@ -2026,13 +2041,13 @@ string1 とstring2 を比較し、string1 のほうが辞書順的に小さい�
       (string-lessp string1 string2)))
 
 ;;; string-lessp                           関数[#!subr]
-;;; 
+;;;
 ;;; <説明>
 ;;;   形式 : string-lessp string1 string2
 ;;; string1 と string2 を比較し、string1 のほうが、string2 の値より辞書順
 ;;; 的に小さい場合は、string2 の値を返し、そうでなければ nil を返す。
 ;;; 大文字と小文字の相違は無視する。
-;;; 
+;;;
 ;;; <例>
 ;;;         (string-lessp "abacus" "abdomen") -> "abdomen"
 ;;;         (string-lessp "abcdef" "abcde") -> nil
@@ -2040,14 +2055,14 @@ string1 とstring2 を比較し、string1 のほうが辞書順的に小さい�
 ;;;         (string-lessp "かたかな" 'ひらがな) -> "ひらがな"
 ;;; ＠
 ;;; common:string-lessp                    関数[#!macro]
-;;; 
+;;;
 ;;; <説明>
 ;;;   形式 : common:string-lessp stringa string2
 ;;;         	 &opt :start1 :end1 :start2 :end2
 ;;; string1 と string2 を比較し、string1 の方が辞書順的に小さいとき、その
 ;;; 一致しない最初の文字位置を返し、そうでなければ nil を返す。
 ;;; 大文字と小文字の相違は無視する。
-;;; 
+;;;
 ;;; <例>
 ;;;         (common:string-lessp "a" "A") -> nil
 ;;;         (common:string-lessp "A" "b") -> 0
@@ -2056,13 +2071,13 @@ string1 とstring2 を比較し、string1 のほうが辞書順的に小さい�
 ;;;         (common:string-lessp "かたかな" "かたみち") -> 2
 ;;; ＠
 ;;; string-not-equal                       関数[#!subr]
-;;; 
+;;;
 ;;; <説明>
 ;;;   形式 : string-not-equal string1 string2
 ;;; string1 と string2 の値を比較し、辞書順的に一致しなかった場合、
 ;;; string2 の値を返し、そうでなければ nil を返す。大文字と小文字の相違は
 ;;; 無視する。
-;;; 
+;;;
 ;;; <例>
 ;;;         (string-not-equal "b" "B") -> nil
 ;;;         (string-not-equal "a" "b") -> "b"
@@ -2071,14 +2086,14 @@ string1 とstring2 を比較し、string1 のほうが辞書順的に小さい�
 ;;;         (string-not-equal "こんちは" "コンチハ") -> "コンチハ"
 ;;; ＠
 ;;; common:string-not-equal                関数[#!macro]
-;;; 
+;;;
 ;;; <説明>
 ;;;   形式 : common:string-not-equal string1 string2
 ;;;         	 &key :start1 :end1 :start2 :end2
 ;;; string1 と string2 を比較し、辞書順的に一致しなかった場合、一致しない
 ;;; 最初の文字位置を返し、そうでなければ nil を返す。
 ;;; 大文字と小文字の相違は無視する。
-;;; 
+;;;
 ;;; <例>
 ;;;         (common:string-not-equal "a" "a") -> nil
 ;;;         (common:string-not-equal "a" "b") -> 0
@@ -2086,13 +2101,13 @@ string1 とstring2 を比較し、string1 のほうが辞書順的に小さい�
 ;;;         (common:string-not-equal "かさ" "かみ") -> 1
 ;;; ＠
 ;;; string-not-greaterp                    関数[#!expr]
-;;; 
+;;;
 ;;; <説明>
 ;;;   形式 : string-not-greaterp string1 string2
 ;;; string1 と string2 を比較し、string1 のほうが辞書順的に大きくなかった
 ;;; 場合、string2 を返し、そうでなければ nil を返す。大文字と小文字の相違
 ;;; は無視する。
-;;; 
+;;;
 ;;; <例>
 ;;;         (string-not-greaterp "a" "A") -> "A"
 ;;;         (string-not-greaterp "a" "b") -> "b"
@@ -2103,14 +2118,14 @@ string1 とstring2 を比較し、string1 のほうが辞書順的に小さい�
 ;;;         (string-not-greaterp "あい" "かき") -> "かき"
 ;;; ＠
 ;;; common:string-not-greaterp             関数[#!macro]
-;;; 
+;;;
 ;;; <説明>
 ;;;   形式 : common:string-not-greaterp string1 string2
 ;;;         	&key :start1 :end1 :start2 :end2
 ;;; string1 と string2 を比較し、string1 の方が辞書順的に大きくなかった
 ;;; 場合、一致しなかった最初の文字位置を返し、そうでなければ nil を返す。
 ;;; 大文字と小文字の相違は無視する。
-;;; 
+;;;
 ;;; <例>
 ;;;         (common:string-not-greaterp "a" "a") -> 0
 ;;;         (common:string-not-greaterp "a" "b") -> 0
@@ -2121,13 +2136,13 @@ string1 とstring2 を比較し、string1 のほうが辞書順的に小さい�
 ;;;         (common:string-not-greaterp "かきくけこ"  "かきくけけ") -> 4
 ;;; ＠
 ;;; string-not-lessp                       関数[#!expr]
-;;; 
+;;;
 ;;; <説明>
 ;;;   形式 : string-not-lessp string1 string2
 ;;; string1 と string2 を比較し、string1 のほうが辞書順的に小さくなかった
 ;;; 場合、string2 を返し、そうでなければ nil を返す。大文字と小文字の相違
 ;;; は無視する。
-;;; 
+;;;
 ;;; <例>
 ;;;         (string-lessp "a" "A") -> nil
 ;;;         (string-lessp "a" "a") -> nil
@@ -2136,14 +2151,14 @@ string1 とstring2 を比較し、string1 のほうが辞書順的に小さい�
 ;;;         (string-lessp "はな" "はし") -> "はし"
 ;;; ＠
 ;;; common:string-not-lessp                関数[#!macro]
-;;; 
+;;;
 ;;; <説明>
 ;;;   形式 : common:string-not-lessp string1 string2
 ;;;         	 &key :start1 :end1 :start2 :end2
 ;;; string1 と string2 を比較し、string1 の方が辞書順的に小さくなかった場合、
 ;;; 一致しなかった最初の文字位置を返し、そうでなければ nil を返す。
 ;;; 大文字と小文字の相違は無視する。
-;;; 
+;;;
 ;;; <例>
 ;;;         (common:string-not-lessp "a" "b") -> nil
 ;;;         (common:string-not-lessp "b" "a") -> 0
@@ -2153,7 +2168,7 @@ string1 とstring2 を比較し、string1 のほうが辞書順的に小さい�
 ;;;         (common:string-not-lessp "あか" "あお") -> 1
 ;;; ＠
 ;;; string-output-stream                   クラス
-;;; 
+;;;
 ;;; <説明>
 ;;;   インスタンスが文字列出力ストリームであるクラス。
 ;;; 文字列データは、出力用としてこのストリームに送られる。
@@ -2162,7 +2177,7 @@ string1 とstring2 を比較し、string1 のほうが辞書順的に小さい�
 
 ;(replace "abcdefghij" "foo" :start1 3 :end1 6 :start2 0)
 
-(defun string-replace (string1 string2 &optional (start 0) end)
+(defun tao:string-replace (string1 string2 &optional (start 0) end)
   "string-replace                         関数[#!expr]
 
 <説明>
@@ -2182,7 +2197,7 @@ string1 の start 番目から (end-1) 番目までの文字を、string2 で置
 	`(,string1 ,string2))
   (cl:replace string1 string2 :start1 start :end1 end))
 
-(defun string-reverse (string)
+(defun tao:string-reverse (string)
   "string-reverse                         関数[#!subr]
 
 <説明>
@@ -2206,7 +2221,7 @@ string を逆順に並び換え、そのコピーを返す。
 	(when res
 	  (- len2 len1 res))))))
 
-(defun string-reverse-search (string1 string2 &optional n)
+(defun tao:string-reverse-search (string1 string2 &optional n)
   "string-reverse-search                  関数[#!subr]
 
 <説明>
@@ -2227,7 +2242,7 @@ n が省略された場合には、string2 の文字列の一番最後の文字�
         (string-reverse-search \"ア\" \"アイウエオ\") -> nil ? 0じゃないの？"
   (string-reverse-search-* string1 string2 n #'string-equal))
 
-(defun string-reverse-search-case (string1 string2 &optional n)
+(defun tao:string-reverse-search-case (string1 string2 &optional n)
   "string-reverse-search-case             関数[#!subr]
 
 <説明>
@@ -2247,14 +2262,14 @@ n が省略された場合には、string2 の文字列の一番最後の文字�
 
 ;;; ＠
 ;;; string-right-trim                      関数[#!subr]
-;;; 
+;;;
 ;;; <説明>
 ;;;   形式 : string-right-trim string1 string2
 ;;; string2 の文字列を右から左へ調べて行き、string1 の中のいずれかの文字
 ;;; と等しい文字を捜す。等しい文字があれば、その文字を string2 から抜き取り、
 ;;; さらに検索を進める。なければそこで検索を終える。そして、抜き取られ短く
 ;;; なった文字列を返す。
-;;; 
+;;;
 ;;; <例>
 ;;;         (string-right-trim "abc" "acbcaxyabcpqbcaba")
 ;;;                               -> "acbcaxyabcpq"
@@ -2265,7 +2280,7 @@ n が省略された場合には、string2 の文字列の一番最後の文字�
 ;;;         r -> "あいうえあああいいい"
 ;;;         (string-right-trim "abc" "abcabcabcabbb") -> ""
 ;;; common:string-right-trim               関数[#!expr]
-;;; 
+;;;
 ;;; <説明>
 ;;;   形式 : common:string-right-trim char-bag string
 ;;; string の文字列を右から左へ調べて行き、char-bag の中のいずれかの文字
@@ -2273,7 +2288,7 @@ n が省略された場合には、string2 の文字列の一番最後の文字�
 ;;; さらに検索を進める。なければそこで検索を終える。そして、抜き取られ短く
 ;;; なった文字列を返す。 char-bag はストリング、文字のリスト、アトムのリス
 ;;; トでよい。
-;;; 
+;;;
 ;;; <例>
 ;;;         (common:string-right-trim "cd" "abcdefg") -> "abcdefg"
 ;;;         (common:string-right-trim "fg" "abcdefg") -> "abcde"
@@ -2300,7 +2315,7 @@ n が省略された場合には、string2 の文字列の一番最後の文字�
     (atom (string-downcase (string obj)))
     (otherwise (error "~S is not of type ATOM." obj))))
 
-(defun string-search (string1 string2 &optional (number 0))
+(defun tao:string-search (string1 string2 &optional (number 0))
   "string-search                          関数[#!subr]
 
 <説明>
@@ -2322,7 +2337,7 @@ string1 の先頭の文字が string2 の中で何文字目になっているの
         (string-search \"あか\" \"あかしろきいろ\" 3) -> nil"
   (string-search-* string1 string2 number #'equalp))
 
-(defun string-search-case (string1 string2 &optional (number 0))
+(defun tao:string-search-case (string1 string2 &optional (number 0))
   "string-search-case                     関数[#!subr]
 
 <説明>
@@ -2341,9 +2356,9 @@ string2 を先頭から順番に、string1 のパターンが含まれている�
         (string-search-case \"B\" \"abcABC\") -> 4
         (string-search-case \"あいう\" \"うえおいあ\") -> nil"
   (string-search-* string1 string2 number #'equal))
-	
+
 ;;; string-trim                            関数[#!subr]
-;;; 
+;;;
 ;;; <説明>
 ;;;   形式 : string-trim string1 string2
 ;;; まず最初に、string2 の文字列を左から右へ調べて行き、string1 の中のい
@@ -2352,7 +2367,7 @@ string2 を先頭から順番に、string1 のパターンが含まれている�
 ;;; を終える。次に string1 の中の文字と等しい文字が string2 にあるかどうか
 ;;; を、今度は string2 の右から左へ調べて行く。この検索も最初と同じ方法で
 ;;; 進められる。最後にこの 2 つのステップで作られた新しい文字列を返す。
-;;; 
+;;;
 ;;; <例>
 ;;;         (string-trim "abc" "acbcaxyabcpqbcaba") -> "xyabcpq"
 ;;;         (!r "あういけいあうかああいあう")
@@ -2361,17 +2376,17 @@ string2 を先頭から順番に、string1 のパターンが含まれている�
 ;;;         r -> "あういけいあうかああいあう"
 ;;; ＠
 ;;; common:string-trim                     関数[#!expr]
-;;; 
+;;;
 ;;; <説明>
 ;;;   形式 : common:string-trim char-bag string
 ;;; まず最初に、string の文字列を左から右へ調べて行き、char-bag の中のい
-;;; ずれかの文字と等しい文字を捜す。等しい文字があれば、その文字を string 
-;;; から抜き取り、さらに検索を進める。なければそこで検索を終える。次に 
-;;; char-bag の中の文字と等しい文字が string にあるかどうかを、今度は 
+;;; ずれかの文字と等しい文字を捜す。等しい文字があれば、その文字を string
+;;; から抜き取り、さらに検索を進める。なければそこで検索を終える。次に
+;;; char-bag の中の文字と等しい文字が string にあるかどうかを、今度は
 ;;; string の右から左へ調べて行く。この検索も最初と同じ方法で進められる。
 ;;; 最後にこの 2 つのステップで作られた新しい文字列を返す。
 ;;; char-bag はストリング、文字のリスト、アトムのリストのどれか。
-;;; 
+;;;
 ;;; <例>
 ;;;         (common:string-trim "cd" "abcdefg") -> "abcdefg"
 ;;;         (common:string-trim "fg" "abcdefg") -> "abcde"
@@ -2381,12 +2396,12 @@ string2 を先頭から順番に、string1 のパターンが含まれている�
 ;;;         (common:string-trim "あいう" "あかういういあ") -> "か"
 ;;; ＠
 ;;; string-upcase                          関数[#!subr]
-;;; 
+;;;
 ;;; <説明>
 ;;;   形式 : string-upcase string &opt start end
 ;;; string において、start と end の範囲の小文字をすべて大文字に変換し、
 ;;; その結果を返す。start,end の既定値は、それぞれ 0 、string の長さ。
-;;; 
+;;;
 ;;; <例>
 ;;;         (string-upcase "abcd") -> "ABCD"
 ;;;         (string-upcase "abcd" 2 3) -> "abCd"
@@ -2394,38 +2409,38 @@ string2 を先頭から順番に、string1 のパターンが含まれている�
 ;;;         (string-upcase "i am a programmer" 0 1) -> "I am a programmer"
 ;;; ＠
 ;;; common:string-upcase                   関数[#!macro]
-;;; 
+;;;
 ;;; <説明>
 ;;;   形式 : common:string-upcase string &key :start :end
 ;;; :start と :end の間の string 内の小文字を大文字に変換し、その結果を返す。
 ;;; :start,:end の既定値は 0、string の長さ。
-;;; 
+;;;
 ;;; <例>
 ;;;         (common:string-upcase "abcdefg" :start 3 :end 4) -> "abcDefg"
 ;;;         (common:string-upcase "abcdefg") -> "ABCDEFG"
 ;;;         (common:string-upcase "aDcdeHfg" :end 4) -> "ADCDeHfg"
 ;;; ＠
 ;;; string/=                               関数[#!subr]
-;;; 
+;;;
 ;;; <説明>
 ;;;   形式 : string/= string1 string2
 ;;; string1 と string2 を辞書順的に比較し、一致しなかった場合、string2 を
 ;;; し、そうでなければ nilを返す。大文字と小文字の相違を区別する。
-;;; 
+;;;
 ;;; <例>
 ;;;         (string/= "A" "a") -> "a"
 ;;;         (string-not-equal "A" "a") -> nil
 ;;;         (string-not-equal "はる" "あき") -> "あき"
 ;;; ＠
 ;;; common:string/=                        関数[#!macro]
-;;; 
+;;;
 ;;; <説明>
 ;;;   形式 : common:string/= string1 string2
 ;;;         	 &key :start1 :end1 :start2 :end2
 ;;; string1 と string2 を辞書順的に比較し、一致しなかった場合、一致しない
 ;;; 最初の文字位置を返し、それ以外は nil を返す。
 ;;; 大文字と小文字の相違を区別する。
-;;; 
+;;;
 ;;; <例>
 ;;;         (common:string/= "abc" "bcdef") -> 0
 ;;;         (common:string/= "abc" "abc") -> nil
@@ -2436,27 +2451,27 @@ string2 を先頭から順番に、string1 のパターンが含まれている�
 ;;;         (common:string/= "さくら" "さく") -> 2
 ;;; ＠
 ;;; string<                                関数[#!subr]
-;;; 
+;;;
 ;;; <説明>
 ;;;   形式 : string< string1 string2
 ;;; string1 と string2 を比較し、string1 のほうが、string2 より辞書順的に
 ;;; 小さい場合は、string2 の値を返し、そうでなければ nil を返す。大文字と
 ;;; 小文字の相違を区別する。
-;;; 
+;;;
 ;;; <例>
 ;;;         (string< "a" "B") -> nil
 ;;;         (string-lessp "a" "B") ->"B"
 ;;;         (string< "はひふ" "まみむ") -> "まみむ"
 ;;; ＠
 ;;; common:string<                         関数[#!macro]
-;;; 
+;;;
 ;;; <説明>
 ;;;   形式 : common:string< string1 string2
 ;;;         	 &key :start1 :end1 :start2 :end2
 ;;; string1 と string2 を辞書順的に比較し、string1 が string2 よりも小さい
 ;;; 場合はその一致しない最初の文字位置を返し、そうでない場合は nil を返す。
 ;;; 大文字と小文字の相違を区別する。
-;;; 
+;;;
 ;;; <例>
 ;;;         (common:string< "abc" "abc") -> nil
 ;;;         (common:string< "abc" "defg") -> 0
@@ -2465,13 +2480,13 @@ string2 を先頭から順番に、string1 のパターンが含まれている�
 ;;;         (common:string< "はひふ" "まみむ") ->  0
 ;;; ＠
 ;;; string<=                               関数[#!subr]
-;;; 
+;;;
 ;;; <説明>
 ;;;   形式 : string<= string1 string2
 ;;; string1 と string2 を比較し、string1 が、string2 より辞書順的に小さい
 ;;; か等しい場合、string2 を返し、そうでなければ nil を返す。大文字と小文
 ;;; 字の相違を区別する。
-;;; 
+;;;
 ;;; <例>
 ;;;         (string<= "a" "B") -> nil
 ;;;         (string-not-greaterp "a" "B") -> "B"
@@ -2479,14 +2494,14 @@ string2 を先頭から順番に、string1 のパターンが含まれている�
 ;;;         (string<= "かきく" "さしす") -> "さしす"
 ;;; ＠
 ;;; common:string<=                        関数[#!macro]
-;;; 
+;;;
 ;;; <説明>
 ;;;   形式 : common:string<= string1 string2
 ;;;         	 &key :start1 :end1 :start2 :end2
-;;; satring1 と string2 の値を辞書順的に比較し、string1 の文字が string2 
+;;; satring1 と string2 の値を辞書順的に比較し、string1 の文字が string2
 ;;; の文字より小さいか等しい場合は、そのときの最初の文字位置を返し、それ
 ;;; 以外は nil を返す。大文字と小文字の相違を区別する。
-;;; 
+;;;
 ;;; <例>
 ;;;         (common:string<= "ab" "ab") -> 0
 ;;;         (common:string<= "ab" "cde") -> 0
@@ -2494,13 +2509,13 @@ string2 を先頭から順番に、string1 のパターンが含まれている�
 ;;;         (common:string<= "あいう" "アイウ") -> 0
 ;;; ＠
 ;;; string=                                関数[#!subr]
-;;; 
+;;;
 ;;; <説明>
 ;;;   形式 : string= string1 string2
 ;;; string1 と string2 を比較し、string1 が、string2 に辞書順的に一致した
 ;;; 場合は、string2 を返し、そうでなければ nil を返す。大文字と小文字の
 ;;; 相違を区別する。
-;;; 
+;;;
 ;;; <例>
 ;;;         (string= "a" "A") -> nil
 ;;;         (string-equal "a" "A") -> "A"
@@ -2510,13 +2525,13 @@ string2 を先頭から順番に、string1 のパターンが含まれている�
 ;;;         (string= 'あい "あい") -> "あい"
 ;;; ＠
 ;;; common:string=                         関数[#!macro]
-;;; 
+;;;
 ;;; <説明>
 ;;;   形式 : common:string= string1 string2
 ;;;         	 &key :start1 :end1 :start2 :end2
 ;;; string1 と string2 を辞書順的に比較し、等しい場合、string1 を返し、
 ;;; それ以外は nil を返す。大文字と小文字の相違は区別する。
-;;; 
+;;;
 ;;; <例>
 ;;;         (common:string= "ab" "ab") -> "ab"
 ;;;         (common:string= "ab" "cd") -> nil
@@ -2524,13 +2539,13 @@ string2 を先頭から順番に、string1 のパターンが含まれている�
 ;;;         (common:string= "あい" "アイ") -> nil
 ;;; ＠
 ;;; string>                                関数[#!subr]
-;;; 
+;;;
 ;;; <説明>
 ;;;   形式 : string> string1 string2
 ;;; string1 と string2 を比較し、string1 が、string2 より辞書順的に大きい
 ;;; 場合、string2 を返し、そうでなければ nil を返す。大文字と小文字の相違
 ;;; を区別する。
-;;; 
+;;;
 ;;; <例>
 ;;;         (string> "B" "a") -> nil
 ;;;         (string-greaterp "B" "a") ->"a"
@@ -2538,14 +2553,14 @@ string2 を先頭から順番に、string1 のパターンが含まれている�
 ;;;         (string> "あさ" "あめ") -> nil
 ;;; ＠
 ;;; common:string>                         関数[#!macro]
-;;; 
+;;;
 ;;; <説明>
 ;;;   形式 : common:string> string1 string2
 ;;;         	 &key :start1 :end1 :start2 :end2
 ;;; string1 と string2 を比較し、string1 が string2 より辞書順的に大きい
 ;;; 場合、その一致しない最初の文字位置を返し、それ以外の場合は nil を返す。
 ;;; 大文字と小文字の相違は区別する。
-;;; 
+;;;
 ;;; <例>
 ;;;         (common:string> "ab" "ab") -> nil
 ;;;         (common:string> "cd" "ab") -> 0
@@ -2553,13 +2568,13 @@ string2 を先頭から順番に、string1 のパターンが含まれている�
 ;;;         (common:string> "あし" "あさ") -> 1
 ;;; ＠
 ;;; string>=                               関数[#!subr]
-;;; 
+;;;
 ;;; <説明>
 ;;;   形式 : string>= string1 string2
 ;;; string1 と string2 を比較し、string1 が、string2 より辞書順的に大きい
 ;;; か等しい場合、string2 を返し、そうでなければ nil を返す。大文字と小文
 ;;; 字の相違を区別する。
-;;; 
+;;;
 ;;; <例>
 ;;;         (string>= "B" "a") -> nil
 ;;;         (string-not-lessp "B" "a") -> "a"
@@ -2567,14 +2582,14 @@ string2 を先頭から順番に、string1 のパターンが含まれている�
 ;;;         (string>= "いつ" "ぃっ") -> "ぃっ"
 ;;; ＠
 ;;; common:string>=                        関数[#!macro]
-;;; 
+;;;
 ;;; <説明>
 ;;;   形式 : common:string>= string1 string2
 ;;;         	 &key :start1 :end1 :start2 :end2
 ;;; string1 と string2 を比較し、string1 の全ての文字が、string2 の文字より
 ;;; 辞書順的に大きいか等しい場合、一致しない最初の文字位置を返し、
 ;;; それ以外は nil を返す。大文字と小文字の相違は区別する。
-;;; 
+;;;
 ;;; <例>
 ;;;         (common:string>= "ab" "ab") -> 0
 ;;;         (common:string>= "ab" "cd") -> nil
@@ -2583,12 +2598,12 @@ string2 を先頭から順番に、string1 のパターンが含まれている�
 ;;;         (common:string>= "かき" "くけ") -> nil
 ;;; ＠
 ;;; stringp                                関数[#!subr]
-;;; 
+;;;
 ;;; <説明>
 ;;;   形式 : stringp arg
 ;;; arg が文字列（文字列または１つの文字）なら、arg を返し、
 ;;; それ以外なら nil を返す。
-;;; 
+;;;
 ;;; <例>
 ;;;         (stringp "") -> ""
 ;;;         (stringp "string") -> "string"
@@ -2596,11 +2611,11 @@ string2 を先頭から順番に、string1 のパターンが含まれている�
 ;;;         (stringp 123) -> nil
 ;;; ＠
 ;;; common:stringp                         関数[#!expr]
-;;; 
+;;;
 ;;; <説明>
 ;;;   形式 : common:stringp &rest arg
 ;;; arg が文字列なら arg 、それ以外なら nil を返す。
-;;; 
+;;;
 ;;; <例>
 ;;;         (common:stringp "") -> nil
 ;;;         (common:stringp "a") -> nil
@@ -2609,21 +2624,21 @@ string2 を先頭から順番に、string1 のパターンが含まれている�
 ;;;         (common:stringp 123) -> nil
 ;;; ＠
 ;;; sublis                                 関数[#!macro]
-;;; 
+;;;
 ;;; <説明>
 ;;;   形式 : sublis a-list tree &key :test :test-not :key
 ;;; 木構造 tree のオブジェクトのうち、連想リスト a-list のいずれかの car 部
 ;;; と一致するものを、その car 部に対応する cdr 部に変更して、変更した木を
 ;;; 返す (tree は破壊されない)。nsublis は破壊版。
-;;; 
+;;;
 ;;; <例>
 ;;;         (sublis '((Kanto . Japan) (Japan . Osaka)) '(Tokyo is Kanto))
 ;;;         	 -> (Tokyo is Japan)
 ;;; ＠
 
 
-(declaim (inline sublisq))
-(defun sublisq (a-list tree)
+(declaim (inline tao:sublisq))
+(defun tao:sublisq (a-list tree)
   "sublisq                                関数[#!subr]
 
 <説明>
@@ -2642,11 +2657,11 @@ tree は、破壊されない。nsublisq は破壊版。
         (sublisq '((1 . A) (11 . J) (12 . Q) (13 . K))
         	 '(1 12 13 2 12 1 13))
         -> (A Q K 2 Q A K)
-        x = (a (b c) (d (e f)))  なら 
+        x = (a (b c) (d (e f)))  なら
           (eq (sublisq '((aa . 11) (bb . 22)) x) x) -> t"
   (sublis a-list tree :test #'eq))
 
-(defun sublisq-copy (a-list tree)
+(defun tao:sublisq-copy (a-list tree)
   "sublisq-copy                           関数[#!subr]
 
 <説明>
@@ -2658,12 +2673,12 @@ a-list のいずれかの要素の car 部 と eq であるようなシンボル
 置き換える。返された木はいかなる部分も元の木と共有しない。
 
 <例>
-          x = (a (b c) (d (e f)))  なら 
+          x = (a (b c) (d (e f)))  なら
           (eq (sublisq-copy '((aa . 11) (bb . 22)) x) x) -> nil"
   (sublis a-list (copy-tree tree) :test #'eq))
 
-(declaim (inline subpackages))
-(defun subpackages (&optional (package *package*))
+(declaim (inline tao:subpackages))
+(defun tao:subpackages (&optional (package *package*))
   "subpackages                            関数[#!expr]
 
 <説明>
@@ -2680,12 +2695,12 @@ package に属するすべてのパッケージ名をリストにして返す。
 ;; TAOのpackage-nameはリストを取るらしい
 
 ;;; subseq                                 関数[#!expr]
-;;; 
+;;;
 ;;; <説明>
 ;;;   形式 : subseq seq start &opt end
 ;;; シーケンス seq の start から end までを返す。返される部分シーケンスの
 ;;; 型は元のシーケンスと同じ型。
-;;; 
+;;;
 ;;; <例>
 ;;;         (subseq "abcdefg" 2) -> "cdefg"
 ;;;         (subseq "abcdefg" 1 4) -> "bcd"
@@ -2694,8 +2709,8 @@ package に属するすべてのパッケージ名をリストにして返す。
 ;;;                 ->{vector}183855(common:simple-general-vector . 3)
 ;;; ＠
 
-(declaim (inline subset))
-(defun subset (pred list)
+(declaim (inline tao:subset))
+(defun tao:subset (pred list)
   "subset                                 関数[#!macro]
 
 <説明>
@@ -2709,8 +2724,8 @@ list から、条件 pred を満足しない要素をすべて削除し、その
         x -> (1 a 2 b 3 c 4 d 5)"
   (remove-if-not pred list))
 
-(declaim (inline subset-not))
-(defun subset-not (pred list)
+(declaim (inline tao:subset-not))
+(defun tao:subset-not (pred list)
   "subset-not                             関数[#!macro]
 
 <説明>
@@ -2727,44 +2742,44 @@ list から、条件 pred を満足しない要素をすべて削除し、その
 
 ;;; ＠
 ;;; subsetp                                関数[#!macro]
-;;; 
+;;;
 ;;; <説明>
 ;;;   形式 : subsetp list1 list2 &key :test :test-not :key
-;;; list1 のすべての要素が、list2 にある場合は t を返し、そうでなければ 
+;;; list1 のすべての要素が、list2 にある場合は t を返し、そうでなければ
 ;;; nil を返す。
-;;; 
+;;;
 ;;; <例>
 ;;;         (subset  '(a b)  '(a b c d))  ->  t
 ;;;         (subset  '(a b)  '(c d))  ->  nil
 ;;; ＠
 ;;; subst                                  関数[#!macro]
-;;; 
+;;;
 ;;; <説明>
 ;;;   形式 : subst new old tree &key :test :test-not :key
-;;; tree の全ての副木又は葉をコピーし、そのコピーした木の副木又は葉 old 
+;;; tree の全ての副木又は葉をコピーし、そのコピーした木の副木又は葉 old
 ;;; を new で書き換え、返す (非破壊的)。nsubst は破壊版。
-;;; 
+;;;
 ;;; <例>
 ;;;         x = (shakespeare wrote (the hurricane))
-;;;         (subst 'tempest 'harricane x) -> 
+;;;         (subst 'tempest 'harricane x) ->
 ;;;         	(shakespeare wrote (the tempest))
 ;;;         x -> (shakespeare wrote (the hurricane))
 ;;; ＠
 ;;; subst-if                               関数[#!macro]
-;;; 
+;;;
 ;;; <説明>
 ;;;   形式 : subst-if new test tree &key :key
 ;;; tree の副木又は葉をすべてコピーし、それらのうち、条件 test を満足する
 ;;; 副木又は葉を new で書き換え、その結果を返す。 tree は破壊されない。
 ;;; nsubst-if は破壊版。
-;;; 
+;;;
 ;;; <例>
-;;;         x = (("asd" . asd) (qwe . "qwe")) 
+;;;         x = (("asd" . asd) (qwe . "qwe"))
 ;;;         (subst-if 'a #'stringp x ) -> ((a . asd) (qwe .a))
 ;;;         x -> (("asd" . asd) (qwe . "qwe"))
 ;;; ＠
 ;;; subst-if-not                           関数[#!macro]
-;;; 
+;;;
 ;;; <説明>
 ;;;   形式 : subst-if-not new test tree &key :key
 ;;; tree の副木又は葉をすべてコピーし、それらのうち、条件 test を満足しな
@@ -2772,13 +2787,13 @@ list から、条件 pred を満足しない要素をすべて削除し、その
 ;;; nsubst-if-not は破壊版。
 ;;; ＠
 ;;; substitute                             関数[#!macro]
-;;; 
+;;;
 ;;; <説明>
 ;;;   形式 : substitute newitem olditem seq &key :from-end :test :test-not
 ;;;                                              :start :end :count :key
 ;;; シーケンス seq の :start から :end までの範囲で、olditem を :count 個だ
 ;;; け、newitem に仮に変更し、その結果を返す。nsubstitute は破壊版。
-;;; 
+;;;
 ;;; <例>
 ;;;         (!x '(1 2 4 1 3 4 5)) -> (1 2 4 1 3 4 5)
 ;;;         (substitute 9 4 x) -> (1 2 9 1 3 9 5)
@@ -2787,14 +2802,14 @@ list から、条件 pred を満足しない要素をすべて削除し、その
 ;;;         x -> (1 2 4 1 3 4 5)
 ;;; ＠
 ;;; substitute-if                          関数[#!macro]
-;;; 
+;;;
 ;;; <説明>
-;;;   形式 : substitute-if newitem test seq &key :from-end :start :end 
+;;;   形式 : substitute-if newitem test seq &key :from-end :start :end
 ;;;                                             :count :key
 ;;; シーケンス seq の :start から :end までの範囲で、条件 test を満足する
 ;;; 要素を :count 個だけ、newitem に仮に変更し、その結果を返す。
 ;;; nsubstitute-if は破壊版。
-;;; 
+;;;
 ;;; <例>
 ;;;         (!x '(1 2 4 1 3 4 5)) -> (1 2 4 1 3 4 5)
 ;;;         (substitute-if 9 #'oddp x) -> (9 2 4 9 9 4 9)
@@ -2803,14 +2818,14 @@ list から、条件 pred を満足しない要素をすべて削除し、その
 ;;;         x -> (1 2 4 1 3 4 5)
 ;;; ＠
 ;;; substitute-if-not                      関数[#!macro]
-;;; 
+;;;
 ;;; <説明>
-;;;   形式 : substitute-if-not newitem test seq &key :from-end :start :end 
+;;;   形式 : substitute-if-not newitem test seq &key :from-end :start :end
 ;;;                                                 :count :key
 ;;; シーケンス seq の :start から :end までの範囲で、条件 test を満足しない
 ;;; 要素を :count 個だけ、newitem に仮に変更し、その結果を返す。
 ;;; nsubstitute-if-not は破壊版。
-;;; 
+;;;
 ;;; <例>
 ;;;         (!x '(1 2 4 1 3 4 5)) -> (1 2 4 1 3 4 5)
 ;;;         (substitute-if-not 9 #'oddp x) -> (1 9 9 1 3 9 5)
@@ -2819,7 +2834,7 @@ list から、条件 pred を満足しない要素をすべて削除し、その
 ;;;         x -> (1 2 4 1 3 4 5)
 ;;; ＠
 
-(defun substqu (new old tree)
+(defun tao:substqu (new old tree)
   "substqu                                関数[#!subr]
 
 <説明>
@@ -2833,7 +2848,19 @@ tree をコピーして修正するので、この操作は非破壊的。nsubst
         x -> (a b (bar . c) bar . bar)"
   (subst new old tree :test #'equal))
 
-(defun substring (string start &optional end)
+(defun string*-arg-check (string start end)
+  (let ((string (typecase string
+		  (string string)
+		  (atom (string-downcase (string string)))
+		  (otherwise (error "~S is not of type ATOM." string)))))
+    (let ((len (cl:length string)))
+      (let ((start (if (minusp start) (+ len start) start))
+	    (end (cond ((null end) len)
+		       ((minusp end) (+ len end) end)
+		       ('T end))))
+	(values string len start end)))))
+
+(defun tao:substring (string start &optional end)
   "substring                              関数[#!subr]
 
 <説明>
@@ -2859,31 +2886,19 @@ start で指定された文字位置をひいたもの。 end の省略時は st
 	""
 	(subseq string start end))))
 
-(defun string*-arg-check (string start end)
-  (let ((string (typecase string
-		  (string string)
-		  (atom (string-downcase (string string)))
-		  (otherwise (error "~S is not of type ATOM." string)))))
-    (let ((len (cl:length string)))
-      (let ((start (if (minusp start) (+ len start) start))
-	    (end (cond ((null end) len)
-		       ((minusp end) (+ len end) end)
-		       ('T end))))
-	(values string len start end)))))
-
 ;;; subtypep                               関数[#!expr]
-;;; 
+;;;
 ;;; <説明>
 ;;;   形式 : subtypep type1 type2
-;;; 値を 2 つ返す。最初の値は、type1 が type2 のサブタイプならば 
+;;; 値を 2 つ返す。最初の値は、type1 が type2 のサブタイプならば
 ;;; non-nil、そうでなければnil 。第 2 の値は最初に返された値の確実性を示す。
-;;; 
+;;;
 ;;;         返す値
 ;;;         !(t t)          type1 は type2 のサブタイプ
 ;;;         !(t nil)        （未使用)
 ;;;         !(nil t)        type1 は type2 のサブタイプではない
 ;;;         !(nil nil)      type1 は type 2のサブタイプかどうかわからない
-;;; 
+;;;
 ;;; <例>
 ;;;         (subtype 'fixnum 'integer) -> !(t t)
 ;;;         (subtype 'list 'string) -> !(nil t)
@@ -2893,7 +2908,7 @@ start で指定された文字位置をひいたもの。 end の省略時は st
 ;;;         (subtype string str-cha) -> !(nil nil)
 ;;; ＠
 ;;; super                                  関数[#!subr]
-;;; 
+;;;
 ;;; <説明>
 ;;;   形式 : super 'super-message &rest args
 ;;; クラス A がメッセージ x を、クラス B (A のスーパクラス) が同名のメッセ
@@ -2905,7 +2920,7 @@ start で指定された文字位置をひいたもの。 end の省略時は st
 ;;; super によって送られたメッセージでは、もしメソッド結合が B に記述されて
 ;;; いるならば、B やさらに B のスーパクラスのメソッドがメソッド結合により実
 ;;; 行される。
-;;; 
+;;;
 ;;; <例>
 ;;;         (defclass a () ((aa 1)) () :gettable) -> a
 ;;;         (defclass b () ((bb 1)) (a) :gettable) -> b
@@ -2923,12 +2938,12 @@ start で指定された文字位置をひいたもの。 end の省略時は st
 ;;;         [binst aa] -> 2
 ;;; ＠
 ;;; svref                                  関数[#!subr]
-;;; 
+;;;
 ;;; <説明>
 ;;;   形式 : svref vector integer
 ;;; 一般単純ベクタ vector の integer 番目の値を返す
 ;;; (要素の位置は 0 から数える)。
-;;; 
+;;;
 ;;; <例>
 ;;;         (!v (vector 1 2 3 4 5))
 ;;;         	-> {vector}1844308(common:simple-general-vector . 5)
@@ -2944,12 +2959,12 @@ start で指定された文字位置をひいたもの。 end の省略時は st
 ;;;         {vector}1844308(common:simple-general-vector . 5)
 ;;; ＠
 ;;; sxhash                                 関数[#!subr]
-;;; 
+;;;
 ;;; <説明>
 ;;;   形式 : sxhash object
-;;; object に対するハッシュコードを計算し、その結果を負でない固定小数点数 
+;;; object に対するハッシュコードを計算し、その結果を負でない固定小数点数
 ;;; (fixnum) として返す。
-;;; 
+;;;
 ;;; <例>
 ;;;         (sxhash 'a) -> 97
 ;;;         (sxhash 'b) -> 98
@@ -2957,13 +2972,13 @@ start で指定された文字位置をひいたもの。 end の省略時は st
 ;;;         (sxhash 'xyz) -> 856
 ;;; ＠
 ;;; symbol-function                        関数[#!subr]
-;;; 
+;;;
 ;;; <説明>
 ;;;   形式 : symbol-function symbol
 ;;; symbol のグローバル関数定義を返す。関数定義を持っていないならばエラー
 ;;; を示す。特に Lisp の中に埋め込まれる言語のインタプリタを作成するとき
 ;;; に便利。
-;;; 
+;;;
 ;;; <例>
 ;;;         (symbol-function 'car) -> {applobj}24312(#!subr . 6)
 ;;;         (de ufo (x) (car x)) -> ufo
@@ -2973,12 +2988,12 @@ start で指定された文字位置をひいたもの。 end の省略時は st
 ;;;         (symbol-function 'aho) -> nil
 ;;; ＠
 ;;; symbol-name                            関数[#!macro]
-;;; 
+;;;
 ;;; <説明>
 ;;;   形式 : symbol-name symbol
 ;;; symbol の印字名を返す。
 ;;; (symbol-name x) = (pname x)
-;;; 
+;;;
 ;;; <例>
 ;;;         (symbol-name 'xyz) -> "xyz"
 ;;;         (symbol-name "abc") -> "abc"
@@ -2986,32 +3001,32 @@ start で指定された文字位置をひいたもの。 end の省略時は st
 ;;;         (symbol-name a) -> "(1 2 3)"
 ;;; ＠
 ;;; symbol-package                         関数[#!expr]
-;;; 
+;;;
 ;;; <説明>
 ;;;   形式 : symbol-package symbol
 ;;; symbol が所属するパッケージ名を返す。
-;;; 
+;;;
 ;;; <例>
 ;;;         (package-name (symbol-package 'car)) -> "bas"
 ;;; ＠
 ;;; symbol-plist                           関数[#!subr]
-;;; 
+;;;
 ;;; <説明>
 ;;;   形式 : symbol-plist id
 ;;; plist の別名関数。シンボル id の属性リストを返す。
-;;; 
+;;;
 ;;; <例>
 ;;;         aa の属性リストを (p 1 q 2 r 3) とする
 ;;;         (symbol-plist 'aa) -> (p 1 q 2 r 3)
 ;;;         (!(symbol-plist 'aaa) '(a 1 b 2 c 3 d 4)) -> (a 1 b 2 c 3 d 4)
-;;;         aaa の属性リストは (a 1 b 2 c 3 d 4) 
+;;;         aaa の属性リストは (a 1 b 2 c 3 d 4)
 ;;; ＠
 ;;; symbol-value                           関数[#!subr]
-;;; 
+;;;
 ;;; <説明>
 ;;;   形式 : symbol-value var
 ;;; スペシャル変数 var の現在値を返す。
-;;; 
+;;;
 ;;; <例>
 ;;;         (!x '(a b c))
 ;;;         (symbol-value 'x) -> (a b c)
@@ -3023,11 +3038,11 @@ start で指定された文字位置をひいたもの。 end の省略時は st
 ;;;                   (symbol-value 'p)) -> 23
 ;;; ＠
 ;;; symbolp                                関数[#!subr]
-;;; 
+;;;
 ;;; <説明>
 ;;;   形式 : symbolp object
 ;;; object がシンボルなら object を返し、それ以外なら nil を返す。
-;;; 
+;;;
 ;;; <例>
 ;;;         (symbolp 'asdf) -> asdf
 ;;;         (symbolp '_x) -> _x
@@ -3035,25 +3050,25 @@ start で指定された文字位置をひいたもの。 end の省略時は st
 ;;;         (symbolp #!expr) -> nil
 ;;; ＠
 ;;; symeval                                関数[#!macro]
-;;; 
+;;;
 ;;; <説明>
 ;;;   形式 : symeval symbol
 ;;; symbol の最新の値を返す。値をもっていなければエラーを返す。
-;;; 
+;;;
 ;;; <例>
 ;;;         (setq x '(a b c))
 ;;;         (symeval 'x) -> (a b c)
 ;;;         (symeval 'y) -> (unbound-variable y nil)
 ;;; ＠
 ;;; bas:sysmode        未インプリメント    関数[#!macro]
-;;; 
+;;;
 ;;; <説明>
 ;;;   形式 : bas:sysmode &opt 'key 'num
 ;;;   key --> :bic    num --> ビット位置 (8 進数)
 ;;;           :bis
 ;;;           :xor
 ;;;           :and
-;;; 
+;;;
 ;;; sysmode (システムモードとユーザモード)のためのビットテーブル。
 ;;; * のついたビットは、ユーザモード用。
 ;;;         0-1     gc mode (全スタックグループに対して大域的)
@@ -3090,10 +3105,10 @@ start で指定された文字位置をひいたもの。 end の省略時は st
 ;;;                 1       特権は off
 ;;; ＠
 ;;; systat                                 関数[#!expr]
-;;; 
+;;;
 ;;; <説明>
 ;;;   システムの現在の状態がプリントされる。
-;;; 
+;;;
 ;;; <例>
 ;;;   (systat)
 ;;;   [Cobalt-Systat]  load-min:  20%  load-sec:   0%  28-Apr-87  9:43:44

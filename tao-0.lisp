@@ -1,5 +1,5 @@
-(in-readtable :tao-compat)
-(in-package #:tao-compat)
+(in-package #:tao-internal)
+(in-readtable :tao)
 
 ;;; ＠
 ;;; !                                      スペシャルシンボル
@@ -38,7 +38,7 @@
 |#
 
 ;;  8:50pm Sunday,19 August 2007
-(defmacro ! (&body forms)
+(defmacro tao:! (&body forms)
   "<説明>
   形式 : ! &rest body
 ! は、ローカル変数を宣言することと、バックトラックをする関数を持つ点を
@@ -88,7 +88,7 @@ Bn では body の最後が評価される。
 ;;;         (!(car x) 123) -> 123
 ;;;         x -> (123 b c d e)
 
-(defmacro self (var)
+(defmacro tao:self (var)
   `(quote ,var))
 
 #|(defmacro selfass (fn &rest args)
@@ -103,7 +103,7 @@ Bn では body の最後が評価される。
                       args)))
     `(setf ,self (,fn ,@vars))))|#
 
-(defmacro selfass (fn &rest args)
+(defmacro tao:selfass (fn &rest args)
   "<説明>
  形式 : (!!func arg1 arg2 ... !argI ... argN)
 上式は (setq argI (func arg1 arg2 ... argI ... argN)) と同じ。
@@ -149,10 +149,10 @@ Bn では body の最後が評価される。
       (let ((expr (frob args)))
         `(setf ,var (,fn ,@expr))))))
 
-(defmacro toga (obj)
+(defmacro tao::toga (obj)
   obj)
 
-(defmacro & (&body forms)
+(defmacro tao:& (&body forms)
   "&                                      関数[#!macro]
 
 <説明>
@@ -454,7 +454,7 @@ B1, B2, ... または、Bn で使われる局所変数、特に論理変数は�
 ;;; た値。
 ;;; ＠
 
-(defun ** (number1 number2)
+(defun tao:** (number1 number2)
   "**                                     関数[#!subr]
 
 <説明>

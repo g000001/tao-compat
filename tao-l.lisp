@@ -1,5 +1,5 @@
-(in-readtable :tao-compat)
-(in-package #:tao-compat)
+(in-package #:tao-internal)
+(in-readtable :tao)
 
 ;;; ＠
 ;;; labels                                 関数[#!expr]
@@ -143,7 +143,7 @@
 ;;;         (ldiff x '(d e f)) -> (a b c d e f)
 ;;; ＠
 
-(defun leap-year-p (int)
+(defun tao:leap-year-p (int)
   "leap-year-p                            関数[#!expr]
 
 <説明>
@@ -220,7 +220,7 @@ integer がうるう年ならば 0 を返し、そうでなければ nil を返�
 ;;;         (common:length #(a b c d)) -> 4
 ;;; ＠
 
-(defun length (arg)
+(defun tao:length (arg)
   "length                                 関数[#!subr]
 
 <説明>
@@ -247,7 +247,7 @@ arg がリストなら、その長さ (要素の数) を返し、そうでなけ
 ;;; ＠
 
 ;; (lessp) ->t の意味が良くわからんがまあ、そのとおり実装してみた。
-(defun lessp (&rest numbers)
+(defun tao:lessp (&rest numbers)
   "lessp                                  関数[#!macro]
 
 <説明>
@@ -306,7 +306,7 @@ nil を返す。
 ;;;         (let* ((x 3) (y (* x x)))
 ;;;               (* x y y)) -> 243
 
-(defun lins (vector key)
+(defun tao:lins (vector key)
   "lins                                   関数[#!subr]
 
 <説明>
@@ -453,7 +453,7 @@ vector の偶数番目の要素に key があれば、その次の要素の値�
 ;;;         (read aa) -> :eof
 ;;; ＠
 
-(defun listp (lst)
+(defun tao:listp (lst)
   "listp                                  関数[#!subr]
 
 <説明>
@@ -475,7 +475,7 @@ object は listp 関数に適用される前に評価される。
         (listp '(a . b)) -> (a . b)"
   (and (cl:listp lst) lst))
 
-(defmacro listq (&body args)
+(defmacro tao:listq (&body args)
   "listq                                  関数[#!subr]
 
 <説明>
@@ -520,7 +520,7 @@ arg1 arg2 ... argN を要素とするリストを作成し、返す。
 ;;;         (load-factor-sec) -> 1
 ;;; ＠
 
-(defun load-if-non-existent (func file)
+(defun tao:load-if-non-existent (func file)
   "load-if-non-existent                   関数[#!expr]
 
 <説明>
@@ -1083,7 +1083,7 @@ arg1 arg2 ... argN を要素とするリストを作成し、返す。
 ;;; ＠
 
 
-(defmacro loop (&body body)
+(defmacro tao:loop (&body body)
   "loop                                   関数[#!subr]
 
 <説明>

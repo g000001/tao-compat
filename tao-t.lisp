@@ -1,4 +1,5 @@
-(in-package #:tao-compat)
+(in-package #:tao-internal)
+(in-readtable :tao)
 
 #|
 togap                                  関数[#!subr]
@@ -19,7 +20,7 @@ arg がトガ ^ のついた式なら t を返し、そうでなければ nil �
 |#
 
 
-(defun togap (expr)
+(defun tao:togap (expr)
   (and (eq 'toga (and (consp expr) (car expr)))))
 
 
