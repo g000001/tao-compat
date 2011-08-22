@@ -4,6 +4,7 @@
   (:use #:named-readtables)
   (:export
    :**
+   :*read-eof-value*
    :length
    :listp
    :loop
@@ -167,7 +168,9 @@
    #:spop
    #:sreverse
    #:stail
+   :standard-read
    #:strh-to-char
+   :string
    #:string-char-p
    #:string-greater-or-equal
    #:string-length
@@ -194,9 +197,17 @@
    #:sublisq-copy
    #:subpackages
    #:subset
+   :subsetp
+   :second
+   :search
+   :selfassp
+   :set
+   :set-difference
+   :string-trim
    #:subset-not
    #:substqu
    #:substring
+   :symeval
    ;; t
    #:togap
    ;; u
@@ -212,6 +223,13 @@
    #:zerop
    ))
 
+(defpackage common
+  (:use)
+  (:export :sort
+           :stable-sort
+           :string-capitalize
+           :string-trim
+           ))
 
 (defpackage #:tao-internal
   (:use #:cl #:named-readtables))

@@ -1,6 +1,19 @@
 (in-package #:tao-internal)
 (in-readtable :tao)
 
+(defmacro defsynonym (name docstring)
+  (setf ))
+
+(defmacro defsynonym (new-name old-name &optional docstring)
+  "New-name is a subst for old-name.  Uses rest arg so be careful."
+  `(progn
+     (setf (symbol-function ',new-name)
+           (fdefinition ',old-name))
+     ,(when docstring
+        `(setf (documentation ',new-name 'function)
+               ,docstring))
+     ',new-name))
+
 ;;; ＠
 ;;; !                                      スペシャルシンボル
 ;;;
@@ -797,6 +810,10 @@ number1 の値を number2 の値でべき乗した結果を返す。
 ;;; マーカーに e または E を持つ浮動小数点数を読むために用いられるべき浮
 ;;; 動小数点形式を表す。
 ;;; ＠
+
+;;; standard-readの項によると存在している変数
+(defvar tao:*read-eof-value* :eof)
+
 ;;; *read-suppress*                        変数
 ;;;
 ;;; <説明>
