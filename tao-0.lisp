@@ -4,8 +4,8 @@
 (defmacro defsynonym (new-name old-name &optional docstring)
   "New-name is a subst for old-name.  Uses rest arg so be careful."
   `(progn
-     (!(symbol-function ',new-name)
-           (fdefinition ',old-name))
+     (!(fdefinition ',new-name)
+       (fdefinition ',old-name))
      ,(when docstring
         `(!(documentation ',new-name 'function)
                ,docstring))
@@ -14,7 +14,7 @@
 (defmacro defclsynonym (new-name &optional docstring)
   (let ((clsym (intern (string new-name) :cl)))
     `(progn
-       (!(symbol-function ',new-name)
+       (!(fdefinition ',new-name)
          (fdefinition ',clsym))
        ,(when docstring
           `(!(documentation ',new-name 'function)
@@ -122,9 +122,6 @@ Bn では body の最後が評価される。
                               item))
                       args)))
     `(setf ,self (,fn ,@vars))))|#
-
-(defmacro tao::toga (obj)
-  obj)
 
 ;;; readtable.lisp
 ;;; (defmacro tao:selfass (fn &rest args)

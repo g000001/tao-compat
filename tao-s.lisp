@@ -1557,7 +1557,7 @@ n < 0 のとき、string の最後から n 文字を取り除いた部分文字�
 パラメータで read を実行する。"
   (let ((*read-base* 10.)
         (tao:*read-eof-value* :eof))
-    (read stream t *read-eof-value* t)))
+    (read stream t tao:*read-eof-value* t)))
 
 ;;; standard-write                         関数[#!expr]
 ;;;

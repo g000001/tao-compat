@@ -42,6 +42,7 @@
              ))
   (:export . #0#)
   (:export
+   :&opt
    :**
    :*read-eof-value*
    :length
@@ -137,10 +138,11 @@
    #:do-forever
    :dye
    ;; e
-   #:exit-for
-   #:exit-loop
-   #:exit-progi
-   #:exploden
+   :exit-for
+   :exit-loop
+   :exit-progi
+   :exploden
+   :expr
    ;; f
    #:flatsize
    #:for
@@ -188,12 +190,22 @@
    #:nleft
    ;; o
    ;; p
-   #:package-name
-   #:plus
-   #:progi
-   #:pname-of-time
-   #:put-toga
-   #:trans-progi-if-toga
+   :package-name
+   :plist
+   :plus
+   :progi
+   :pname-of-time
+   :put-toga
+   :progn
+   :progv
+   :provide
+   :psetf
+   :psetq
+   :push
+   :pushnew
+   :put-alist
+   :putplist
+   :putprop
    ;; q
    ;; r
    #:rass
@@ -282,7 +294,8 @@
    #:substring
    :symeval
    ;; t
-   #:togap
+   :togap
+   :trans-progi-if-toga
    ;; u
    #:unionq
    #:unquote

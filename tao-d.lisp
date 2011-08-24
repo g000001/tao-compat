@@ -82,9 +82,10 @@ fn が関数名、var-list が引数リストである expr 型関数、すな�
           (cond ((consp x)
                  (+ 1 (cell-count (car x)) (cell-count (cdr x))))
                 (t 0) ))  ->  cell-count"
-  `(defun ,fn ,var-list
-     ,@body))
-
+  ;; evalは、null lexical environmentにするために利用
+  `(eval
+    '(defun ,fn ,(substitute '&optional '&opt var-list)
+      ,@body)))
 
 (defmacro tao:do-forever (&body body)
   "do-forever                             関数[#!macro]

@@ -1,5 +1,8 @@
 (in-package :tao-internal)
 
+
+(defmacro toga (obj) obj)
+
 (defmacro tao:selfass (fn &rest args)
   "<説明>
  形式 : (!!func arg1 arg2 ... !argI ... argN)
@@ -46,6 +49,25 @@
       (let ((expr (frob args)))
         `(setf ,var (,fn ,@expr))))))
 
+
+(defun tao-read-toga (stream ignore)
+  (declare (ignore ignore))
+  (case (peek-char nil stream)
+    ((#\( #\' #\")
+       (list 'toga (read stream T nil T)))
+    ((#\Space #\Tab #\Newline #\Return)
+       (intern "^" *package*))
+    (otherwise
+       (list 'toga (read stream T nil T)))))
+
+#|(let ((*readtable* (copy-readtable nil)))
+  ;(in-package :cl-user)
+  (set-macro-character #\^ #'tao-read-toga *readtable*)
+  (list (read-from-string "^'(foo bar baz)")
+        (read-from-string "^x")
+        (read-from-string "^'\"||\"")
+        (read-from-string "(^ foo)")))|#
+
 #+sbcl
 (defun tao-read-list (stream ignore)
   (case (peek-char t stream)
@@ -65,5 +87,6 @@
 
 (defreadtable :tao
   (:merge :standard)
-  (:macro-char #\( #'tao-internal::TAO-READ-LIST 'T)
+  (:macro-char #\( #'tao-read-list 'T)
+  (:macro-char #\^ #'tao-read-toga)
   (:case :upcase))

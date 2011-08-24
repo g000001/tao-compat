@@ -15,9 +15,6 @@ progi-id が省略された時は、最も内側にある progi 節から脱出�
         (progi 1 2  (exit-progi 3) 4 5) -> 3"
   `(return-from ,progi-id ,val))
 
-;(exit-progi 3)
-
-
 ;;; ＠
 ;;; ecase                                  関数[#!macro]
 ;;;
@@ -437,7 +434,6 @@ exit-id が省略された時は、最も内側にある for 節から脱出さ�
 ;;;         	   end
 ;;; ＠
 
-
 (defmacro tao:exit-loop (&optional val tag)
   "exit-loop                              関数[#!subr]
 
@@ -460,32 +456,6 @@ exit-id が省略された時は、最も内側にある loop から脱出させ
         	   end"
   `(return-from ,tag ,val))
 
-;;; ＠
-;;; exit-progi                             関数[#!subr]
-;;;
-;;; <説明>
-;;;   形式 : exit-progi &opt val progi-id
-;;; progi-id を持つ progi 節から強制的に脱出させる。
-;;; val が指定されると val を返し、省略されると {undef}0 を返す。
-;;; progi-id が省略された時は、最も内側にある progi 節から脱出させる。
-;;;
-;;; <例>
-;;;         (progi qwe 1 2 (exit-progi 3 qwe) 4 5) -> 3
-;;;         (progi 1 2  (exit-progi 3) 4 5) -> 3
-;;; ＠
-;;; exp                                    関数[#!subr]
-;;;
-;;; <説明>
-;;;   形式 : exp number
-;;; 自然対数の底 e を number でべき乗し、その結果を返す。
-;;;
-;;; <例>
-;;;         (exp 0) -> 1.0f0
-;;;         (exp 1) -> 2.71828182845904f0
-;;;         (exp 1.1) -> 3.00416143995637f0
-;;;         (exp -1) -> 0.367879441171442f0
-;;; ＠
-
 (defun tao:exploden (char-list)
   "exploden                               関数[#!expr]
 
@@ -499,7 +469,7 @@ JISコード) のリスト形式で返す。
         (exploden 'abc) -> (97 98 99))    (ASCII)
         (exploden '123) → (49 50 51)     (ASCII)
         (exploden \"あいう\") -> (42146 42148 42150)  (JIS)"
-  (let ((str (tao:string-or-symbol->string char-list)))
+  (let ((str (string-or-symbol->string char-list)))
     (map 'list #'char-code (coerce str 'list))))
 
 ;;; tao:export                             関数[#!expr]
@@ -525,17 +495,21 @@ JISコード) のリスト形式で返す。
 ;;;            (print x)) -> a
 ;;;         (export 'x) -> t
 ;;; ＠
-;;; expr                                   関数[#!subr]
-;;;
-;;; <説明>
-;;;   形式 : expr var-list body
-;;; var-list を引数リストとする expr 型関数 (スコープ限定関数) を生成。
-;;; body は定義本体。 de と expr の関係は dye と lambda の関係と同じ。
-;;;
-;;; <例>
-;;;         (expr (x y) (+ (foo x) (bar y)))
-;;;         ((expr (x y) (+ x y)) 2 3) -> 5
-;;; ＠
+
+(defmacro tao:expr (var-list &body body)
+  "expr                                   関数[#!subr]
+
+<説明>
+  形式 : expr var-list body
+var-list を引数リストとする expr 型関数 (スコープ限定関数) を生成。
+body は定義本体。 de と expr の関係は dye と lambda の関係と同じ。
+
+<例>
+        (expr (x y) (+ (foo x) (bar y)))
+        ((expr (x y) (+ x y)) 2 3) -> 5"
+  ;; evalはnull lexical environmentにするために利用
+  (eval `(lambda ,var-list ,@body)))
+
 ;;; expt                                   関数[#!subr]
 ;;;
 ;;; <説明>

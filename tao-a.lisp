@@ -371,7 +371,8 @@ pkg が省略されると、カレントパッケージにリンクされる全�
         z は 4 行 5 列の 2 次元配列で第 1 次元のインデックスは
         3 から 6 まで、第 2 次元のインデックスは -2 から 2 まで。
         u は 1 次元配列で 1 から 10 までのインデックスをとり、その 1
-        ユニットは 8 ビット。")
+        ユニットは 8 ビット。"
+  (make-array dimensions))
 
 (defclsynonym tao:array-dimension
     "array-dimension                        関数[#!expr]

@@ -194,34 +194,6 @@
        (push (progn ,@forms) result))))
 |#
 
-(defun tao:index (start end &optional (increment 1))
-  "index                                  関数[#!expr]
-
-<説明>
-  形式 : index start end &opt increment
-start (数)で始まり end (数)で終わる数値リストを作成し、その結果を返す。
-その数値リストの要素の値は increment (数 : 既定値は 1)ずつ増していく。
-start が end より小さい場合、increment は正の数でなければならない。
-start が end より大きい場合、increment は負の数でなければならない。
-上記条件を満足しない場合、nil を返す。なお、for 関数において使用する
-場合、数値リストは実際には作られない。
-
-<例>
-        (index 1 5) -> (1 2 3 4 5)
-        (index 5 1) -> nil
-        (index 1 9 3) -> (1 4 7)
-        (index 10 0 -3) -> (10 7 4 1)
-        (index 1 5 -1) -> nil"
-  (when (or (and (<= start end) (plusp increment))
-            (and (>= start end) (minusp increment)))
-    (if (plusp increment)
-        (do ((n start (+ n increment))
-             (ans () (cons n ans)))
-            ((> n end) (nreverse ans)))
-        (do ((n start (+ n increment))
-             (ans () (cons n ans)))
-            ((< n end) (nreverse ans))))))
-
 #|
  (funcall #'image '(i (index 1 10) (* i i)))
  (let (j)

@@ -371,24 +371,25 @@ package のパッケージ名を文字列として返す。
 ;;; ストリームを分割し、データはこのストリームを通してあるプロセスからも
 ;;; う一方のプロセスにパスされる。
 ;;; ＠
-;;; plist                                  関数[#!subr]
-;;;
-;;; <説明>
-;;;   形式 : plist symbol
-;;; symbol の属性リストを返す。
-;;; symbol の属性リストを作るためにも用いられる。
-;;;
-;;; <例>
-;;;         (plist 'aa) aa の属性リストを返す。
-;;;         (!(plist 'aa) new-plst)
-;;;         	 aa の属性リスト全部を new-plst で置き換える。
-;;;         (!(plist 'xxx) '(a 1 b 2 c 3 d 4)) -> (a 1 b 2 c 3 d 4)
-;;;         	 xxx は (a 1 b 2 c 3 d 4) になる。
-;;; ＠
 
+(defsynonym tao:plist cl:symbol-plist
+    "plist                                  関数[#!subr]
 
-(declaim (inline tao:plus))
-(defun tao:plus (&rest nums)
+<説明>
+  形式 : plist symbol
+symbol の属性リストを返す。
+symbol の属性リストを作るためにも用いられる。
+
+<例>
+        (plist 'aa) aa の属性リストを返す。
+        (!(plist 'aa) new-plst)
+        	 aa の属性リスト全部を new-plst で置き換える。
+        (!(plist 'xxx) '(a 1 b 2 c 3 d 4)) -> (a 1 b 2 c 3 d 4)
+        	 xxx は (a 1 b 2 c 3 d 4) になる。")
+
+(defsynonym (setf tao:plist) (setf cl:symbol-plist))
+
+(defsynonym tao:plus cl:+
   "plus                                   関数[#!subr]
 
 <説明>
@@ -398,9 +399,7 @@ number1, number2, ... numberN の値の和を返す。
 
 <例>
         (plus 1 2 3) -> 6
-        (plus) -> 0"
-  (apply #'+ nums))
-
+        (plus) -> 0")
 
 ;;; ＠
 ;;; plusp                                  関数[#!subr]
@@ -1010,74 +1009,56 @@ progi-id は、関数 exit-progi による脱出のためのマーク。
     `(block ,progi-id
        (let (,cache)
 	 ,@(mapcar (lambda (x) (if (tao:togap x) `(setq ,cache ,x) x)) (butlast body))
-	 (if (or (togap ',@(last body))
+	 (if (or (tao:togap ',@(last body))
 		 (null ,cache))
 	     (setq ,cache ,@(last body))
 	     ,@(last body))
 	 ,cache))))
 
-#|
- (defmacro progi (&body body)
-  (let ((progi-id (when (find-exit-progi body) (pop body))))
-    (let ((cache (gensym "TOGA-CACHE-")))
-      `(block ,progi-id
-	 (let (,cache)
-	    ,@(mapcar (lambda (x) (if (togap x) `(setq ,cache ,x) x)) (butlast body))
-	    (if ,cache ,@(last body) (setq ,cache ,@(last body)))
-	    ,cache)))))
-|#
-
-
 (defmacro trans-progi-if-toga (toga-form cache)
   (if (togap toga-form)
       `(setq ,cache ,toga-form)
       toga-form))
-#|
- (defun find-exit-progi (forms)
-  (and (member 'exit-progi forms
-	       :test (lambda(key x)
-		       (if (consp x) (find-exit-progi x) (eq key x))))))
-|#
 
+(defclsynonym tao:progn
+    "progn                                  関数[#!subr]
 
-;;; ＠
-;;; progn                                  関数[#!subr]
-;;;
-;;; <説明>
-;;;   形式 : progn &rest form1 form2 ...
-;;; form1 form2 ... を逐次評価し、その最後の値を返す。
-;;; (progn form1 form2 ...) = (seq form1 form2 ...)
-;;;
-;;; <例>
-;;;         (defvar *count* 0)
-;;;         (de count-cons (x y)
-;;;             (progn (!!+ !*count*)
-;;;         	   (cons x y))) -> count-cons
-;;;         (count-cons 'a 'b) -> (a . b)
-;;;         *count* -> 1
-;;; ＠
-;;; progv                                  関数[#!expr]
-;;;
-;;; <説明>
-;;;   形式 : progv '(var1 var2 ...) '(value1 value2 ...)
-;;;                                   &rest form1 form2 ...
-;;; var1 を value1 に、var2 を value2 に ... と束縛し、form1 form2 ... を
-;;; 評価し、最後のフォームの評価結果を返す。
-;;; var1, var2, ... はグローバル変数。ローカル変数スコープに影響を与えない。
-;;; この関数が、あるローカル変数のスコープ内であるなら、そのローカル変数を
-;;; この関数内で参照できる。関数 progv は普通 関数 progv の環境内の変数と
-;;; は異なったグローバル変数を使いたい時に使用。
-;;;
-;;; <例>
-;;;         (!x 12) -> 12
-;;;         (progv '(x) '(10) (+ x 20)) -> 30
-;;;         x -> 12
-;;;         (prog (p) (!p 100)
-;;;         	  (progv '(p) '(2)
-;;;         		 (write p) (symbol-value p)))
-;;;         	  (write p)) -> 100
-;;;         100 (ローカル変数)、2 (グローバル変数)、100 の順に逐次プリント。
-;;; ＠
+<説明>
+  形式 : progn &rest form1 form2 ...
+form1 form2 ... を逐次評価し、その最後の値を返す。
+\(progn form1 form2 ...) = (seq form1 form2 ...)
+
+<例>
+        (defvar *count* 0)
+        (de count-cons (x y)
+            (progn (!!+ !*count*)
+        	   (cons x y))) -> count-cons
+        (count-cons 'a 'b) -> (a . b)
+        *count* -> 1")
+
+(defclsynonym tao:progv
+    "progv                                  関数[#!expr]
+
+<説明>
+  形式 : progv '(var1 var2 ...) '(value1 value2 ...)
+                                  &rest form1 form2 ...
+var1 を value1 に、var2 を value2 に ... と束縛し、form1 form2 ... を
+評価し、最後のフォームの評価結果を返す。
+var1, var2, ... はグローバル変数。ローカル変数スコープに影響を与えない。
+この関数が、あるローカル変数のスコープ内であるなら、そのローカル変数を
+この関数内で参照できる。関数 progv は普通 関数 progv の環境内の変数と
+は異なったグローバル変数を使いたい時に使用。
+
+<例>
+        (!x 12) -> 12
+        (progv '(x) '(10) (+ x 20)) -> 30
+        x -> 12
+        (prog (p) (!p 100)
+        	  (progv '(p) '(2)
+        		 (write p) (symbol-value p)))
+        	  (write p)) -> 100
+        100 (ローカル変数)、2 (グローバル変数)、100 の順に逐次プリント。")
+
 ;;; protect-file                           関数[#!expr]
 ;;;
 ;;; <説明>
@@ -1130,47 +1111,50 @@ progi-id は、関数 exit-progi による脱出のためのマーク。
 ;;;         グループ以外のすべてのユーザに対してプロテクトされる。
 ;;;         (protect-file "runbanned.des" "--x--x--x") -> ok
 ;;;         特権を持つユーザ以外のユーザによって実行されない。
-;;; ＠
-;;; provide                                関数[#!expr]
-;;;
-;;; <説明>
-;;;   形式 : provide name
-;;; モジュールの開始を指定する。name を *module* 変数 (リスト形式) に
-;;; 追加登録し、そのモジュールがロードされていることを表し、その
-;;; モジュール名を返す。
-;;;
-;;; <例>
-;;;         (provide 'maclisp) -> ("maclisp")
-;;; ＠
-;;; psetf                                  関数[#!macro]
-;;;
-;;; <説明>
-;;;   形式 : psetf &rest var1 value1 var2 value2 ...
-;;; 並列代入を行う。全ての valuei を評価して、それらの値の vari への代入
-;;; の全てを平行して行う。
-;;;
-;;; <例>
-;;;         (psetf a 1 b 2 c 3) -> nil
-;;;         a = 1  b = 2  c = 3
-;;;         (psetf a (+ b c) b (+ c a) c (+ a b)) - nil
-;;;         a = 5  b = 4  c = 3
-;;;         (setf x 2) -> 2
-;;;         (psetf x 1 y (1+ x)) -> nil
-;;;         x -> 1
-;;;         y -> 2
-;;; ＠
-;;; psetq                                  関数[#!subr]
-;;;
-;;; <説明>
-;;;   形式 : psetq &rest var1 value1 var2 value2 ...
-;;; 並列代入を行い、nil を返す。value1 value2 ... を先に評価して、
-;;; それらの値を var1 var2 ... に代入する。
-;;;
-;;; <例>
-;;;         x = 1, y = 2 , z =3
-;;;         (psetq x (+ y z) y (+ z x) z (+ x y)) -> t
-;;;         x = 5, y = 4, z = 3
-;;; ＠
+
+(defclsynonym tao:provide
+    "provide                                関数[#!expr]
+
+<説明>
+  形式 : provide name
+モジュールの開始を指定する。name を *module* 変数 (リスト形式) に
+追加登録し、そのモジュールがロードされていることを表し、その
+モジュール名を返す。
+
+<例>
+        (provide 'maclisp) -> (\"maclisp\")"))
+
+(defclsynonym tao:psetf
+    "psetf                                  関数[#!macro]
+
+<説明>
+  形式 : psetf &rest var1 value1 var2 value2 ...
+並列代入を行う。全ての valuei を評価して、それらの値の vari への代入
+の全てを平行して行う。
+
+<例>
+        (psetf a 1 b 2 c 3) -> nil
+        a = 1  b = 2  c = 3
+        (psetf a (+ b c) b (+ c a) c (+ a b)) - nil
+        a = 5  b = 4  c = 3
+        (setf x 2) -> 2
+        (psetf x 1 y (1+ x)) -> nil
+        x -> 1
+        y -> 2")
+
+(defclsynonym tao:psetq
+    "psetq                                  関数[#!subr]
+
+<説明>
+  形式 : psetq &rest var1 value1 var2 value2 ...
+並列代入を行い、nil を返す。value1 value2 ... を先に評価して、
+それらの値を var1 var2 ... に代入する。
+
+<例>
+        x = 1, y = 2 , z =3
+        (psetq x (+ y z) y (+ z x) z (+ x y)) -> t
+        x = 5, y = 4, z = 3")
+
 ;;; pure-jstring-p                         関数[#!expr]
 ;;;
 ;;; <説明>
@@ -1182,7 +1166,7 @@ progi-id は、関数 exit-progi による脱出のためのマーク。
 ;;;         (pure-jstring-p "ＮＴＴ電気通信研究所") ->
 ;;;                         "ＮＴＴ電気通信研究所"
 ;;;         (pure-jstring-p "ＮＴＴNTT電気通信研究所") -> nil
-;;; ＠
+
 ;;; purge                                  関数[#!expr]
 ;;;
 ;;; <説明>
@@ -1198,62 +1182,71 @@ progi-id は、関数 exit-progi による脱出のためのマーク。
 ;;;         (write "aaaaa" aa) -> "aaaaa"
 ;;;         (purge aa) -> ok
 ;;;           ファイル "tss.tao" には "aaaaa" は更新されない。
-;;; ＠
+
 ;;; purge-spies                            関数[#!expr]
 ;;;
 ;;; <説明>
 ;;;   形式 : purge-spies &opt terno
 ;;; ターミナル terno のスパイをとりやめる。
 ;;; terno の既定値は login しているターミナル。
-;;; ＠
+
 ;;; purge-spy                              関数[#!expr]
 ;;;
 ;;; <説明>
 ;;;   形式 : purge-spy remove-terno &opt terno
 ;;; ターミナル remove-terno からターミナル terno のスパイをとりやめる。
 ;;; terno の既定値は login しているターミナル。
-;;; ＠
-;;; push                                   関数[#!macro]
-;;;
-;;; <説明>
-;;;   形式 : push list1 list2
-;;; list1 と list2 をコンスし、そのコンスしたリストを list2 の新しい値とし
-;;; 返す。list1 は、任意の Lisp オブジェクトでよい。
-;;; list2 は、リストを含む汎変数の名前。
-;;; (push x y) = (!!cons x !y) = (!y (cons x y))
-;;;
-;;; <例>
-;;;         x = (1 2 3)  で、 y = (4 5 6 7) の場合
-;;;         (push x y) -> ((1 2 3) 4 5 6 7) となり
-;;;  	x = (1 2 3)  で、 y = ((1 2 3) 4 5 6 7) となる。
-;;; ＠
-;;; pushnew                                関数[#!macro]
-;;;
-;;; <説明>
-;;;   形式 : pushnew item place &key :test :test-not :key
-;;; item は、任意のオブジェクトを参照できる。place は、リストを含む汎変数
-;;; 名。item がその place のリストメンバーでなければ、item を place の先
-;;; 頭にコンスする。そして、そのリストを、place の新しい値とし、返す。
-;;; そうでなければ、変更されていないリストを返す。
-;;;
-;;; <例>
-;;;         x = '(a (b c) d)
-;;;         (pushnew 5 (cadr x)) -> (5 b c)
-;;;         (pushnew 'b (cadr x)) -> (5 b c)
-;;; ＠
-;;; put-alist                              関数[#!subr]
-;;;
-;;; <説明>
-;;;   形式 : put-alist item value a-list
-;;; 連想リスト a-list 内で、第 2 要素が item と eq な要素対があれば、
-;;; item をその要素対の第 1 要素に代入する。ない場合は、item と value の
-;;; 要素対 (item . value) を a-list に追加する。代入形式で使用。
-;;;
-;;; <例>
-;;;         alist = (2 . 1)
-;;;         (!alst (put-alist 3 4 alst)) -> ((3 . 4) (2 . 1))  ここで
-;;;         (!alst (put-alist 'qwe 4 alst)) -> ((qwe . 4) (2 . 1))
-;;; ＠
+
+(defclsynonym tao:push
+    "push                                   関数[#!macro]
+
+<説明>
+  形式 : push list1 list2
+list1 と list2 をコンスし、そのコンスしたリストを list2 の新しい値とし
+返す。list1 は、任意の Lisp オブジェクトでよい。
+list2 は、リストを含む汎変数の名前。
+\(push x y) = (!!cons x !y) = (!y (cons x y))
+
+<例>
+        x = (1 2 3)  で、 y = (4 5 6 7) の場合
+        (push x y) -> ((1 2 3) 4 5 6 7) となり
+ 	x = (1 2 3)  で、 y = ((1 2 3) 4 5 6 7) となる。")
+
+(defclsynonym tao:pushnew
+    "pushnew                                関数[#!macro]
+
+<説明>
+  形式 : pushnew item place &key :test :test-not :key
+item は、任意のオブジェクトを参照できる。place は、リストを含む汎変数
+名。item がその place のリストメンバーでなければ、item を place の先
+頭にコンスする。そして、そのリストを、place の新しい値とし、返す。
+そうでなければ、変更されていないリストを返す。
+
+<例>
+        x = '(a (b c) d)
+        (pushnew 5 (cadr x)) -> (5 b c)
+        (pushnew 'b (cadr x)) -> (5 b c)")
+
+(defun tao:put-alist (item value a-list &key (test #'cl:eql)) ;拡張
+  "put-alist                              関数[#!subr]
+
+<説明>
+  形式 : put-alist item value a-list
+連想リスト a-list 内で、第 2 要素が item と eq な要素対があれば、(valueとeqでは?)
+item をその要素対の第 1 要素に代入する。ない場合は、item と value の
+要素対 (item . value) を a-list に追加する。代入形式で使用。
+
+<例>
+        alist = (2 . 1)
+        (!alst (put-alist 3 4 alst)) -> ((3 . 4) (2 . 1))  ここで
+        (!alst (put-alist 'qwe 4 alst)) -> ((qwe . 4) (2 . 1))"
+  (let* ((a-list (copy-alist a-list))
+         (pair (rassoc value a-list :test test)))
+    (if pair
+        (setf (car pair) item)
+        (push (cons item value) a-list))
+    a-list))
+
 ;;; put-comma                              関数[#!expr]
 ;;;
 ;;; <説明>
@@ -1263,7 +1256,6 @@ progi-id は、関数 exit-progi による脱出のためのマーク。
 ;;; <例>
 ;;;         (put-comma 'a) -> ,a
 ;;;         (put-comma (list 'a 'b 'c)) -> ,(a b c)
-;;; ＠
 
 (defun tao:put-toga (object)
   "put-toga                               関数[#!expr]
@@ -1276,49 +1268,52 @@ object に ^ (toga) を付けた値を返す。
       (put-toga (list 1 2 3)) -> ^(1 2 3)"
   (list 'toga object))
 
+(defun tao:putplist (p-list val ind)
+  "putplist                               関数[#!subr]
 
-;;; ＠
-;;; putplist                               関数[#!subr]
-;;;
-;;; <説明>
-;;;   形式 : putplist p-list val ind
-;;; 属性リスト p-list で、ind の値と eq な最初のデータの値をval の値に置
-;;; き換える。見つからなかった場合は、p-list に ind と val の値のペアを
-;;; コンスする。代入の形式で用いる。連想リストのかわりに属性リストが扱わ
-;;; れる点を除いて、putalist 関数と同じ。
-;;;
-;;; <例>
-;;;         (!(plist 'xxx) '(a 1 b 2 c 3 d 4)) -> (a 1 b 2 c 3 d 4)
-;;;         (!yyy (plist 'xxx)) -> (a 1 b 2 c 3 d 4)
-;;;         (putplist yyy 5 'e) -> (e 5 a 1 b 2 c 3 d 4)
-;;;         yyy -> (a 1 b 2 c 3 d 4)
-;;;         (!yyy (putplist yyy 5 'e)) -> (e 5 a 1 b 2 c 3 d 4)
-;;;         yyy -> (e 5 a 1 b 2 c 3 d 4)
-;;;         (putplist yyy 6 'c)  -> (e 5 a 1 b 2 c 6 d 4)
-;;;         yyy -> (e 5 a 1 b 2 c 6 d 4)
-;;; ＠
-;;; putprop                                関数[#!subr]
-;;;
-;;; <説明>
-;;;   形式 : putprop object val ind
-;;; 識別子又はベクタ object が指定する属性リストの ind の値と eq な最初の
-;;; インディケータに対応する属性値を、val の値で置き換え、属性リストに代
-;;; 入した後、その値を返す。一方、見つからなかった場合は、属性リストに
-;;; ind とval の値のペアを consし、その値を返す。いつも属性リストを変更す
-;;; る(破壊的)。連想リストのかわりに属性リストが扱われる点を除いて、
-;;; putalist 関数と同じ。
-;;;
-;;; <例>
-;;;         (!(plist 'xxx) '(q 2 r 3 s 4)) -> (q 2 r 3 s 4)
-;;;         xxx -> (q 2 r 3 s 4)
-;;;         (!yyy (plist 'xxx)) -> (q 2 r 3 s 4)
-;;;         (putprop 'xxx 1 'p) -> 1
-;;;         (plist 'xxx) -> (p 1 q 2 r 3 s 4)
-;;;         yyy -> (q 2 r 3 s 4)
-;;;         (putprop 'xxx 5 's) -> 5
-;;;         (plist 'xxx) -> (p 1 q 2 r 3 s 5)
-;;;         yyy -> (q 2 r 3 s 5)
-;;;
-;;;
-;;; ＠
+<説明>
+  形式 : putplist p-list val ind
+属性リスト p-list で、ind の値と eq な最初のデータの値をval の値に置
+き換える。見つからなかった場合は、p-list に ind と val の値のペアを
+コンスする。代入の形式で用いる。連想リストのかわりに属性リストが扱わ
+れる点を除いて、putalist 関数と同じ。
+
+<例>
+        (!(plist 'xxx) '(a 1 b 2 c 3 d 4)) -> (a 1 b 2 c 3 d 4)
+        (!yyy (plist 'xxx)) -> (a 1 b 2 c 3 d 4)
+        (putplist yyy 5 'e) -> (e 5 a 1 b 2 c 3 d 4)
+        yyy -> (a 1 b 2 c 3 d 4)
+        (!yyy (putplist yyy 5 'e)) -> (e 5 a 1 b 2 c 3 d 4)
+        yyy -> (e 5 a 1 b 2 c 3 d 4)
+        (putplist yyy 6 'c)  -> (e 5 a 1 b 2 c 6 d 4)
+        yyy -> (e 5 a 1 b 2 c 6 d 4)"
+  (setf (getf p-list ind) val)
+  p-list)
+
+(defun tao:putprop (object val ind)
+  "putprop                                関数[#!subr]
+
+<説明>
+  形式 : putprop object val ind
+識別子又はベクタ object が指定する属性リストの ind の値と eq な最初の
+インディケータに対応する属性値を、val の値で置き換え、属性リストに代
+入した後、その値を返す。一方、見つからなかった場合は、属性リストに
+ind とval の値のペアを consし、その値を返す。いつも属性リストを変更す
+る(破壊的)。連想リストのかわりに属性リストが扱われる点を除いて、
+putalist 関数と同じ。
+
+<例>
+        (!(plist 'xxx) '(q 2 r 3 s 4)) -> (q 2 r 3 s 4)
+        xxx -> (q 2 r 3 s 4)
+        (!yyy (plist 'xxx)) -> (q 2 r 3 s 4)
+        (putprop 'xxx 1 'p) -> 1
+        (plist 'xxx) -> (p 1 q 2 r 3 s 4)
+        yyy -> (q 2 r 3 s 4)
+        (putprop 'xxx 5 's) -> 5
+        (plist 'xxx) -> (p 1 q 2 r 3 s 5)
+        yyy -> (q 2 r 3 s 5)"
+  (setf (get object ind) val)
+  (get object ind))
+
+
 
