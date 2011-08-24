@@ -22,89 +22,99 @@
 ;;;         (himitsu _x _y _z) は削除
 ;;;         (abolish himitsu 2) -> t
 ;;;         (himitsu _x _y) と (himitsu 2 3) は削除
-;;; ＠
+
 ;;; abort                                  関数[#!expr]
 ;;;
 ;;; <説明>
 ;;;   形式 : abort  terno
 ;;; ターミナル番号 terno から、現在実行して得られた全ての結果を捨て、
 ;;; トップレベルに戻る。
-;;; ＠
-;;; abs                                    関数[#!subr]
-;;;
-;;; <説明>
-;;;   形式 : abs number
-;;; number の絶対値を返す。
-;;;
-;;; <例>
-;;;         (abs 10) -> 10
-;;;         (abs -10) -> 10
-;;; ＠
-;;; acons                                  関数[#!subr]
-;;;
-;;; <説明>
-;;;   形式 : acons key data a-list
-;;; key と data の対を、連想リスト a-list に加える。
-;;; (acons key data a-list) = (cons (cons key data) a-list)
-;;;
-;;; <例>
-;;;         (!x '((aka . red) (shiro . white))) ->
-;;;         	((aka . red) (shiro . white))
-;;;         (acons 'kuro 'black x) ->
-;;;         	((kuro . black) (aka . red) (shiro . white))
-;;; ＠
-;;; acos                                   関数[#!subr]
-;;;
-;;; <説明>
-;;;   形式 : acos number
-;;; number の逆余弦 (arc cosine) を返す。
-;;; number の絶対値が 1 より大きい場合、複素数を返す。
-;;;
-;;; <例>
-;;;         (acos -1.0f0) -> 3.1415926535898f0
-;;;         (acos 1.0f0) -> 0.0f0
-;;;         (acos 0.5f0)-> 1.0471975511966f0
-;;;         (acos 2.0f0) -> #c(0.0f0 1.31635789692481f0)
-;;; ＠
-;;; acosh                                  関数[#!subr]
-;;;
-;;; <説明>
-;;;   形式 : acosh number
-;;; number の逆双曲的余弦 (hyperbolic arc cosine) を返す。
-;;; number が 1 未満の場合、複素数の値を返す。
-;;;
-;;; <例>
-;;;         (acosh 1.0f0) -> 0.0f0
-;;;         (acosh 0.5f0) -> #c(0.0f0 1.0471975511966f0)
-;;;         (acos -0.5f0) -> #c(0.0f0 2.0946951023932f0)
-;;; ＠
-;;; addprop                                関数[#!expr]
-;;;
-;;; <説明>
-;;;   形式 : addprop p-list value key
-;;; 属性リスト p-list に、key があれば、value を key の属性値と連結 (cons)
-;;; し、その結果を返す。なければ、key の属性値を value として p-list に
-;;; 加え、その結果を返す。
-;;; (addprop symbol value indicator) =
-;;; (putprop symbol (cons value (get symbol indicator)) indicator)
-;;;
-;;; <例>
-;;;         (!(plist 'aaa) '(a 1 b 2 c 3)) -> (a 1 b 2 c 3)
-;;;         (addprop 'aaa 4 'c) -> (4 . 3)
-;;;         (plist 'aaa) -> (a 1 b 2 c (4 . 3))
-;;;         (addprop 'aaa 5 'd) -> (5)
-;;;         (plist 'aaa) -> (d (5) a 1 b 2 c (4 . 3))
-;;; ＠
-;;; adjoin                                 関数[#!macro]
-;;;
-;;; <説明>
-;;;   形式 : adjoin item list &key :test :test-not :key
-;;; list に、要素 item を追加する。ただし、その要素は、まだ list の要素に
-;;; 含まれていないもの。関数 member,cons 参照。
-;;; <例>
-;;;         (adjoin 2 '(1 3))->(2 1 3)
-;;;         (adjoin 2 '(1 2 3))->(1 2 3)
-;;; ＠
+
+(defclsynonym tao:abs
+    "abs                                    関数[#!subr]
+
+<説明>
+  形式 : abs number
+number の絶対値を返す。
+
+<例>
+        (abs 10) -> 10
+        (abs -10) -> 10")
+
+(defclsynonym tao:acons
+    "acons                                  関数[#!subr]
+
+<説明>
+  形式 : acons key data a-list
+key と data の対を、連想リスト a-list に加える。
+\(acons key data a-list) = (cons (cons key data) a-list)
+
+<例>
+        (!x '((aka . red) (shiro . white))) ->
+        	((aka . red) (shiro . white))
+        (acons 'kuro 'black x) ->
+        	((kuro . black) (aka . red) (shiro . white))")
+
+(defclsynonym tao:acos
+    "acos                                   関数[#!subr]
+
+<説明>
+  形式 : acos number
+number の逆余弦 (arc cosine) を返す。
+number の絶対値が 1 より大きい場合、複素数を返す。
+
+<例>
+        (acos -1.0f0) -> 3.1415926535898f0
+        (acos 1.0f0) -> 0.0f0
+        (acos 0.5f0)-> 1.0471975511966f0
+        (acos 2.0f0) -> #c(0.0f0 1.31635789692481f0)")
+
+(defclsynonym tao:acosh
+    "acosh                                  関数[#!subr]
+
+<説明>
+  形式 : acosh number
+number の逆双曲的余弦 (hyperbolic arc cosine) を返す。
+number が 1 未満の場合、複素数の値を返す。
+
+<例>
+        (acosh 1.0f0) -> 0.0f0
+        (acosh 0.5f0) -> #c(0.0f0 1.0471975511966f0)
+        (acos -0.5f0) -> #c(0.0f0 2.0946951023932f0)")
+
+(defun tao:addprop (sym value key)
+  "addprop                                関数[#!expr]
+
+<説明>
+  形式 : addprop p-list value key
+属性リスト p-list に、key があれば、value を key の属性値と連結 (cons)
+し、その結果を返す。なければ、key の属性値を value として p-list に
+加え、その結果を返す。
+\(addprop symbol value indicator) =
+\(putprop symbol (cons value (get symbol indicator)) indicator)
+
+<例>
+        (!(plist 'aaa) '(a 1 b 2 c 3)) -> (a 1 b 2 c 3)
+        (addprop 'aaa 4 'c) -> (4 . 3)
+        (plist 'aaa) -> (a 1 b 2 c (4 . 3))
+        (addprop 'aaa 5 'd) -> (5)
+        (plist 'aaa) -> (d (5) a 1 b 2 c (4 . 3))"
+  (let* ((origval (get sym key))
+         (newval (cons value origval)))
+    (!(get sym key) newval)
+    newval))
+
+(defclsynonym tao:adjoin
+    "adjoin                                 関数[#!macro]
+
+<説明>
+  形式 : adjoin item list &key :test :test-not :key
+list に、要素 item を追加する。ただし、その要素は、まだ list の要素に
+含まれていないもの。関数 member,cons 参照。
+<例>
+        (adjoin 2 '(1 3))->(2 1 3)
+        (adjoin 2 '(1 2 3))->(1 2 3)")
+
 ;;; adjust-array                           関数[#!macro]
 ;;;
 ;;; <説明>
@@ -181,7 +191,10 @@
 ;;;         (all-directories "bs:") -> ("bs:<dir1>" "bs:<dir2>" ... )
 ;;;         (all-directories "bs:" t) ->
 ;;;         	(("bs" . "dir1") ("bs" . "dir2") ... )
-;;; ＠
+
+
+;(defun all-files (&optional (pathname *default-pathname-defaults*)))
+
 ;;; all-files                              関数[#!expr]
 ;;;
 ;;; <説明>
@@ -196,66 +209,54 @@
 ;;;         	                      "cs:<dir1>file2.tao"
 ;;;                       	              ... )
 
-#|(defun append2-1 (list1 list2)
-  `(,@list1 ,@list2))|#
-
-#|(defun append2-2 (list1 list2)
-  (nconc (append list1 ()) list2))|#
-
-#|(defun test-append (func times &key print-result)
-  (time
-   (do ((lim 0 (1+ lim))
-	(l (list (random 10)) (list (random 10)))
-	(r () (funcall func l r)))
-      ((= lim times) (and print-result r)))))|#
-
-#|(let ((i (* 100 100 100)))
-  (test-append #'append i)
-  (test-append #'append2 i)
-  (test-append #'append2-1 i)
-  (test-append #'append2-2 i)
-  (test-append #'nconc i))|#
-
 ;;; applobj                                クラス
 ;;;
 ;;; <説明>
 ;;;   インスタンスが、他のオブジェクトに適用することのできるオブジェクト。
 ;;; 関数そのものが applobj のインスタンス。
-;;; ＠
-;;; applobj-of                             関数[#!subr]
-;;;
-;;; <説明>
-;;;   形式 : applobj-of func
-;;; 関数オブジェクト func があればそれを返し、なければ nil を返す。
-;;;
-;;; <例>
-;;;         (applobj-of 'member) -> {applobj}25431(#!subr-simple . 6)
-;;;         (applobj-of 'fkjdfd) -> nil
-;;;         (applobj-of {applobj}25431(#!subr-simple . 6))
-;;;             -> {applobj}25431(#!subr-simple . 6)
-;;; ＠
-;;; applobjp                               関数[#!subr]
-;;;
-;;; <説明>
-;;;   形式 : applobjp func
-;;; 関数 func が以下の 14 タイプの関数オブジェクトなら、func を返し、
-;;; それ以外なら nil を返す。
-;;;
-;;; #!&+ applobj              #!&+dyn applobj
-;;; #!array applobj           #!closure applobj
-;;; #!expr applobj            #!exprdyn applobj
-;;; #!expr-simple applobj     #!exprdyn-simple applobj
-;;; #!hclauses applobj        #!macro applobj
-;;; #!subr applobj            #!subr-simple applobj
-;;; #!subst applobj           #!unit-clauses applobj
-;;;
-;;; <例>
-;;;       (applobjp (lambda (x) (ncons x)))
-;;;                                     -> {applobj}12345(#!exprdyn . 6)
-;;;       (applobjp (&+ ((_x . _)) _x)) -> {applobj}54321(#!&+ . 6)
-;;;       (applobjp 'car) -> nil
-;;; ＠
 
+(defun tao:applobj-of (func)
+  "applobj-of                             関数[#!subr]
+
+<説明>
+  形式 : applobj-of func
+関数オブジェクト func があればそれを返し、なければ nil を返す。
+
+<例>
+        (applobj-of 'member) -> {applobj}25431(#!subr-simple . 6)
+        (applobj-of 'fkjdfd) -> nil
+        (applobj-of {applobj}25431(#!subr-simple . 6))
+            -> {applobj}25431(#!subr-simple . 6)"
+  (typecase func
+    (function func)
+    (symbol (and (fboundp func)
+                 (fdefinition func)))
+    (otherwise nil)))
+
+(defun tao:applobjp (obj)
+  "applobjp                               関数[#!subr]
+
+<説明>
+  形式 : applobjp func
+関数 func が以下の 14 タイプの関数オブジェクトなら、func を返し、
+それ以外なら nil を返す。
+
+#!&+ applobj              #!&+dyn applobj
+#!array applobj           #!closure applobj
+#!expr applobj            #!exprdyn applobj
+#!expr-simple applobj     #!exprdyn-simple applobj
+#!hclauses applobj        #!macro applobj
+#!subr applobj            #!subr-simple applobj
+#!subst applobj           #!unit-clauses applobj
+
+<例>
+      (applobjp (lambda (x) (ncons x)))
+                                    -> {applobj}12345(#!exprdyn . 6)
+      (applobjp (&+ ((_x . _)) _x)) -> {applobj}54321(#!&+ . 6)
+      (applobjp 'car) -> nil"
+  (typecase obj
+    (function obj)
+    (otherwise nil)))
 
 (defun tao:apply (func list)
   "apply                                  関数[#!subr]
@@ -269,15 +270,16 @@
         (apply (lambda  (x y) (list y x)) (list 123 456)) -> (456 123)"
   (cl:apply func list))
 
-;;; common:apply                           関数[#!macro]
-;;;
-;;; <説明>
-;;;   形式 : common:apply func arg1 &rest arg2 ... argN
-;;; 引数 arg1 arg2 ... argN に関数 func を適用する。
-;;;
-;;; <例>
-;;;         (common:apply '+ (list 1 2 3 4 5 6 7 8 9)) -> 45
-;;;         (common:apply 'max 1 2 '(3 4 5)) -> 5
+(defsynonym common:apply cl:apply
+  "common:apply                           関数[#!macro]
+
+<説明>
+  形式 : common:apply func arg1 &rest arg2 ... argN
+引数 arg1 arg2 ... argN に関数 func を適用する。
+
+<例>
+        (common:apply '+ (list 1 2 3 4 5 6 7 8 9)) -> 45
+        (common:apply 'max 1 2 '(3 4 5)) -> 5")
 
 ;;  3:35pm Monday, 6 August 2007
 (defun tao:apply* (func &rest args)
@@ -300,86 +302,92 @@ arg1 arg2 ... argN を評価した後、それらの値に関数 func を適用�
 ;;; 変数 *evalhook* と *applyhook* を 関数 func2 と func3 にそれぞれ
 ;;; バインドし、list のすべての要素を引数として func1 を呼び出し、func1 の
 ;;; 返す全値を返す。デバッグを助けるためのフック機能を使うことができる。
-;;; ＠
-;;; apropos                                関数[#!expr]
-;;;
-;;; <説明>
-;;;   形式 : apropos string &opt pkg
-;;; パッケージ pkg において、印字名の中に string を副文字列として含む
-;;; シンボルをすべて検索し、それらのシンボル名を印字する。
-;;; pkg が省略されると、カレントパッケージにリンクされる全てのパッケージを
-;;; 検索する。
-;;;
-;;; <例>
-;;;         (apropos "str" sys:bas-package) は、次のものをプリントする。
-;;;         bas:*print-no-string-marker*
-;;;    	*print-string-marker
-;;;    	...
-;;;    	write-string write-to-string wstrhbo wstrhl
-;;; ＠
-;;; apropos-list                           関数[#!expr]
-;;;
-;;; <説明>
-;;;   形式 : apropos-list string &opt pkg
-;;; パッケージ pkg において、印字名の中に string を副文字列として含む
-;;; シンボルをすべて検索し、それらのシンボル名のリストを返す。
-;;; pkg が省略されると、カレントパッケージにリンクされる全てのパッケージを
-;;; 検索する。
-;;;
-;;; <例>
-;;;         (apropos-list "str" sys:bas-package)
-;;;         	-> (bas:*print-no-string-marker*
-;;;         	   *print-string-marker ...
-;;;         	   write-string write-to-string wstrhbo wstrhl)
-;;; ＠
-;;; aref                                   関数[#!subr]
-;;;
-;;; <説明>
-;;;   形式 : aref array &rest data
-;;; 配列 array の要素 data をアクセスし、その値を返す。
-;;;
-;;; <例>
-;;;         (!a (make-array 10)) ->
-;;;         	{vector}1791495(common:simple-general-vector . 10)
-;;;         (aref a 1) -> nil
-;;;         (!(aref a 1) '1) -> 1
-;;;         (aref a 1) -> 1
-;;; ＠
-;;; array                                  関数[#!expr]
-;;;
-;;; <説明>
-;;;   形式 : array &rest dimension1 dimension2 ... dimensionN
-;;; 配列を作り、その関数オブジェクトが返る。代入の形で使用する。
-;;; 配列の次元に制限はない。dimension1 dimension2 ... dimensionN が各次元の
-;;; 大きさを指定し、引数の数 N が配列の次元になる。
-;;; 各次元の大きさは、第 1 インデックス first と最終インデックス last
-;;; のリスト (first last) としても指定できる。
-;;;
-;;; <例>
-;;;         (!y (array 5 6)) -> {applobj}31182(#!array.10)
-;;;         (!z (array '(3 6) '(2 -2))) -> {applobj}31346(#!array.10)
-;;;         (!u (array #!8b-memblk '(1 10))) ->
-;;;               {applobj}31368(#!array . 8)
-;;;         y は 5 行 6 列の 2 次元配列で第 1 次元のインデックスは
-;;;         0 から 4 まで、第 2 次元のインデックスは 0 から 5 まで。
-;;;         z は 4 行 5 列の 2 次元配列で第 1 次元のインデックスは
-;;;         3 から 6 まで、第 2 次元のインデックスは -2 から 2 まで。
-;;;         u は 1 次元配列で 1 から 10 までのインデックスをとり、その 1
-;;;         ユニットは 8 ビット。
-;;; ＠
-;;; array-dimension                        関数[#!expr]
-;;;
-;;; <説明>
-;;;   形式 : array-dimension array rank
-;;; 配列 array において、次元 rank の大きさが返される。array が
-;;; フィルポインタを持つベクタであれば、そのベクタのトータルサイズが、
-;;; 返される。
-;;;
-;;; <例>
-;;;         (!b (make-array '(10 10))) -> {applobj}1287843(#!array .10)
-;;;         (array-dimension b 1) -> 10
-;;;         (array-dimension b 0) -> 10
-;;;         (array-dimension b 2) -> エラー
+
+(defclsynonym tao:apropos
+  #.(string '#:|apropos                                関数[#!expr]
+
+<説明>
+  形式 : apropos string &opt pkg
+パッケージ pkg において、印字名の中に string を副文字列として含む
+シンボルをすべて検索し、それらのシンボル名を印字する。
+pkg が省略されると、カレントパッケージにリンクされる全てのパッケージを
+検索する。
+
+<例>
+        (apropos "str" sys:bas-package) は、次のものをプリントする。
+        bas:*print-no-string-marker*
+   	*print-string-marker
+   	...
+   	write-string write-to-string wstrhbo wstrhl|))
+
+(defclsynonym tao:apropos-list
+  "apropos-list                           関数[#!expr]
+
+<説明>
+  形式 : apropos-list string &opt pkg
+パッケージ pkg において、印字名の中に string を副文字列として含む
+シンボルをすべて検索し、それらのシンボル名のリストを返す。
+pkg が省略されると、カレントパッケージにリンクされる全てのパッケージを
+検索する。
+
+<例>
+        (apropos-list \"str\" sys:bas-package)
+        	-> (bas:*print-no-string-marker*
+        	   *print-string-marker ...
+        	   write-string write-to-string wstrhbo wstrhl)")
+
+(defclsynonym tao:aref
+    "aref                                   関数[#!subr]
+
+<説明>
+  形式 : aref array &rest data
+配列 array の要素 data をアクセスし、その値を返す。
+
+<例>
+        (!a (make-array 10)) ->
+        	{vector}1791495(common:simple-general-vector . 10)
+        (aref a 1) -> nil
+        (!(aref a 1) '1) -> 1
+        (aref a 1) -> 1")
+
+(defun tao:array (&rest dimensions)
+  "array                                  関数[#!expr]
+
+<説明>
+  形式 : array &rest dimension1 dimension2 ... dimensionN
+配列を作り、その関数オブジェクトが返る。代入の形で使用する。
+配列の次元に制限はない。dimension1 dimension2 ... dimensionN が各次元の
+大きさを指定し、引数の数 N が配列の次元になる。
+各次元の大きさは、第 1 インデックス first と最終インデックス last
+のリスト (first last) としても指定できる。
+
+<例>
+        (!y (array 5 6)) -> {applobj}31182(#!array.10)
+        (!z (array '(3 6) '(2 -2))) -> {applobj}31346(#!array.10)
+        (!u (array #!8b-memblk '(1 10))) ->
+              {applobj}31368(#!array . 8)
+        y は 5 行 6 列の 2 次元配列で第 1 次元のインデックスは
+        0 から 4 まで、第 2 次元のインデックスは 0 から 5 まで。
+        z は 4 行 5 列の 2 次元配列で第 1 次元のインデックスは
+        3 から 6 まで、第 2 次元のインデックスは -2 から 2 まで。
+        u は 1 次元配列で 1 から 10 までのインデックスをとり、その 1
+        ユニットは 8 ビット。")
+
+(defclsynonym tao:array-dimension
+    "array-dimension                        関数[#!expr]
+
+<説明>
+  形式 : array-dimension array rank
+配列 array において、次元 rank の大きさが返される。array が
+フィルポインタを持つベクタであれば、そのベクタのトータルサイズが、
+返される。
+
+<例>
+        (!b (make-array '(10 10))) -> {applobj}1287843(#!array .10)
+        (array-dimension b 1) -> 10
+        (array-dimension b 0) -> 10
+        (array-dimension b 2) -> エラー")
+
 ;;; ＠
 ;;; array-dimension-limit                  定数
 ;;;
@@ -522,27 +530,30 @@ arg1 arg2 ... argN を評価した後、それらの値に関数 func を適用�
 ;;;             {vector}1288564(common:simple-general-vector .2)
 ;;;         (array-type a) -> (simple-array t)
 ;;;         (array-type b) -> (simple-vector t)
-;;; ＠
-;;; arrayp                                 関数[#!expr]
-;;;
-;;; <説明>
-;;;   形式 : arrayp arg
-;;; arg が配列なら t 、それ以外なら nil を返す。
-;;;
-;;; <例>
-;;;         (!x (array '(10 20))) -> {applobj}31400(#!array . 8)
-;;;         (arrayp x) -> t
-;;; ＠
-;;; common:arrayp                          関数[#!expr]
-;;;
-;;; <説明>
-;;;   形式 : common:arrayp arg
-;;; arg が配列なら関数オブジェクト、それ以外なら nil を返す。
-;;;
-;;; <例>
-;;;         (!x (array '(2 2))) -> {applobj}1773079(#!array . 8)
-;;;         (common:arrayp x) -> {applobj}1773079(#!array . 8)
-;;; ＠
+
+(defun tao:arrayp (arg)
+  "arrayp                                 関数[#!expr]
+
+<説明>
+  形式 : arrayp arg
+arg が配列なら t 、それ以外なら nil を返す。
+
+<例>
+        (!x (array '(10 20))) -> {applobj}31400(#!array . 8)
+        (arrayp x) -> t"
+  (and (cl:arrayp arg) 'T))
+
+(defun common:arrayp (arg)
+  "common:arrayp                          関数[#!expr]
+
+<説明>
+  形式 : common:arrayp arg
+arg が配列なら関数オブジェクト、それ以外なら nil を返す。;arrayオブジェクト?
+
+<例>
+        (!x (array '(2 2))) -> {applobj}1773079(#!array . 8)
+        (common:arrayp x) -> {applobj}1773079(#!array . 8)"
+  (and (typep arg 'array) arg))
 
 (defun tao:as-char (integer)
   "as-char                                関数[#!expr]
@@ -732,7 +743,7 @@ list を object へ代入する代入式を作る。(!object list)
 ;;;
 ;;; <例>
 ;;;         (assign-list 'x 1) -> (!x 1)
-;;; ＠
+
 ;;; assign-logical-name                    関数[#!expr]
 ;;;
 ;;; <説明>
@@ -746,7 +757,6 @@ list を object へ代入する代入式を作る。(!object list)
 ;;; <例>
 ;;;         (assign-logical-name "n:" 'cs:<nanja-monja>)
 ;;;         (assign-logical-name "mine:" "ps:<pin-pon-pan>" "tops::")
-;;; ＠
 
 (defun tao:assignee-cons (sym)
   "assignee-cons                          関数[#!expr]
@@ -759,64 +769,72 @@ object の先頭に ! を付けて返す。
         (assignee-cons 'x) -> !x"
   (values (intern (concatenate 'string "!" (string sym)))))
 
-;;; ＠
-;;; assigneep                              関数[#!subr]
-;;;
-;;; <説明>
-;;;   形式 : assigneep object
-;;; object が先頭に ! がついた表現になっていれば、それを返し、
-;;; そうでなければ nil を返す。
-;;;
-;;; <例>
-;;;         (assigneep (caddr '(!!cons 1234 !x))) -> !x
-;;; ＠
-;;; assignp                                関数[#!subr]
-;;;
-;;; <説明>
-;;;   形式 : assignp object
-;;; object が代入式ならば、それを返し、そうでなければ nil を返す。
-;;;
-;;; <例>
-;;;       (assignp '(!x (x + 1))) -> (!x (x + 1))
-;;; ＠
-;;; assoc                                  関数[#!macro]
-;;;
-;;; <説明>
-;;;   形式 : assoc key a-list &key :test :test-not :key
-;;; 連想リスト a-list 中で、key と一致するキーを持つ対のうち最初の対を返す。
-;;;
-;;; <例>
-;;;         (assoc 'r '((a . b) (c . d) (r . x) (s . y) (r . z)))
-;;;         -> (r . x)
-;;;         (assoc 'goo '((foo . bar) (zoo . goo))) -> nil
-;;;         (assoc '2 '((1 a b c) (2 b c d) (-7 x y z))) -> (2 b c d)
-;;; ＠
-;;; assoc-if                               関数[#!expr]
-;;;
-;;; <説明>
-;;;   形式 : assoc-if pred a-list
-;;; 連想リスト a-list 中で、その car 部が、述語 pred を満足する対のうち最初
-;;; の対を返す。なければ nil を返す。
-;;;
-;;; <例>
-;;;         (assoc-if #'integerp '((ichi . one) (1 . 0) (2.9 . 3.8)))
-;;;         ->  (1 . 0)
-;;;         (assoc-if #'symbolp '((boku . i) (kimi . you) (1 . 3)))
-;;;         ->  (boku . i)
-;;; ＠
-;;; assoc-if-not                           関数[#!expr]
-;;;
-;;; <説明>
-;;;   形式 : assoc-if-not pred a-list
-;;; 連想リスト a-list 中で、その car 部が、述語 pred を満足しない対のうち
-;;; 最初の対を返す。なければ nil を返す。
-;;;
-;;; <例>
-;;;         (assoc-if-not #'integerp '((ichi . one) (1 . 0)))
-;;;       	-> (ichi . one)
-;;;         (assoc-if-not #'symbolp '((boku . i) (kimi . you) (1 . 3)))
-;;;         -> (1 . 3)
-;;; ＠
+(defun tao:assigneep (form)
+  "assigneep                              関数[#!subr]
+
+<説明>
+  形式 : assigneep object
+object が先頭に ! がついた表現になっていれば、それを返し、
+そうでなければ nil を返す。
+
+<例>
+        (assigneep (caddr '(!!cons 1234 !x))) -> !x"
+  (and (symbolp form)
+       (string= "!"
+                (subseq (string form) 0 1))))
+
+(defun tao:assignp (form)
+  "assignp                                関数[#!subr]
+
+<説明>
+  形式 : assignp object
+object が代入式ならば、それを返し、そうでなければ nil を返す。
+
+<例>
+      (assignp '(!x (x + 1))) -> (!x (x + 1))"
+  (and (consp form)
+       (eq 'setf (car form))))
+
+(defclsynonym tao:assoc
+    "assoc                                  関数[#!macro]
+
+<説明>
+  形式 : assoc key a-list &key :test :test-not :key
+連想リスト a-list 中で、key と一致するキーを持つ対のうち最初の対を返す。
+
+<例>
+        (assoc 'r '((a . b) (c . d) (r . x) (s . y) (r . z)))
+        -> (r . x)
+        (assoc 'goo '((foo . bar) (zoo . goo))) -> nil
+        (assoc '2 '((1 a b c) (2 b c d) (-7 x y z))) -> (2 b c d)")
+
+(defclsynonym tao:assoc-if
+    "assoc-if                               関数[#!expr]
+
+<説明>
+  形式 : assoc-if pred a-list
+連想リスト a-list 中で、その car 部が、述語 pred を満足する対のうち最初
+の対を返す。なければ nil を返す。
+
+<例>
+        (assoc-if #'integerp '((ichi . one) (1 . 0) (2.9 . 3.8)))
+        ->  (1 . 0)
+        (assoc-if #'symbolp '((boku . i) (kimi . you) (1 . 3)))
+        ->  (boku . i)")
+
+(defclsynonym tao:assoc-if-not
+    "assoc-if-not                           関数[#!expr]
+
+<説明>
+  形式 : assoc-if-not pred a-list
+連想リスト a-list 中で、その car 部が、述語 pred を満足しない対のうち
+最初の対を返す。なければ nil を返す。
+
+<例>
+        (assoc-if-not #'integerp '((ichi . one) (1 . 0)))
+      	-> (ichi . one)
+        (assoc-if-not #'symbolp '((boku . i) (kimi . you) (1 . 3)))
+        -> (1 . 3)")
 
 (defun tao:assq (key a-list)
   "assq                                   関数[#!subr]
@@ -864,46 +882,48 @@ nil を返す。(assqu key a-list) = (ass equal key a-list)
         (assqu '1 '((1.0 . 3) (5 . 2) (1 . 6))) -> (1 . 6)"
   (assoc key a-list :test #'equal))
 
-;;; ＠
-;;; atan                                   関数[#!subr]
-;;;
-;;; <説明>
-;;;   形式 : atan number1 &opt number2
-;;; number1 を number2 で割った値の逆正接 (arc tan) をラジアン形式で返す。
-;;; number1 number2 は、複素数以外の数値。
-;;;
-;;; <例>
-;;;         (atan 1.0f0) -> 0.785398163397449f0
-;;;         (atan 0.5f0) -> 0.463647609000807f0
-;;;         (atan -0.5f0) -> -0.46364760900087f0
-;;; ＠
-;;; atanh                                  関数[#!subr]
-;;;
-;;; <説明>
-;;;   形式 : atanh number
-;;; number の逆双曲的正接 (hyperbolic arc tan) を返す。
-;;; number の絶対値が 1 以上の場合、複素数を返す。
-;;;
-;;; <例>
-;;;         (atanh -0.5f0) -> 0.54936144334054f0
-;;;         (atanh 0.5f) -> 0.549306144334054f0
-;;;         (atanh 0.8f0) -> 1.0986122886681f0
-;;; ＠
-;;; atom                                   関数[#!subr]
-;;;
-;;; <説明>
-;;;   形式 : atom object
-;;; object がアトムで、かつ次にあげるものの 1 つとして定義されているならば
-;;; t 、そうでなければ nil を返す。
-;;;     nil, id, logic variable (itself), codnum, integer,
-;;;     ratio number, real number, string, jstring, vector,
-;;;     locative, memblk, applobj, undef, udo
-;;; (atom x) = (not (listp x))  (x が nil 以外のとき)
-;;;
-;;; <例>
-;;;         (atom nil) -> t
-;;;         (atom 'a) -> t
-;;;         (atom 123456789) -> t
-;;;         (atom '(a b)) -> nil
-;;;         (atom (car '(a b c))) -> t
-;;; ＠
+
+(defclsynonym tao:atan
+    "atan                                   関数[#!subr]
+
+<説明>
+  形式 : atan number1 &opt number2
+number1 を number2 で割った値の逆正接 (arc tan) をラジアン形式で返す。
+number1 number2 は、複素数以外の数値。
+
+<例>
+        (atan 1.0f0) -> 0.785398163397449f0
+        (atan 0.5f0) -> 0.463647609000807f0
+        (atan -0.5f0) -> -0.46364760900087f0")
+
+(defclsynonym tao:atanh
+    "atanh                                  関数[#!subr]
+
+<説明>
+  形式 : atanh number
+number の逆双曲的正接 (hyperbolic arc tan) を返す。
+number の絶対値が 1 以上の場合、複素数を返す。
+
+<例>
+        (atanh -0.5f0) -> 0.54936144334054f0
+        (atanh 0.5f) -> 0.549306144334054f0
+        (atanh 0.8f0) -> 1.0986122886681f0")
+
+(defclsynonym tao:atom
+    "atom                                   関数[#!subr]
+
+<説明>
+  形式 : atom object
+object がアトムで、かつ次にあげるものの 1 つとして定義されているならば
+t 、そうでなければ nil を返す。
+    nil, id, logic variable (itself), codnum, integer,
+    ratio number, real number, string, jstring, vector,
+    locative, memblk, applobj, undef, udo
+\(atom x) = (not (listp x))  (x が nil 以外のとき)
+
+<例>
+        (atom nil) -> t
+        (atom 'a) -> t
+        (atom 123456789) -> t
+        (atom '(a b)) -> nil
+        (atom (car '(a b c))) -> t")

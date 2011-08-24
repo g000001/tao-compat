@@ -55,6 +55,17 @@
    :sort
    :string-capitalize
    :zerop
+   :apropos
+   :apropos-list
+   :aref
+   :atom
+   :atanh
+   :atan
+   :assoc-if-not
+   :assoc-if
+   :assoc
+   :assignp
+   :assigneep
    )
   (:export
    ;; 0
@@ -77,6 +88,16 @@
    :>=
    ://
    ;; a
+   :abs
+   :acons
+   :acos
+   :acosh
+   :addprop
+   :adjoin
+   :applobjp
+   :applobj-of
+   :array
+   :array-dimension
    :apply
    :apply*
    :as-char
@@ -86,6 +107,7 @@
    :assq
    :assql
    :assqu
+   :arrayp
    ;; b
    #:belongs-to
    #:bins
@@ -274,6 +296,7 @@
    #:zerop
    ))
 
+;(delete-package :common)
 (defpackage common
   (:use)
   (:export :sort
@@ -287,6 +310,8 @@
            :=
            :>
            :>=
+           :apply
+           :arrayp
            ))
 
 (defpackage #:tao-internal

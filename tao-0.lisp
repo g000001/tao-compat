@@ -11,6 +11,16 @@
                ,docstring))
      ',new-name))
 
+(defmacro defclsynonym (new-name &optional docstring)
+  (let ((clsym (intern (string new-name) :cl)))
+    `(progn
+       (!(symbol-function ',new-name)
+         (fdefinition ',clsym))
+       ,(when docstring
+          `(!(documentation ',new-name 'function)
+             ,docstring))
+       ',new-name)))
+
 ;;; ＠
 ;;; !                                      スペシャルシンボル
 ;;;
