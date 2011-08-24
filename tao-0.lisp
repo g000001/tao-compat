@@ -1,16 +1,13 @@
 (in-package #:tao-internal)
 (in-readtable :tao)
 
-(defmacro defsynonym (name docstring)
-  (setf ))
-
 (defmacro defsynonym (new-name old-name &optional docstring)
   "New-name is a subst for old-name.  Uses rest arg so be careful."
   `(progn
-     (setf (symbol-function ',new-name)
+     (!(symbol-function ',new-name)
            (fdefinition ',old-name))
      ,(when docstring
-        `(setf (documentation ',new-name 'function)
+        `(!(documentation ',new-name 'function)
                ,docstring))
      ',new-name))
 
@@ -116,54 +113,11 @@ Bn では body の最後が評価される。
                       args)))
     `(setf ,self (,fn ,@vars))))|#
 
-(defmacro tao:selfass (fn &rest args)
-  "<説明>
- 形式 : (!!func arg1 arg2 ... !argI ... argN)
-上式は (setq argI (func arg1 arg2 ... argI ... argN)) と同じ。
-自己代入式を作る。関数 func を arg1 ... argN を引数として実行し、
-結果を argI に代入する。
-
-<例>
-         (!x '(1 2 3))
-         (!y '(a b c))
-         (!!cons !x y) -> (1 2 3 a b c)
-         x -> (1 2 3 a b c)
-         y -> (a b c)"
-  (let (var)
-    (labels ((frob (args)
-               (if (null args)
-                   ()
-                   (let ((car (car args))
-                         (cdr (cdr args)))
-                     (cond ((symbolp car)
-                            (cond ((string= "!" car)
-                                   ;; (!!foo !(bar x) 33)
-                                   (setq var (cadr args))
-                                   (cons (cadr args)
-                                         (frob (cddr args))))
-                                  ;;
-                                  ((string= "!" (subseq (string car) 0 1))
-                                   ;; !x
-                                   (let ((sym (intern (subseq (string car) 1))))
-                                     ;; get var
-                                     (setq var sym)
-                                     (cons sym (frob cdr))))
-                                  ;;
-                                  ('T (cons car (frob cdr)))))
-                           ;;
-                           ((consp car)
-                            ;; 入れ子のselfass対応
-                            (if (eq 'selfass (car car))
-                                (cons car (frob cdr))
-                                (cons (frob car)
-                                      (frob cdr))))
-                           ;;
-                           ('T (cons car (frob cdr))))))))
-      (let ((expr (frob args)))
-        `(setf ,var (,fn ,@expr))))))
-
 (defmacro tao::toga (obj)
   obj)
+
+;;; readtable.lisp
+;;; (defmacro tao:selfass (fn &rest args)
 
 (defmacro tao:& (&body forms)
   "&                                      関数[#!macro]
@@ -421,13 +375,14 @@ B1, B2, ... または、Bn で使われる局所変数、特に論理変数は�
 ;;;         [x &retract (p q r)] -> t
 ;;;         [x & a b c] -> nil
 ;;;         [x & (p q r)] -> nil
-;;; ＠
+
 ;;; *                                      変数
 ;;;
 ;;; <説明>
 ;;;   現在のトップレベル・ループの 1 つ前のループで評価された結果の返され
 ;;; た値。
-;;; ＠
+
+;;; import & export
 ;;; *                                      関数[#!subr]
 ;;;
 ;;; <説明>
@@ -459,13 +414,14 @@ B1, B2, ... または、Bn で使われる局所変数、特に論理変数は�
 ;;;         p -> -12000
 ;;;         (q <- (p + 10000 * r)) -> -20000
 ;;;         q -> -20000
-;;; ＠
+
+;;; TODO CLパッケージ再定義をどうするか
+;;; import & export
 ;;; **                                     変数
 ;;;
 ;;; <説明>
 ;;;   現在のトップレベル・ループの 2 つ前のループで評価された結果の返され
 ;;; た値。
-;;; ＠
 
 (defun tao:** (number1 number2)
   "**                                     関数[#!subr]
@@ -479,13 +435,13 @@ number1 の値を number2 の値でべき乗した結果を返す。
         (** 3 3) -> 27"
   (expt number1 number2))
 
-;;; ＠
+;;; import & export
 ;;; ***                                    変数
 ;;;
 ;;; <説明>
 ;;;   現在のトップレベル・ループの 3 つ前のループで評価された結果の返された
 ;;; 値。
-;;; ＠
+
 ;;; *applyhook*                            変数
 ;;;
 ;;; <説明>
@@ -493,28 +449,31 @@ number1 の値を number2 の値でべき乗した結果を返す。
 ;;; nil 以外なら、apply のかわりにこの変数の値である関数を使う。この関数は、
 ;;; 呼び出される関数、引数のリスト、環境の 3 つの引数を受け取る関数で
 ;;; なければならない。
-;;; ＠
+
 ;;; *break-on-warnings*                    変数
 ;;;
 ;;; <説明>
 ;;;   この変数の値が、nil でなければ、関数 warn は、関数 break と同じように
 ;;; 働く。つまり、エラーメッセージをプリントし、その後、デバッガに行くか、
 ;;; ループをブレイクする。
-;;; ＠
-;;; *catch                                 関数[#!macro]
-;;;
-;;; <説明>
-;;;   形式 : *catch tag &rest body
-;;; *catch は *catch が多値変数を返すのを除いて catch と同じ。
-;;; 複数のリターン値の最初の値は catch のリターン値と同じ。
-;;; 2 番目の値は常に nil であり、それは *catch が *throw によってではなく、
-;;; 正常に終了されることを示す。
-;;; ＠
+
+(defsynonym tao:*catch cl:catch
+  "*catch                                 関数[#!macro]
+
+<説明>
+  形式 : *catch tag &rest body
+*catch は *catch が多値変数を返すのを除いて catch と同じ。
+複数のリターン値の最初の値は catch のリターン値と同じ。
+2 番目の値は常に nil であり、それは *catch が *throw によってではなく、
+正常に終了されることを示す。")
+
+;;; import & export
 ;;; *debug-io*                             変数
 ;;;
 ;;; <説明>
 ;;;   この変数の値は、会話型でデバッグするために用いる双方向のストリーム。
-;;; ＠
+
+;;; import & export
 ;;; *default-pathname-defaults*            変数
 ;;;
 ;;; <説明>
@@ -526,13 +485,14 @@ number1 の値を number2 の値でべき乗した結果を返す。
 ;;;         *default-pathname-defaults* -> {udo}1768299pathname
 ;;;         (namestring *default-pathname-pdefaults*)
 ;;;                     -> "Ho::cs:<dire>foo.tao"
-;;; ＠
+
+;;; import & export
 ;;; *error-output*                         変数
 ;;;
 ;;; <説明>
 ;;;   この変数の値は、エラーメッセージを送るための出力ストリーム。
 ;;; 既定値は、*standard-output* 。
-;;; ＠
+
 ;;; *evalhook*                             変数
 ;;;
 ;;; <説明>
@@ -540,22 +500,24 @@ number1 の値を number2 の値でべき乗した結果を返す。
 ;;; *evalhook* の値が nil 以外なら、その値は、評価するフォームと環境の 2 つ
 ;;; の引数を取る関数でなければならない。この関数が eval のかわりに評価を
 ;;; 行う。
-;;; ＠
+
+;;; import & export
 ;;; *features*                             変数
 ;;;
 ;;; <説明>
 ;;;   この変数の値は、機構の名前となるシンボルのリスト。
 ;;; ELIS システムでは、*features* -> (tao elis lsi11)
-;;; ＠
-;;; *file-search-path*                     変数
-;;;
-;;; <説明>
-;;;   *file-search-path* ディレクトリのリストであり、その要素は、ファイル
-;;; をロードする際、そのファイルのパスをサーチするために使われる。
-;;; 例えば、リストが、("bs:<tools>" "bs:<demo>" "bs:<hora>")であるなら、
-;;; ロードされるファイルは、まず現在のディレクトリ、次に "bs:<tools>" ,
-;;; 3 番目に "bs:<demo>" といったようにサーチされる。
-;;; ＠
+
+(defvar tao:*file-search-path* nil
+  #.(string '#:|*file-search-path*                     変数
+
+<説明>
+  *file-search-path* ディレクトリのリストであり、その要素は、ファイル
+をロードする際、そのファイルのパスをサーチするために使われる。
+例えば、リストが、("bs:<tools>" "bs:<demo>" "bs:<hora>")であるなら、
+ロードされるファイルは、まず現在のディレクトリ、次に "bs:<tools>" ,
+3 番目に "bs:<demo>" といったようにサーチされる。|))
+
 ;;; *fn-notation*                          変数
 ;;;
 ;;; <説明>
@@ -564,13 +526,14 @@ number1 の値を number2 の値でべき乗した結果を返す。
 ;;; funct (x) の形でタイプすると、それは、翻訳されて (funct x) として
 ;;; 受け取られる。そして、(funct x) の代わりに funct (x) が印字される。
 ;;; 初期値は、nil 。
-;;; ＠
+
+;;; import & export
 ;;; *load-verbose*                         変数
 ;;;
 ;;; <説明>
 ;;;   この変数は、関数 load に対するキーワード引数 :verbose への既定値を
 ;;; 与えている。初期値は nil 。
-;;; ＠
+
 ;;; *logical-name-alist*                   変数
 ;;;
 ;;; <説明>
@@ -583,19 +546,22 @@ number1 の値を number2 の値でべき乗した結果を返す。
 ;;;     ("logical-name11" . ("device-name11" . "directory-name11"))
 ;;;     ("logical-name12" . ("device-name12" . "directory-name12"))
 ;;;     ("logical-name13" . ("device-name13" . "directory-name13")))
-;;; ＠
+
+;;; import & export
 ;;; *macroexpand-hook*                     変数
 ;;;
 ;;; <説明>
 ;;;   この変数の値は、マクロ展開のインタフェースのフックとして
 ;;; 関数 macroexpand-1 で用いられる。 *macroexpand-hook* = nil
-;;; ＠
+
+;;; import & export
 ;;; *modules*                              変数
 ;;;
 ;;; <説明>
 ;;;   システムにロードされているモジュール名のリスト。
 ;;; このリストは、関数 provide 及び require によって使用される。
-;;; ＠
+
+;;; import & export
 ;;; *package*                              変数
 ;;;
 ;;; <説明>
@@ -605,7 +571,8 @@ number1 の値を number2 の値でべき乗した結果を返す。
 ;;;
 ;;; <例>
 ;;;         *package* -> {vector}45708(package . 12)
-;;; ＠
+
+;;; import & export
 ;;; *print-array*                          変数
 ;;;
 ;;; <説明>
@@ -618,7 +585,8 @@ number1 の値を number2 の値でべき乗した結果を返す。
 ;;;         (!v (vcons "vec" 3)) -> {vector}81848("vec" . 3)
 ;;;         (!*print-array* t) -> t
 ;;;         (!w (vcons "wec" 3)) -> #3(nil nil nil)
-;;; ＠
+
+;;; import & export
 ;;; *print-base*                           変数
 ;;;
 ;;; <説明>
@@ -630,18 +598,20 @@ number1 の値を number2 の値でべき乗した結果を返す。
 ;;;         (!a 10) -> 10
 ;;;         (!*print-base* 16) -> 10
 ;;;         (!b 10) -> A
-;;; ＠
+
 ;;; *print-bigfloat-digit*                 変数
 ;;;
 ;;; <説明>
 ;;;   bigfloat-point number を出力する際の桁数を削除する。既定値は、15 。
-;;; ＠
+
+;;; import & export
 ;;; *print-case*                           変数
 ;;;
 ;;; <説明>
 ;;;   大文字、小文字を制御する。初期値は nil 。
 ;;; ユーザはこの変数を参照できるけれども、値を変更することができない。
-;;; ＠
+
+;;; import & export
 ;;; *print-circle*                         変数
 ;;;
 ;;; <説明>
@@ -650,31 +620,32 @@ number1 の値を number2 の値でべき乗した結果を返す。
 ;;; 循環構造をプリントする場合、永久ループとなり終了しない。
 ;;; nil でなければ、プリントされる構造のサイクルが検出され、循環性を示す
 ;;; ために #n= および #n# が用いられる。初期値は nil 。
-;;; ＠
+
+;;; import & export
 ;;; *print-escape*                         変数
 ;;;
 ;;; <説明>
 ;;;   特殊記号「バックスラッシュ」を出力するか否かを指定するための変数。
 ;;; t (初期値) の場合は出力され、t 以外の場合は、出力されない。
-;;; ＠
-;;; *print-float-digit*                    変数
+
+;;; tao:*print-float-digit*                    変数
 ;;;
 ;;; <説明>
 ;;;   floating point number を出力する際の桁数を制御する。既定値は、15 。
-;;; ＠
-;;; *print-gensym*                         変数
+
+;;; cl:*print-gensym*                         変数
 ;;;
 ;;; <説明>
 ;;;   ホームパッケージを持たないシンボルの前に前置詞 #: がプリントされる
 ;;; かどうかを制御する。
 ;;; nil でなけば #: がプリントされ、t (初期値) の場合、プリントされない。
-;;; ＠
-;;; *print-internal*                       変数
+
+;;; tao:*print-internal*                       変数
 ;;;
 ;;; <説明>
 ;;;   初期値は nil 。
-;;; ＠
-;;; *print-length*                         変数
+
+;;; cl:*print-length*                         変数
 ;;;
 ;;; <説明>
 ;;;   ストリームにプリントされるリスト中の要素の最大数を表す変数。
@@ -686,8 +657,8 @@ number1 の値を number2 の値でべき乗した結果を返す。
 ;;;         (!*print-length* 5) -> 5
 ;;;         (print '(1 2 3 4 5 6 7 8 9)) ->
 ;;;             (1 2 3 4 5 ...) (1 2 3 4 5 ...)
-;;; ＠
-;;; *print-level*                          変数
+
+;;; cl:*print-level*                          変数
 ;;;
 ;;; <説明>
 ;;;   ストリームにプリントされるリストの最大深さを表す。この値を超えた
@@ -703,8 +674,8 @@ number1 の値を number2 の値でべき乗した結果を返す。
 ;;;         (print x) -> (1 2 3 (4 5 []))
 ;;;         (!*print-level* 0) -> 0
 ;;;         (print x) -> (1 2 3 [])
-;;; ＠
-;;; *print-nilnum*                         変数
+
+;;; tao:*print-nilnum*                         変数
 ;;;
 ;;; <説明>
 ;;;   この変数の値が、t なら、プリンタは十進数で (タグビットを除いて)
@@ -714,8 +685,8 @@ number1 の値を number2 の値でべき乗した結果を返す。
 ;;;
 ;;; <説明>
 ;;;   初期値は t 。
-;;; ＠
-;;; *print-pretty*                         変数
+
+;;; cl:*print-pretty*                         変数
 ;;;
 ;;; <説明>
 ;;;   この変数の値が t なら、プリンタは、空白や改行をいれて Lisp プログラム
@@ -727,8 +698,8 @@ number1 の値を number2 の値でべき乗した結果を返す。
 ;;;                               e f g)
 ;;;         (!*print-pretty* nil) -> nil
 ;;;         (!x '((a b c) e f g)) -> ((a b c) e f g)
-;;; ＠
-;;; *print-radix*                          変数
+
+;;; cl:*print-radix*                          変数
 ;;;
 ;;; <説明>
 ;;;   初期値は nil 。この変数の値が nil でなければ、有理数を印字している
@@ -742,14 +713,14 @@ number1 の値を number2 の値でべき乗した結果を返す。
 ;;;         (!*print-radix* t) -> t
 ;;;         (!x 12) -> #xC
 ;;;         23 -> #x17
-;;; ＠
-;;; *print-shortfloat-digit*               変数
+
+;;; tao:*print-shortfloat-digit*               変数
 ;;;
 ;;; <説明>
 ;;;   short floating point number を出力する際の桁数を制御する。
 ;;; 既定値は、6 。
-;;; ＠
-;;; *print-string-marker*                  変数
+
+;;; tao:*print-string-marker*                  変数
 ;;;
 ;;; <説明>
 ;;;   この変数の値が、t なら  プリンタは、文字列を "" で囲んでプリントする。
@@ -762,8 +733,8 @@ number1 の値を number2 の値でべき乗した結果を返す。
 ;;;         (!*print-string-marker* nil) -> nil
 ;;;         (!y "asd") -> asd
 ;;;         y -> asd
-;;; ＠
-;;; *print-total-chars*                    変数
+
+;;; tao:*print-total-chars*                    変数
 ;;;
 ;;; <説明>
 ;;;   プリントされる文字の最大数を表す。この数を越えた文字に対しては、
@@ -773,16 +744,16 @@ number1 の値を number2 の値でべき乗した結果を返す。
 ;;; <例>
 ;;;         (!*print-total-chars* 5) -> 5
 ;;;         (print '(1 2 3 4 5 6 7 8 9)) -> (1 2 3 ...)
-;;; ＠
-;;; *query-io*                             変数
+
+;;; cl:*query-io*                             変数
 ;;;
 ;;; <説明>
 ;;;   利用者に対して質問を行う時に用いる双方向のストリーム。質問は、この
 ;;; ストリームへ出力され、利用者からの回答は、このストリームから得られ
 ;;; る。この目的のために、変数 *standard-input* 、*standard-output* の
 ;;; 代わりに用いられる。
-;;; ＠
-;;; *random-state*                         変数
+
+;;; cl:*random-state*                         変数
 ;;;
 ;;; <説明>
 ;;;
@@ -792,16 +763,16 @@ number1 の値を number2 の値でべき乗した結果を返す。
 ;;;
 ;;; <例>
 ;;;         *random-state* -> {udo}56590random-state
-;;; ＠
-;;; *read-base*                            変数
+
+;;; cl:*read-base*                            変数
 ;;;
 ;;; <説明>
 ;;;   整数または分数が読み込まれる基数として、2 から 36 までの任意の整数
 ;;; をとる。通常は 10 。
 ;;; この変数の値を 10 以上にセットする場合には注意が必要。通常はシンボル
 ;;; として解釈されるトークンが、数として解釈されるかもしれないからである。
-;;; ＠
-;;; *read-default-float-format*            変数
+
+;;; cl:*read-default-float-format*            変数
 ;;;
 ;;; <説明>
 ;;;   ある特定の浮動小数点形式に対する型指定子シンボル。これらには、
@@ -814,7 +785,7 @@ number1 の値を number2 の値でべき乗した結果を返す。
 ;;; standard-readの項によると存在している変数
 (defvar tao:*read-eof-value* :eof)
 
-;;; *read-suppress*                        変数
+;;; cl:*read-suppress*                        変数
 ;;;
 ;;; <説明>
 ;;;   この変数の値が nil であれば、Lisp リーダは通常通りに動作する。
@@ -822,8 +793,8 @@ number1 の値を number2 の値でべき乗した結果を返す。
 ;;; それ以外のインターンなどの通常の処理をほとんど行わない。
 ;;; "#+" や "#-" などのディスパッチマクロでフォームを読み飛ばすような場合に
 ;;; 利用する。初期値は nil 。
-;;; ＠
-;;; *readtable*                            変数
+
+;;; cl:*readtable*                            変数
 ;;;
 ;;; <説明>
 ;;;   現在の読み込み表 (readtable) 。使われている読み込み表を一時的に変更
@@ -831,68 +802,70 @@ number1 の値を number2 の値でべき乗した結果を返す。
 ;;;
 ;;; <例>
 ;;;         *readtable* -> {vector}1282199(readtable . 128)
-;;; ＠
-;;; *standard-input*                       変数
+
+;;; cl:*standard-input*                       変数
 ;;;
 ;;; <説明>
 ;;;   クラス fundamantal-stream のインスタンス。これは標準入力の
 ;;; ストリームとなる。トップレベルループにおいて、入力は、このストリーム
 ;;; から読まれる。通常、この値はコンソールターミナル。
-;;; ＠
-;;; *standard-output*                      変数
+
+;;; cl:*standard-output*                      変数
 ;;;
 ;;; <説明>
 ;;;   クラス fundamental-stream のインスタンス。これは標準出力の
 ;;; ストリームとなる。トップレベルループにおいて、出力は、このストリーム
 ;;; へ送られる。通常、この値はコンソールターミナル。
-;;; ＠
-;;; *terminal-io*                          変数
+
+;;; cl:*terminal-io*                          変数
 ;;;
 ;;; <説明>
 ;;;   利用者のコンソールへ結合される双方向のストリーム。このストリームへ
 ;;; 書くことは画面にその出力が表示されることで、このストリームから読むこ
 ;;; とはキーボードからの入力を受け入れることとなる。
 ;;; ＠
-;;; *throw                                 関数[#!expr]
-;;;
-;;; <説明>
-;;;   形式 : *throw tag form
-;;; *throw は *throw が form の値と、tag の値を示す多値を返すことを除き、
-;;; throw のように働く。
-;;; ＠
-;;; *trace-level*                          変数
+
+(defsynonym tao:*throw cl:throw
+  "*throw                                 関数[#!expr]
+
+<説明>
+  形式 : *throw tag form
+*throw は *throw が form の値と、tag の値を示す多値を返すことを除き、
+throw のように働く。")
+
+;;; tao:*trace-level*                          変数
 ;;;
 ;;; <説明>
 ;;;   現在トレースされている関数のネストレベルを表す。
-;;; ＠
-;;; *trace-output*                         変数
+
+;;; cl:*trace-output*                         変数
 ;;;
 ;;; <説明>
 ;;;   関数 trace がその出力をプリントするような出力ストリーム。
-;;; ＠
-;;; *traced-fns*                           変数
+
+;;; tao:*traced-fns*                           変数
 ;;;
 ;;; <説明>
 ;;;   実行された時にトレースされるべき関数のリスト。
 ;;; これは、パッケージ trace の変数。
-;;; ＠
-;;; *untraced-fns*                         変数
+
+;;; tao:*untraced-fns*                         変数
 ;;;
 ;;; <説明>
 ;;;   初めはトレースされる予定であったが現在はトレースされるべきではない
 ;;; と宣言された関数のリスト。この宣言は、関数 untrace により行われる。
-;;; ＠
-;;; *user-packages*                        変数
+
+;;; tao:*user-packages*                        変数
 ;;;
 ;;; <説明>
 ;;;   現在ログインしているユーザにより作られたパッケージのリスト。
-;;; ＠
-;;; +                                      変数
+
+;;; cl:+                                      変数
 ;;;
 ;;; <説明>
 ;;;   現在のトップレベル・ループの 1 つ前のループで評価されたフォーム。
-;;; ＠
-;;; +                                      関数[#!subr]
+
+;;; cl:+                                      関数[#!subr]
 ;;;
 ;;; <説明>
 ;;;   形式 : + &rest number1 number2 ... numberN
@@ -905,7 +878,8 @@ number1 の値を number2 の値でべき乗した結果を返す。
 ;;;         (+ 1 2 3 4 5 6 7 8 9 10) -> 55
 ;;;         (+ 3) -> 3
 ;;;         (+) -> 0
-;;; ＠
+
+;;; clパッケージ再定義問題
 ;;; +                                      ロカティブオペレータ
 ;;;
 ;;; <説明>
@@ -920,12 +894,12 @@ number1 の値を number2 の値でべき乗した結果を返す。
 ;;;         s -> 20
 ;;;         (p <- (p + q + 20)) -> 50
 ;;;         p -> 50
-;;; ＠
-;;; ++                                     変数
+
+;;; cl:++                                     変数
 ;;;
 ;;; <説明>
 ;;;   現在のトップレベル・ループの 2 つ前のループで評価されたフォーム。
-;;; ＠
+
 ;;; ++                                     メッセージ
 ;;;
 ;;; <説明>
@@ -940,7 +914,7 @@ number1 の値を number2 の値でべき乗した結果を返す。
 ;;;         (loc-offset p) -> 12
 ;;;         (nthm mem 11) -> #100
 ;;;         ここで、@(p ++) は、(deref (p ++)) の省略形。
-;;; ＠
+
 ;;; ++                                     関数[#!subr]
 ;;;
 ;;; <説明>
@@ -959,18 +933,18 @@ number1 の値を number2 の値でべき乗した結果を返す。
 ;;;         (!@(++ bbb) #123) -> #123
 ;;;         (deref bbb) -> #123
 ;;;         ここで、@(++ bbb) は、(deref (++ bbb)) の省略形。
-;;; ＠
-;;; +++                                    変数
+
+;;; cl:+++                                    変数
 ;;;
 ;;; <説明>
 ;;;   現在のトップレベル・ループの 3 つ前のループで評価されたフォーム。
-;;; ＠
-;;; -                                      変数
+
+;;; cl:-                                      変数
 ;;;
 ;;; <説明>
 ;;;   現在、トップレベル・ループで評価されているフォーム。
-;;; ＠
-;;; -                                      関数[#!subr]
+
+;;; cl:-                                      関数[#!subr]
 ;;;
 ;;; <説明>
 ;;;   形式 : - number1 &rest number2 number3 ... numberN
@@ -985,7 +959,7 @@ number1 の値を number2 の値でべき乗した結果を返す。
 ;;;         (- 10 2 3 4 5) -> -4
 ;;;         (2 -) -> エラー
 ;;;         (-) -> エラー
-;;; ＠
+
 ;;; -                                      ロカティブオペレータ
 ;;;
 ;;; <説明>
@@ -1000,7 +974,7 @@ number1 の値を number2 の値でべき乗した結果を返す。
 ;;;         s -> 0
 ;;;         (p <- (p - q - 20)) -> -10
 ;;;         p -> -10
-;;; ＠
+
 ;;; --                                     メッセージ
 ;;;
 ;;; <説明>
@@ -1014,7 +988,7 @@ number1 の値を number2 の値でべき乗した結果を返す。
 ;;;         (!@(p --) #100) -> #100
 ;;;         (loc-offset p) -> 10
 ;;;         (nthm mem 11) -> #100
-;;; ＠
+
 ;;; --                                     関数[#!subr]
 ;;;
 ;;; <説明>
@@ -1032,7 +1006,7 @@ number1 の値を number2 の値でべき乗した結果を返す。
 ;;;         (!@(-- bbb) #123) -> #123
 ;;;         (deref bbb) -> #123
 ;;;         ここで @(-- bbb) は、(deref (-- bbb)) の省略形
-;;; ＠
+
 ;;; .                                      メッセージ
 ;;;
 ;;; <説明>
@@ -1043,7 +1017,7 @@ number1 の値を number2 の値でべき乗した結果を返す。
 ;;;         ['a . nil] -> (a)
 ;;;         ['a . '(b c)] -> (a b c)
 ;;;         ['(1 2 3) . '(4 5 6)] -> ((1 2 3) 4 5 6)
-;;; ＠
+
 ;;; ..                                     メッセージ
 ;;;
 ;;; <説明>
@@ -1052,30 +1026,37 @@ number1 の値を number2 の値でべき乗した結果を返す。
 ;;;
 ;;; <例>
 ;;;         ['(1 2 3) .. '(4 5 6)] -> (1 2 3 4 5 6)
-;;; ＠
-;;; /                                      変数
+
+(define-symbol-macro tao:/ cl:/)
+
+;;; tao:/                                      変数
 ;;;
 ;;; <説明>
 ;;;   現在のトップレベル・ループの 1 つ前のループで評価された結果の返された
 ;;; 値の多値リスト。
-;;; ＠
-;;; /                                      関数[#!subr]
-;;;
-;;; <説明>
-;;;   形式 : / number1 number2
-;;; number1 number2 がともに整数なら、number1 の値を number2 の値で割った
-;;; 結果を商と剰余に分けて返す。(整数以外の場合、商のみ返す)。
-;;; (number1 / number2), [number1 / number2] の形式でも記述可能。
-;;; インタプリタで実行する場合、[number1 / number2]が最も速い。
-;;;
-;;; <例>
-;;;         (/ 14 4) -> !(3 2)
-;;;         (/ 14.0 4) -> 3.5
-;;;         (/ 14 4.0) -> 3.5
-;;;         (/ 10 3) -> !(3 1)
-;;;         (/ 3) -> 3
-;;;         (/) -> エラー
-;;; ＠
+
+(defun tao:/ (number1 number2)
+  "/                                      関数[#!subr]
+
+<説明>
+  形式 : / number1 number2
+number1 number2 がともに整数なら、number1 の値を number2 の値で割った
+結果を商と剰余に分けて返す。(整数以外の場合、商のみ返す)。
+\(number1 / number2), [number1 / number2] の形式でも記述可能。
+インタプリタで実行する場合、[number1 / number2]が最も速い。
+
+<例>
+        (/ 14 4) -> !(3 2)
+        (/ 14.0 4) -> 3.5
+        (/ 14 4.0) -> 3.5
+        (/ 10 3) -> !(3 1)
+        (/ 3) -> 3
+        (/) -> エラー"
+  (if (and (typep number1 'integer)
+           (typep number2 'integer))
+      (floor number1 number2)
+      (cl:/ number1 number2)))
+
 ;;; /                                      ロカティブオペレータ
 ;;;
 ;;; <説明>
@@ -1092,19 +1073,21 @@ number1 の値を number2 の値でべき乗した結果を返す。
 ;;;         p -> -3
 ;;;         (q <- (p - q / r)) -> 2
 ;;;         q -> 2
-;;; ＠
-;;; common:/                               関数[#!expr]
-;;;
-;;; <説明>
-;;;   形式 : common:/ number1 &rest number2 number3 ... numberN
-;;; number1 を number2 number3 ... numberN で連続して割り算を行う。
-;;; number1 number2 ... numberN が整数の時、結果が整数にならなければ
-;;; 分数の形式で返す。
-;;;
-;;; <例>
-;;;         (common:/ 50 1 2 3 4) -> 25/12
-;;;         (common:/ 100.0 2.5 4.0 2.0) -> 5.0
-;;;         (common:/ 100.0 pi) -> 31.830988618379f0
+
+(defsynonym common:/ cl:/
+  "common:/                               関数[#!expr]
+
+<説明>
+  形式 : common:/ number1 &rest number2 number3 ... numberN
+number1 を number2 number3 ... numberN で連続して割り算を行う。
+number1 number2 ... numberN が整数の時、結果が整数にならなければ
+分数の形式で返す。
+
+<例>
+        (common:/ 50 1 2 3 4) -> 25/12
+        (common:/ 100.0 2.5 4.0 2.0) -> 5.0
+        (common:/ 100.0 pi) -> 31.830988618379f0")
+
 ;;; ＠
 ;;; //                                     変数
 ;;;
@@ -1112,6 +1095,21 @@ number1 の値を number2 の値でべき乗した結果を返す。
 ;;;   現在のトップレベル・ループの 2 つ前のループで評価された結果の返された
 ;;; 値の多値リスト。
 ;;; ＠
+
+(defun tao:// (&rest numbers)
+  (if (cdr numbers)
+      ;;
+      (let ((prev (car numbers))
+            q r)
+        (dolist (n (cdr numbers))
+          (setf (values q r)
+                (tao:/ prev n)))
+        (if r
+            (values q r)
+            q))
+      ;;
+      (car numbers)))
+
 ;;; //                                     関数[#!subr]
 ;;;
 ;;; <説明>
@@ -1121,7 +1119,7 @@ number1 の値を number2 の値でべき乗した結果を返す。
 ;;; 返す。(整数以外の場合、商のみ返す)。
 ;;;
 ;;; <例>
-;;;         (// 5 4) -> 1
+;;;         (// 5 4) -> 1 !(1 1)では?
 ;;;         (// 3) -> 3
 ;;;         (//) -> nil
 ;;;         (// 10 2 3) -> !(1 2)
@@ -1132,48 +1130,58 @@ number1 の値を number2 の値でべき乗した結果を返す。
 ;;;   現在のトップレベル・ループの 3 つ前のループで評価された結果の返された
 ;;; 値の多値リスト。
 ;;; ＠
-;;; /=                                     関数[#!subr]
-;;;
-;;; <説明>
-;;;  (1)
-;;;   形式 : string1 /= string2 /= ... /= stringN
-;;; 文字列 string1 string2 ... stringN を順番に比較し、一致した文字列のうち、
-;;; 最後の文字列の値を返す。一致しなければ nil を返す。
-;;;
-;;;  (2)
-;;;   形式 : /= number1 number2
-;;; 数値 number1 number2 の値を比較し、一致しなければ number2 の評価値を
-;;; 返し、そうでなければ nil を返す。
-;;; (number1 /= number2) 、[number1 /= number2] の形式でも記述可能。
-;;; infix notation では、任意個の引数が指定可能。
-;;;
-;;; <例>
-;;;  (1)
-;;;         ("abc" /= "bcd" /= "cde" /= "abc") -> "abc"
-;;;         ("a" /= "b" /= "a" /= "b" /= "a" /= "b") -> "b"
-;;;         ("a" /= "b" /= "b") -> nil
-;;;         ("あいう" /= "かきく" /= "あいう") -> "あいう"
-;;;         ("あいう" /= "かきく" /= "かきく") -> nil
-;;;  (2)
-;;;         (/= 1 2) -> 2
-;;;         (/= 2 2) -> nil
-;;;         (3 /= 4) -> 4
-;;;         (1 /= 2 /= 3 /= 4) -> 4
-;;;         (/= 2 3 4) -> エラー
-;;; ＠
-;;; common:/=                              関数[#!subr]
-;;;
-;;; <説明>
-;;;   形式 : common:/= number1 &rest number2 number3 ... numberN
-;;; number1 number2 ... numberN の値 (複素数でもよい) を比較し、等しくない
-;;; なら、numberN の値を返し、等しければ nil を返す。
-;;;
-;;; <例>
-;;;         (common:/= 5 4 3 2) -> 2
-;;;         (common:/= 4 4 4 3) -> 3
-;;;         (common:/= 6 6 6 6) -> nil
-;;; ＠
-;;; 1+                                     関数[#!subr]
+
+(defun tao:/= (x y)
+  #.(string '#:|/=                                     関数[#!subr]
+
+<説明>
+ (1)
+  形式 : string1 /= string2 /= ... /= stringN
+文字列 string1 string2 ... stringN を順番に比較し、一致した文字列のうち、
+最後の文字列の値を返す。一致しなければ nil を返す。
+
+ (2)
+  形式 : /= number1 number2
+数値 number1 number2 の値を比較し、一致しなければ number2 の評価値を
+返し、そうでなければ nil を返す。
+\(number1 /= number2) 、[number1 /= number2] の形式でも記述可能。
+infix notation では、任意個の引数が指定可能。
+
+<例>
+ (1)
+        ("abc" /= "bcd" /= "cde" /= "abc") -> "abc"
+        ("a" /= "b" /= "a" /= "b" /= "a" /= "b") -> "b"
+        ("a" /= "b" /= "b") -> nil
+        ("あいう" /= "かきく" /= "あいう") -> "あいう"
+        ("あいう" /= "かきく" /= "かきく") -> nil
+ (2)
+        (/= 1 2) -> 2
+        (/= 2 2) -> nil
+        (3 /= 4) -> 4
+        (1 /= 2 /= 3 /= 4) -> 4
+        (/= 2 3 4) -> エラー|)
+  (etypecase x
+    (string (etypecase y
+              (string (and (string/= x y)
+                           y))))
+    (number (etypecase y
+              (number (and (cl:/= x y)
+                           y))))))
+
+(defsynonym common:/= cl:/=
+  "common:/=                              関数[#!subr]
+
+<説明>
+  形式 : common:/= number1 &rest number2 number3 ... numberN
+number1 number2 ... numberN の値 (複素数でもよい) を比較し、等しくない
+なら、numberN の値を返し、等しければ nil を返す。
+
+<例>
+        (common:/= 5 4 3 2) -> 2
+        (common:/= 4 4 4 3) -> 3
+        (common:/= 6 6 6 6) -> nil")
+
+;;; cl:1+                                     関数[#!subr]
 ;;;
 ;;; <説明>
 ;;;   形式 : 1+ number
@@ -1184,8 +1192,8 @@ number1 の値を number2 の値でべき乗した結果を返す。
 ;;;         (1+ 3) -> 4
 ;;;         (1+ -1) -> 0
 ;;;         (1+ 0) -> 1
-;;; ＠
-;;; 1-                                     関数[#!subr]
+
+;;; cl:1-                                     関数[#!subr]
 ;;;
 ;;; <説明>
 ;;;   形式 : 1- number
@@ -1197,13 +1205,13 @@ number1 の値を number2 の値でべき乗した結果を返す。
 ;;;         (1- 3) -> 2
 ;;;         (1- -1) -> -2
 ;;;         (1- 0) -> -1
-;;; ＠
+
 ;;; 64b-float 未インプリメント             関数[#!subr]
 ;;;
 ;;; <説明>
 ;;;   浮動小数点ロカティブについてのメモリロケイションを得る。
 ;;; 現在は、使えない。
-;;; ＠
+
 ;;; 64b-floatp                             関数[#!subr]
 ;;;
 ;;; <説明>
@@ -1214,7 +1222,7 @@ number1 の値を number2 の値でべき乗した結果を返す。
 ;;; <例>
 ;;;         (float-locatives a) -> (a)
 ;;;         (64b-floatp a) -> 476370
-;;; ＠
+
 ;;; 64b-signed                             関数[#!subr]
 ;;;
 ;;; <説明>
@@ -1225,7 +1233,7 @@ number1 の値を number2 の値でべき乗した結果を返す。
 ;;;         x はロカティブ
 ;;;         (x <- 168) -> 168
 ;;;         x -> 168
-;;; ＠
+
 ;;; 64b-signedp                            関数[#!subr]
 ;;;
 ;;; <説明>
@@ -1240,7 +1248,7 @@ number1 の値を number2 の値でべき乗した結果を返す。
 ;;;         (64b-signedp 'a) -> nil
 ;;;         (64b-signedp b) -> nil
 ;;;         (64b-signedp 12) -> nil
-;;; ＠
+
 ;;; 64b-unsigned                           関数[#!subr]
 ;;;
 ;;; <説明>
@@ -1251,7 +1259,7 @@ number1 の値を number2 の値でべき乗した結果を返す。
 ;;;         y はロカティブ
 ;;;         (y <- #1234) -> #1234
 ;;;         y -> #1234
-;;; ＠
+
 ;;; 64b-unsignedp                          関数[#!subr]
 ;;;
 ;;; <説明>
@@ -1266,28 +1274,28 @@ number1 の値を number2 の値でべき乗した結果を返す。
 ;;;         (64b-unsignedp b) -> nil
 ;;;         (64b-unsignedp 'a) -> nil
 ;;;         (64b-unsignedp 12) -> nil
-;;; ＠
+
 ;;; 64bfloc                                クラス
 ;;;
 ;;; <説明>
 ;;;   インスタンスは 64 ビット表現の浮動小数点数。
 ;;; 64bfloc は 64-bit-float-locative の意味。
 ;;; 64bfloc データはガーベジコレクタの対象とならない。
-;;; ＠
+
 ;;; 64bsiloc                               クラス
 ;;;
 ;;; <説明>
 ;;;   インスタンスは 64 ビット表現の整数。
 ;;; 64bsiloc は 64-bit-signed-integer-locative の意味。
 ;;; 64bsiloc データはガーベジコレクタの対象とならない。
-;;; ＠
+
 ;;; 64builoc                               クラス
 ;;;
 ;;; <説明>
 ;;;   インスタンスは 64 ビット表現の整数。
 ;;; 64builoc は 64-bit-unsigned-integer-locative の意味。
 ;;; 64builoc データはガーベジコレクタの対象とならない。
-;;; ＠
+
 ;;; :abstract-class                        キーワード
 ;;;
 ;;; <説明>
@@ -1297,7 +1305,7 @@ number1 の値を number2 の値でべき乗した結果を返す。
 ;;; このクラスにインスタンスを作ろうとするとエラーとなる。
 ;;; :abstract-class が指定されたクラスは、インヘリタンスに使われるだけ
 ;;; である。
-;;; ＠
+
 ;;; :and                                   キーワード
 ;;;
 ;;; <説明>
@@ -1311,7 +1319,7 @@ number1 の値を number2 の値でべき乗した結果を返す。
 ;;; つまり、あるメソッドが nil を返すとき nil が返され、残りのメソッドは
 ;;; 無視される。 methodN は N 番目に見つかった :primary タイプもしくは
 ;;; :and タイプのメソッドを示す。
-;;; ＠
+
 ;;; :append                                キーワード
 ;;;
 ;;; <説明>
@@ -1324,14 +1332,14 @@ number1 の値を number2 の値でべき乗した結果を返す。
 ;;; message-passing-of-methodN) が評価され、この append 式の値が返る。
 ;;; methodN は N 番目に見つかった :primary タイプもしくは :append タイプの
 ;;; メソッドを示す。
-;;; ＠
+
 ;;; :class-constants                       キーワード
 ;;;
 ;;; <説明>
 ;;;   形式 : (:class-constant var1 val1 var2 val2 ...)
 ;;; var1,var2, ... を定数として定義し、各々の値は val1, val2, ... となる。
 ;;; この宣言の後ではクラス定数 var1, var2, ... にはどの様な値も代入できない。
-;;; ＠
+
 ;;; :class-methods                         キーワード
 ;;;
 ;;; <説明>
@@ -1340,7 +1348,7 @@ number1 の値を number2 の値でべき乗した結果を返す。
 ;;; :class-method は、関数 defclass-method と同じ効果をもつが、クラス名の
 ;;; 指定をしなくてよい点が異なる。
 ;;; body はメソッドのボディ。args にはメソッドで使われる引数を指定。
-;;; ＠
+
 ;;; :daemon                                キーワード
 ;;;
 ;;; <説明>
@@ -1371,7 +1379,7 @@ number1 の値を number2 の値でべき乗した結果を返す。
 ;;;         (!jack1 (make-instance 'jack)) -> {udo}37610jack
 ;;;         [jack1 chain] -> (1 3)
 ;;;         aaa -> (2 1 3)
-;;; ＠
+
 ;;; :daemon-with-and                       キーワード
 ;;;
 ;;; <説明>
@@ -1397,7 +1405,7 @@ number1 の値を number2 の値でべき乗した結果を返す。
 ;;; (!jack1 (make-instance 'jack)) -> {udo}37610jack
 ;;; [jack1 (chain)] -> (1 3 4)
 ;;; aaa -> (2 1 3 4)
-;;; ＠
+
 ;;; :daemon-with-or                        キーワード
 ;;;
 ;;; <説明>
@@ -1441,7 +1449,7 @@ number1 の値を number2 の値でべき乗した結果を返す。
 ;;; (!jack1 (make-instance 'jack)) -> {udo}37610jack
 ;;; [jack1 (chain)] -> (3 4)
 ;;; aaa -> (2 5 3 4)
-;;; ＠
+
 ;;; :default-init-plist                    キーワード
 ;;;
 ;;; <説明>
@@ -1461,7 +1469,7 @@ number1 の値を number2 の値でべき乗した結果を返す。
 ;;;         [abab a] -> 1
 ;;;         [abab b] -> 2
 ;;;         [abab c] -> 3
-;;; ＠
+
 ;;; :eval-when-instantiation               キーワード
 ;;;
 ;;; <説明>
@@ -1483,7 +1491,7 @@ number1 の値を number2 の値でべき乗した結果を返す。
 ;;;         count -> 2
 ;;;         (make-instance 'abc) -> {udo}48689abc
 ;;;         count -> 3
-;;; ＠
+
 ;;; :gettable                              キーワード
 ;;;
 ;;; <説明>
@@ -1499,13 +1507,13 @@ number1 の値を number2 の値でべき乗した結果を返す。
 ;;;         (!abcabc (make-instance 'abc)) -> {udo}45900abc
 ;;;         [abcabc abc1] -> 10
 ;;;         [abcabc abc2] -> 20
-;;; ＠
+
 ;;; :init-class-vars                       キーワード
 ;;;
 ;;; <説明>
 ;;;   形式 : :init-class-vars pair1 pair2 ... pairN
 ;;; :default-init-plist と同じ方法でクラス変数を初期化する。
-;;; ＠
+
 ;;; :inverse-list                          キーワード
 ;;;
 ;;; <説明>
@@ -1518,7 +1526,7 @@ number1 の値を number2 の値でべき乗した結果を返す。
 ;;; message-pssing-of-method1) が評価され、この list 式の値が返される。
 ;;; methodN を N 番目に見つけた :primary タイプ、もしくは :inverse-list
 ;;; タイプのメソッドとする。
-;;; ＠
+
 ;;; :list                                  キーワード
 ;;;
 ;;; <説明>
@@ -1531,7 +1539,7 @@ number1 の値を number2 の値でべき乗した結果を返す。
 ;;; メソッドとする。
 ;;; (list message-passing-of-method1 message-pssing-of-method2 ...
 ;;; message-passing-of-methodN) が評価され、この list 式の値が返される。
-;;; ＠
+
 ;;; :method-combination                    キーワード
 ;;;
 ;;; <説明>
@@ -1542,7 +1550,7 @@ number1 の値を number2 の値でべき乗した結果を返す。
 ;;; だけが設定可能。すなわち howto は値として :daemon, :daemon-with-and,
 ;;; :daemon-with-or, :progn, :or, :and, :append, :nconc, :list,
 ;;; :inverse-list のどれか 1 つだけをとる。howto の既定値は :daemon。
-;;; ＠
+
 ;;; :nconc                                 キーワード
 ;;;
 ;;; <説明>
@@ -1555,7 +1563,7 @@ number1 の値を number2 の値でべき乗した結果を返す。
 ;;; message-passing-of-methodN) が評価され、この nconc 式の値が返される。
 ;;; methodN を N 番目に見つかった :primary タイプもしくは :nconc タイプの
 ;;; メソッドとする。
-;;; ＠
+
 ;;; :no-vanilla-class                      キーワード
 ;;;
 ;;; <説明>
@@ -1572,7 +1580,7 @@ number1 の値を number2 の値でべき乗した結果を返す。
 ;;;         (!abcabc (make-instance 'abc)) -> {udo}45884abc
 ;;;         [abcabc describe] -> (no-method-found {udo}45884abc describe)
 ;;;         メッセージ describe は、vanilla-class で定義されている。
-;;; ＠
+
 ;;; :or                                    キーワード
 ;;;
 ;;; <説明>
@@ -1586,7 +1594,7 @@ number1 の値を number2 の値でべき乗した結果を返す。
 ;;; つまり、あるメソッドが nil でない値を返すとき、この値が返され、
 ;;; 残りのメソッドは無視される。methodN を N 番目に見つかった :primary
 ;;; タイプもしくは :or タイプのメソッドとする。
-;;; ＠
+
 ;;; :progn                                 キーワード
 ;;;
 ;;; <説明>
@@ -1614,7 +1622,7 @@ number1 の値を number2 の値でべき乗した結果を返す。
 ;;; [jack1 (chain)] -> (4 3 1)
 ;;; aaa -> (4 3 1)
 ;;; メソッドのタイプの既定値は、:primary。
-;;; ＠
+
 ;;; :settable                              キーワード
 ;;;
 ;;; <説明>
@@ -1637,7 +1645,7 @@ number1 の値を number2 の値でべき乗した結果を返す。
 ;;;         [abcabc set-abc2 200] -> 200
 ;;;         [abcabc abc2] -> 200
 ;;;         [abcabc set-abc1 100]   エラーを起こす。
-;;; ＠
+
 ;;; :unify-next-element                    メッセージ
 ;;;
 ;;; <説明>
@@ -1659,45 +1667,55 @@ number1 の値を number2 の値でべき乗した結果を返す。
 ;;; 上記の例で、インスタンス x とリスト (a b c) との間にユニフィケーション
 ;;; が起こると、:unify-next-element は x に送られる。メッセージ送りの結果
 ;;; リスト (a b c) となり、これは == の最初の引数にユニファイされる。
-;;; ＠
-;;; <                                      関数[!#subr]
-;;;
-;;; <説明>
-;;;  (1)
-;;;   形式 : string1 < string2 < ... < stringN
-;;; string1 string2 ... stringN を辞書順に比較し、完全に昇順に並んでいる
-;;; 場合は、stringN の値を返す。そうでなければnil を返す。
-;;;
-;;;  (2)
-;;;   形式 : < number1 number2
-;;; number1 の値が number2 の値より小さければ number2 の評価値を返し、
-;;; それ以外なら nil を返す。引数が 1 つのときは、その評価値を返す。
-;;; infix notation では、任意個の引数が指定可能。
-;;;
-;;; <例>
-;;;  (1)
-;;;         ("abacus" < "abdomen") -> "abdomen"
-;;;         ("a" < "b" < "c" < "d" < "e") -> "e"
-;;;         ("a" < "b" < "b" < "d" < "e") -> nil
-;;;         ("あ" < "か" < "さ" < "た") -> "た"
-;;;         ("あえお" < "あいう") -> nil
-;;;  (2)
-;;;         (< 4 5) -> 5
-;;;         (< 5 4) -> nil
-;;;         (< 0) -> 0
-;;; ＠
-;;; common:<                               関数[#!subr]
-;;;
-;;; <説明>
-;;;   形式 : common:< number1 &rest number2 number3 ... numberN
-;;; number1 number2 ... numberN の値 (複素数も可) を左から右に順に比較し、
-;;; 完全に単調増加している (等しい値もない) なら、numberN の値を返し、
-;;; それ以外なら nil を返す。
-;;;
-;;; <例>
-;;;         (common:< 0 1 2 3 4 5) -> 5
-;;;         (common:< 0 1 2 4 4 5) -> nil
-;;; ＠
+
+
+(defun tao:< (x y)
+  #.(string '#:|<                                      関数[!#subr]
+
+<説明>
+ (1)
+  形式 : string1 < string2 < ... < stringN
+string1 string2 ... stringN を辞書順に比較し、完全に昇順に並んでいる
+場合は、stringN の値を返す。そうでなければnil を返す。
+
+ (2)
+  形式 : < number1 number2
+number1 の値が number2 の値より小さければ number2 の評価値を返し、
+それ以外なら nil を返す。引数が 1 つのときは、その評価値を返す。
+infix notation では、任意個の引数が指定可能。
+
+<例>
+ (1)
+        ("abacus" < "abdomen") -> "abdomen"
+        ("a" < "b" < "c" < "d" < "e") -> "e"
+        ("a" < "b" < "b" < "d" < "e") -> nil
+        ("あ" < "か" < "さ" < "た") -> "た"
+        ("あえお" < "あいう") -> nil
+ (2)
+        (< 4 5) -> 5
+        (< 5 4) -> nil
+        (< 0) -> 0|)
+  (etypecase x
+    (string (etypecase y
+              (string (and (string< x y)
+                           y))))
+    (number (etypecase y
+              (number (and (cl:< x y)
+                           y))))))
+
+(defsynonym common:< cl:<
+  "common:<                               関数[#!subr]
+
+<説明>
+  形式 : common:< number1 &rest number2 number3 ... numberN
+number1 number2 ... numberN の値 (複素数も可) を左から右に順に比較し、
+完全に単調増加している (等しい値もない) なら、numberN の値を返し、
+それ以外なら nil を返す。
+
+<例>
+        (common:< 0 1 2 3 4 5) -> 5
+        (common:< 0 1 2 4 4 5) -> nil")
+
 ;;; <-                                     メッセージ
 ;;;
 ;;; <説明>
@@ -1724,84 +1742,103 @@ number1 の値を number2 の値でべき乗した結果を返す。
 ;;;         x -> 30
 ;;;         y -> 30
 ;;; ＠
-;;; <=                                     関数[#!subr]
-;;;
-;;; <説明>
-;;;  (1)
-;;;   形式 : string1 <= string2 <= ... <= stringN
-;;; string1 string2 ... stringN の値を辞書順に比較し、昇順に並んでいる場合
-;;; は、stringN の値を返す。そうでなければnil を返す。
-;;;
-;;;  (2)
-;;;   形式 : <= number1 number2
-;;; number1 の値が number2 の値より小さいか等しければ、number2 の評価値を
-;;; 返し、それ以外なら nil を返す。  引数が 1 つのときは、その評価値を返す。
-;;; infix notation では、任意個の引数が指定可能。
-;;;
-;;; <例>
-;;;  (1)
-;;;         ("a" <= "b" <= "c" <= "d" <= "e") -> "e"
-;;;         ("a" <= "b" <= "b" <= "d" <= "e") -> "e"
-;;;         ("a" <= "b" <= "d" <= "c" <= "e") -> nil
-;;;         ("あ" <= "か" <= "さ" <= "た") -> "た"
-;;;         ("あえお" <= "あいう") -> nil
-;;;  (2)
-;;;         (<= 4 5) -> 5
-;;;         (<= 5 4) -> nil
-;;;         (<= 0) -> 0
-;;; ＠
-;;; common:<=                              関数[#!subr]
-;;;
-;;; <説明>
-;;;   形式 : common:<= number1 &rest number2 number3 ... numberN
-;;; number1 number2 ... numberN の値 (複素数でもよい) を左から右に順に比較
-;;; し、単調増加している (等しい場合も可) なら、numberN の値を返し、
-;;; それ以外なら nil を返す。
-;;;
-;;; <例>
-;;;         (common:<= 0 1 2 3 4 5) -> 5
-;;;         (common:<= 0 1 2 4 4 5) -> 5
-;;; ＠
-;;; =                                      関数[!#subr]
-;;;
-;;; <説明>
-;;;  (1)
-;;;   形式 : string1 = string2 = ... = stringN
-;;; string1 string2 ... stringN の値を比較し、全て一致している場合は、
-;;; stringN の値を返す。そうでなければnil を返す。
-;;;
-;;;  (2)
-;;;   形式 : = number1 number2
-;;; number1 の値と number2 の値を比較し、一致していれば、number1 の評価値を
-;;; 返し、そうでなければ nil を返す。引数が 1 つのときは、その評価値を返す。
-;;; (number1 = number2)、[number1 = number2] の形式でも記述可能。
-;;;
-;;; <例>
-;;;  (1)
-;;;         ("abc" = "abc" = "abc") -> "abc"
-;;;         ("xyz" = "xyz" = 'xyz) -> "xyz"
-;;;         ("あえお" = "あいう") -> nil
-;;;         ("あいう" = "あいう") -> "あいう"
-;;;  (2)
-;;;         (= 4 4) -> 4
-;;;         (= 3 4) -> nil
-;;;         (= 4) -> 4
-;;;         (= "string" "string") -> エラー
-;;;         (= nil nil) -> nil
-;;; ＠
-;;; common:=                               関数[#!subr]
-;;;
-;;; <説明>
-;;;   形式 : common:= number1 &rest number2 number3 ... numberN
-;;; number1 number2 ... numberN の値 (複素数でも可) を左から右に順に比較し、
-;;; 全ての値が等しい場合は numberN の値を返し、それ以外なら nil を返す。
-;;;
-;;; <例>
-;;;         (common:= 3 3 3 3) -> 3
-;;;         (!a '#c(2 3)) -> #c(2 3)
-;;;         (common:= a #c(2 3)) -> #c(2 3)
-;;;         (common:= 2 2 3) -> nil
-;;; ＠
+
+(defun tao:<= (x y)
+  (string '#:|<=                                     関数[#!subr]
+
+<説明>
+ (1)
+  形式 : string1 <= string2 <= ... <= stringN
+string1 string2 ... stringN の値を辞書順に比較し、昇順に並んでいる場合
+は、stringN の値を返す。そうでなければnil を返す。
+
+ (2)
+  形式 : <= number1 number2
+number1 の値が number2 の値より小さいか等しければ、number2 の評価値を
+返し、それ以外なら nil を返す。  引数が 1 つのときは、その評価値を返す。
+infix notation では、任意個の引数が指定可能。
+
+<例>
+ (1)
+        ("a" <= "b" <= "c" <= "d" <= "e") -> "e"
+        ("a" <= "b" <= "b" <= "d" <= "e") -> "e"
+        ("a" <= "b" <= "d" <= "c" <= "e") -> nil
+        ("あ" <= "か" <= "さ" <= "た") -> "た"
+        ("あえお" <= "あいう") -> nil
+ (2)
+        (<= 4 5) -> 5
+        (<= 5 4) -> nil
+        (<= 0) -> 0|)
+  (etypecase x
+    (string (etypecase y
+              (string (and (string<= x y)
+                           y))))
+    (number (etypecase y
+              (number (and (cl:<= x y)
+                           y))))))
+
+(defsynonym common:<= cl:<=
+  "common:<=                              関数[#!subr]
+
+<説明>
+  形式 : common:<= number1 &rest number2 number3 ... numberN
+number1 number2 ... numberN の値 (複素数でもよい) を左から右に順に比較
+し、単調増加している (等しい場合も可) なら、numberN の値を返し、
+それ以外なら nil を返す。
+
+<例>
+        (common:<= 0 1 2 3 4 5) -> 5
+        (common:<= 0 1 2 4 4 5) -> 5")
+
+(defun tao:= (x y)
+  #.(string '#:|=                                      関数[!#subr]
+
+<説明>
+ (1)
+  形式 : string1 = string2 = ... = stringN
+string1 string2 ... stringN の値を比較し、全て一致している場合は、
+stringN の値を返す。そうでなければnil を返す。
+
+ (2)
+  形式 : = number1 number2
+number1 の値と number2 の値を比較し、一致していれば、number1 の評価値を
+返し、そうでなければ nil を返す。引数が 1 つのときは、その評価値を返す。
+\(number1 = number2)、[number1 = number2] の形式でも記述可能。
+
+<例>
+ (1)
+        ("abc" = "abc" = "abc") -> "abc"
+        ("xyz" = "xyz" = 'xyz) -> "xyz"
+        ("あえお" = "あいう") -> nil
+        ("あいう" = "あいう") -> "あいう"
+ (2)
+        (= 4 4) -> 4
+        (= 3 4) -> nil
+        (= 4) -> 4
+        (= "string" "string") -> エラー
+        (= nil nil) -> nil|)
+  (etypecase x
+    (string (etypecase y
+              (string (and (string= x y)
+                           y))))
+    (number (etypecase y
+              (number (and (cl:= x y)
+                           y))))))
+
+(defsynonym common:= cl:=
+  "common:=                               関数[#!subr]
+
+<説明>
+  形式 : common:= number1 &rest number2 number3 ... numberN
+number1 number2 ... numberN の値 (複素数でも可) を左から右に順に比較し、
+全ての値が等しい場合は numberN の値を返し、それ以外なら nil を返す。
+
+<例>
+        (common:= 3 3 3 3) -> 3
+        (!a '#c(2 3)) -> #c(2 3)
+        (common:= a #c(2 3)) -> #c(2 3)
+        (common:= 2 2 3) -> nil")
+
 ;;; ==                                     関数[#!&+]
 ;;;
 ;;; <説明>
@@ -1816,107 +1853,127 @@ number1 の値を number2 の値でべき乗した結果を返す。
 ;;;         (prog (_x _y) (== (_x . _y) (1 2 3)) -> t.
 ;;;         現在 _x は (1 2 3) の car になり、同時に _y は (1 2 3) の cdr
 ;;;         となっている。
-;;; >                                      関数[#!subr]
-;;;
-;;; <説明>
-;;;  (1)
-;;;   形式 : string1 > string2 > ... > stringN
-;;; string1 string2 ... stringN の値を辞書順に比較し、完全に降順に並んで
-;;; いる場合は、stringN の値を返す。そうでなければ nil を返す。
-;;;
-;;;  (2)
-;;;   形式 : > number1 number2
-;;; number1 の値が number2 の値より大きいなら、number2 の評価値を返し、
-;;; そうでなければ nil を返す。引数が 1 つのときは、その評価値を返す。
-;;; (number1 > number2)、[number1 > number2] の形式でも記述可能。
-;;; infix notation では、任意個の引数が指定可能。
-;;;
-;;; <例>
-;;;  (1)
-;;;         ("story" > 'store) -> "store"
-;;;         ("z" > "y" > "x" > "w" > "v" > "u") -> "u"
-;;;         ("z" > "y" > "y" > "w" > "v" > "u") -> "nil"
-;;;         ("あいう" > "あえお") -> "nil"
-;;;         ("あえお" > "あいう") -> "あえお"
-;;;  (2)
-;;;         (> 5 4) -> 4
-;;;         (> 4 5) -> nil
-;;;         (> 5) -> 5
-;;; ＠
-;;; common:>                               関数[#!subr]
-;;;
-;;; <説明>
-;;;   形式 : common:> number1 &rest number2 number3 ... numberN
-;;; number1 number2 ... numberN の値 (複素数も可) を左から右に順に比較し、
-;;; 完全に単純減少している場合は、numberN の値を返し、そうでなければ nil
-;;; を返す。
-;;;
-;;; <例>
-;;;         (common:> 5 4 3 2 1 0) -> 0
-;;;         (common:> 5 4 4 2 1 0) -> nil
-;;; ＠
-;;; >=                                     関数[#!subr]
-;;;
-;;; <説明>
-;;;  (1)
-;;;   形式 : string1 >= string2 >= ... >= stringN
-;;; string1 string2 ... stringN の値を辞書順に比較し、降順に並んでいる
-;;; (等しい場合を含む) 場合は、stringN の値を返す。
-;;; そうでなければ nil を返す。
-;;;
-;;;  (2)
-;;;   形式 : >= number1 number2
-;;; number1 の値が number2 の値より大きいか等しいなら、number2 の評価値を
-;;; 返し、そうでなければ nil を返す。引数が 1 つのときは、その評価値を返す。
-;;; (number1 >= number2)、[number1 >= number2] の形式でも記述可能。
-;;; infix notation では、任意個の引数が指定可能。
-;;;
-;;; <例>
-;;;  (1)
-;;;         ("z" >= "y" >= "x" >= "w" >= "v" >= "u") -> "u"
-;;;         ("z" >= "y" >= "y" >= "w" >= "v" >= "v") -> "v"
-;;;         ("z" >= "y" >= "y" >= "u" >= "v" >= "v") -> nil
-;;;         ("た" >= "さ" "" >= "か" >= "あ") -> "あ"
-;;;         ("させそ" >= "さそせ") -> nil
-;;;  (2)
-;;;         (>= 5 4) -> 4
-;;;         (>= 4 5) -> nil
-;;;         (>= 5) -> 5
-;;; ＠
-;;; common:>=                              関数[#!subr]
-;;;
-;;; <説明>
-;;;   形式 : common:>= number1 &rest number2 number2 ... numberN
-;;; number1 number2 ... numberN の値 (複素数も可) を左から右に順に比較し、
-;;; 単純減少 (等しいものがあってもよい) している場合は、numberN の値を返し、
-;;; そうでなければ nil を返す。
-;;;
-;;; <例>
-;;;         (common:>= 5 4 3 2 1 0) -> 0
-;;;         (common:>= 5 4 4 2 1 0) -> 0
-;;; ＠
+
+(defun tao:> (x y)
+  #.(string '#:|>                                      関数[#!subr]
+
+<説明>
+ (1)
+  形式 : string1 > string2 > ... > stringN
+string1 string2 ... stringN の値を辞書順に比較し、完全に降順に並んで
+いる場合は、stringN の値を返す。そうでなければ nil を返す。
+
+ (2)
+  形式 : > number1 number2
+number1 の値が number2 の値より大きいなら、number2 の評価値を返し、
+そうでなければ nil を返す。引数が 1 つのときは、その評価値を返す。
+\(number1 > number2)、[number1 > number2] の形式でも記述可能。
+infix notation では、任意個の引数が指定可能。
+
+<例>
+ (1)
+        ("story" > 'store) -> "store"
+        ("z" > "y" > "x" > "w" > "v" > "u") -> "u"
+        ("z" > "y" > "y" > "w" > "v" > "u") -> "nil"
+        ("あいう" > "あえお") -> "nil"
+        ("あえお" > "あいう") -> "あえお"
+ (2)
+        (> 5 4) -> 4
+        (> 4 5) -> nil
+        (> 5) -> 5|)
+  (etypecase x
+    (string (etypecase y
+              (string (and (string> x y)
+                           y))))
+    (number (etypecase y
+              (number (and (cl:> x y)
+                           y))))))
+
+(defsynonym common:> cl:>
+  "common:>                               関数[#!subr]
+
+<説明>
+  形式 : common:> number1 &rest number2 number3 ... numberN
+number1 number2 ... numberN の値 (複素数も可) を左から右に順に比較し、
+完全に単純減少している場合は、numberN の値を返し、そうでなければ nil
+を返す。
+
+<例>
+        (common:> 5 4 3 2 1 0) -> 0
+        (common:> 5 4 4 2 1 0) -> nil")
+
+(defun tao:>= (x y)
+  #.(string '#:|>=                                     関数[#!subr]
+
+\<説明>
+ (1)
+  形式 : string1 >= string2 >= ... >= stringN
+string1 string2 ... stringN の値を辞書順に比較し、降順に並んでいる
+\(等しい場合を含む) 場合は、stringN の値を返す。
+そうでなければ nil を返す。
+
+ (2)
+  形式 : >= number1 number2
+number1 の値が number2 の値より大きいか等しいなら、number2 の評価値を
+返し、そうでなければ nil を返す。引数が 1 つのときは、その評価値を返す。
+\(number1 >= number2)、[number1 >= number2] の形式でも記述可能。
+infix notation では、任意個の引数が指定可能。
+
+\<例>
+\(1)
+\("z" >= "y" >= "x" >= "w" >= "v" >= "u") -> "u"
+\("z" >= "y" >= "y" >= "w" >= "v" >= "v") -> "v"
+\("z" >= "y" >= "y" >= "u" >= "v" >= "v") -> nil
+\("た" >= "さ" "" >= "か" >= "あ") -> "あ"
+\("させそ" >= "さそせ") -> nil
+\(2)
+\(>= 5 4) -> 4
+\(>= 4 5) -> nil
+\(>= 5) -> 5|)
+  (etypecase x
+    (string (etypecase y
+              (string (and (string>= x y)
+                           y))))
+    (number (etypecase y
+              (number (and (cl:>= x y)
+                           y))))))
+
+(defsynonym common:>= cl:>=
+  "common:>=                              関数[#!subr]
+
+<説明>
+  形式 : common:>= number1 &rest number2 number2 ... numberN
+number1 number2 ... numberN の値 (複素数も可) を左から右に順に比較し、
+単純減少 (等しいものがあってもよい) している場合は、numberN の値を返し、
+そうでなければ nil を返す。
+
+<例>
+        (common:>= 5 4 3 2 1 0) -> 0
+        (common:>= 5 4 4 2 1 0) -> 0")
+
 ;;; \                                      関数[#!macro]
 ;;;
 ;;; <説明>
-;;;   形式 : ¥ number1 number2
+;;;   形式 : \ number1 number2
 ;;; number1 の値を number2 の値で割り、その剰余を返す。
-;;; (¥ x y) = (mod x y)
+;;; (\ x y) = (mod x y)
 ;;; 演算符号 \ がエスケープコードとして使用されている場合は \\ を使う。
-;;; (¥ 14 4) は ELIS ではエラーを起こすので注意。
-;;; ＠
-;;; ¥¥                                     関数[#!macro]
-;;;
-;;; <説明>
-;;;   形式 : ¥¥ number1 number2
-;;; number1 の値を number2 の値で割り、その剰余を返す。
-;;; (\\ x y) = (mod x y)
-;;;
-;;; <例>
-;;;         (¥¥ 5 3) -> 2
-;;;         (¥¥ 0 3) -> 0
-;;;         (¥¥ -4 2) -> 0
-;;;         (¥¥ 4 0) -> エラー
-;;; ＠
+;;; (\ 14 4) は ELIS ではエラーを起こすので注意。
+
+(defsynonym tao:\\ cl:mod
+  "\\                                     関数[#!macro]
+
+<説明>
+  形式 : \\ number1 number2
+number1 の値を number2 の値で割り、その剰余を返す。
+\(\\ x y) = (mod x y)
+
+<例>
+        (\\ 5 3) -> 2
+        (\\ 0 3) -> 0
+        (\\ -4 2) -> 0
+        (\\ 4 0) -> エラー")
+
 ;;; _                                      特殊変数名
 ;;;
 ;;; <説明>
@@ -1928,6 +1985,3 @@ number1 の値を number2 の値でべき乗した結果を返す。
 ;;; (‾ [(&aux var ...)] B1) は論理 "not" である。
 ;;; B1 においてすべてのバックトラックが試されたあと、B1 が nil と評価される
 ;;; と (‾B1) は t となる。B1 が t と評価されると (‾B1) は nil となる。
-;;;
-;;;
-;;; ＠

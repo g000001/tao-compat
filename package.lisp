@@ -1,7 +1,46 @@
 (in-package #:cl-user)
-
+;(delete-package :tao)
 (defpackage #:tao
   (:use #:named-readtables)
+  (:import-from
+   :cl . #0=(:*
+             :***
+             :*debug-io*
+             :*default-pathname-defaults*
+             :*error-output*
+             :*features*
+             :*load-verbose*
+             :*macroexpand-hook*
+             :*modules*
+             :*package*
+             :*print-array*
+             :*print-base*
+             :*print-case*
+             :*print-circle*
+             :*print-escape*
+             :*print-gensym*
+             :*print-length*
+             :*print-level*
+             :*print-pretty*
+             :*print-radix*
+             :*query-io*
+             :*random-state*
+             :*read-base*
+             :*read-default-float-format*
+             :*read-suppress*
+             :*readtable*
+             :*standard-input*
+             :*standard-output*
+             :*terminal-io*
+             :*trace-output*
+             :+
+             :++
+             :+++
+             :-
+             :1+
+             :1-
+             ))
+  (:export . #0#)
   (:export
    :**
    :*read-eof-value*
@@ -19,12 +58,24 @@
    )
   (:export
    ;; 0
-   #:!
-   #:&
-   #:**
-   #:self                               ;!
-   #:selfass                            ;!!
-   #:togap                              ;^
+   :!
+   :&
+   :**
+   :self                               ;!
+   :selfass                            ;!!
+   :togap                              ;^
+   :*catch
+   :*file-search-path*
+   :*throw
+   :/
+   :/=
+   :\\
+   :<
+   :<=
+   :=
+   :>
+   :>=
+   ://
    ;; a
    :apply
    :apply*
@@ -229,6 +280,13 @@
            :stable-sort
            :string-capitalize
            :string-trim
+           :/
+           :/=
+           :<
+           :<=
+           :=
+           :>
+           :>=
            ))
 
 (defpackage #:tao-internal
