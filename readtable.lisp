@@ -85,8 +85,55 @@
     (otherwise
        (sb-impl::read-list stream ignore))))
 
+(defun read-|.| (stream char)
+  (declare (ignore char))
+  (case (peek-char nil stream 'T nil 'T)
+    ((#\. )
+       (read-char stream) 'T nil 'T
+       '|..|)
+    ((#\Space #\Tab #\Return #\Newline)
+       '|.|)
+    (otherwise (values))))
+
+(defun method.chain-to-prefix (symbol &rest args)
+  (let* ((form (ppcre:split "\\." (string symbol)))
+         (form (mapcar #'intern form)))
+    (if (cdr form)
+        `(apply (function ,(car (last form)))
+                ,(reduce (lambda (ans e)
+                           (cons e (list ans)))
+                         (butlast form))
+                (list ,@args))
+        `(,symbol ,@args))))
+
+
+#|(defun infix-to-prefix (obj mesg &rest args)
+  (cond ((null args)
+         (method.chain-to-prefix mesg obj))
+        ((null (cdr args))
+         `(,@(method.chain-to-prefix mesg obj) ,@args))
+        ('T `(,@(method.chain-to-prefix mesg obj)
+                ,(apply #'infix-to-prefix args)))))|#
+
+(defun infix-to-prefix (obj mesg &rest args)
+  (cond ((null args)
+         (list mesg obj))
+        ((null (cdr args))
+         `(,mesg ,obj ,@args))
+        ('T `(,mesg ,obj ,(apply #'infix-to-prefix args)))))
+
+(defun read-|[| (stream char)
+  (declare (ignore char))
+  (let ((expr (read-delimited-list #\] stream 'T)))
+    (apply #'infix-to-prefix expr)))
+
+
+
 (defreadtable :tao
   (:merge :standard)
   (:macro-char #\( #'tao-read-list 'T)
   (:macro-char #\^ #'tao-read-toga)
+  (:macro-char #\. #'read-|.| 'T)
+  (:syntax-from :common-lisp #\) #\])
+  (:macro-char #\[ #'read-|[|)
   (:case :upcase))
