@@ -1014,30 +1014,6 @@ throw のように働く。")
 ;;;         (deref bbb) -> #123
 ;;;         ここで @(-- bbb) は、(deref (-- bbb)) の省略形
 
-(progn
-  [(make-instance 'foo) a])
-
-(defclass foo ()
-  ((a :initform (make-instance 'bar))))
-
-(defclass bar ()
-  ((b :initform 0)))
-
-
-(defmethod a ((x foo) b)
-  (funcall b (slot-value x 'a)))
-
-(defmethod b ((x bar) b)
-  (funcall b (slot-value x 'b)))
-
-(let ((foo (make-instance 'foo)))
-  [foo a . b . c])
-
-(LET ((FOO (MAKE-INSTANCE 'FOO)))
-  (A FOO (B |.| (C |.|))))
-
-
-
 (defsynonym |.| cl:cons
   ".                                      メッセージ
 

@@ -1016,7 +1016,7 @@ progi-id は、関数 exit-progi による脱出のためのマーク。
 	 ,cache))))
 
 (defmacro trans-progi-if-toga (toga-form cache)
-  (if (togap toga-form)
+  (if (tao:togap toga-form)
       `(setq ,cache ,toga-form)
       toga-form))
 
@@ -1122,7 +1122,7 @@ var1, var2, ... はグローバル変数。ローカル変数スコープに影�
 モジュール名を返す。
 
 <例>
-        (provide 'maclisp) -> (\"maclisp\")"))
+        (provide 'maclisp) -> (\"maclisp\")")
 
 (defclsynonym tao:psetf
     "psetf                                  関数[#!macro]
