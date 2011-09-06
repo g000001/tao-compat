@@ -43,9 +43,20 @@
   (:export . #0#)
   (:export
    :&opt
+   :&rest
    :**
    :*read-eof-value*
+   :in-package
+   :defparameter
+   :defun
+   :defconstant
+   :defglobal
+   :dotimes
+   :dolist
+   :double-float-epsilon
+   :double-float-negative-epsilon
    :length
+   :list
    :listp
    :loop
    :make-string
@@ -54,6 +65,15 @@
    :rem
    :schar
    :sort
+   :documentation
+   :decode-universal-time
+   :defmacro
+   :defsetf
+   :deftype
+   :defvar
+   :disassemble
+   :do
+   :do*
    :string-capitalize
    :zerop
    :apropos
@@ -136,6 +156,10 @@
    #:dec
    #:define
    #:do-forever
+   :do-all-symbols
+   :do-external-symbols
+   :do-symbols
+   :dribble
    :dye
    ;; e
    :exit-for

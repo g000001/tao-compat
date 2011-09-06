@@ -4,8 +4,15 @@
 (defmacro defsynonym (new-name old-name &optional docstring)
   "New-name is a subst for old-name.  Uses rest arg so be careful."
   `(progn
-     (!(fdefinition ',new-name)
-       (fdefinition ',old-name))
+     ,(if (and (every #'symbolp (list new-name old-name))
+               (macro-function old-name))
+
+          `(!(macro-function ',new-name)
+             (macro-function ',old-name))
+
+          `(!(fdefinition ',new-name)
+             (fdefinition ',old-name)) )
+
      ,(when docstring
         `(!(documentation ',new-name 'function)
                ,docstring))
@@ -13,13 +20,7 @@
 
 (defmacro defclsynonym (new-name &optional docstring)
   (let ((clsym (intern (string new-name) :cl)))
-    `(progn
-       (!(fdefinition ',new-name)
-         (fdefinition ',clsym))
-       ,(when docstring
-          `(!(documentation ',new-name 'function)
-             ,docstring))
-       ',new-name)))
+    `(defsynonym ,new-name ,clsym ,docstring)))
 
 ;;; ＠
 ;;; !                                      スペシャルシンボル

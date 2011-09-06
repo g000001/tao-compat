@@ -279,19 +279,22 @@ form の評価により終了する。他のリストの余分な要素は無視
 ;;;
 ;;; <例>
 ;;;         (import edit ledit) -> nil
-;;; ＠
-;;; in-package                             関数[#!macro]
-;;;
-;;; <説明>
-;;;   形式 : in-package package &rest key
-;;; カレントパッケージを package に変更する。それが存在しないパッケージなら、
-;;; 新しいパッケージを作りそれをカレントパッケージとする。
-;;;
-;;; <例>
-;;;         (package-name (current-package)) -> "abc"
-;;;         (in-package sys:bas-package)) -> {vector}32228(package . 12))
-;;;         (package-name (current-package)) -> "bas"
-;;; ＠
+
+(defclsynonym tao:in-package
+  #.(string '#:|in-package                             関数[#!macro]
+
+<説明>
+  形式 : in-package package &rest key
+カレントパッケージを package に変更する。それが存在しないパッケージなら、
+新しいパッケージを作りそれをカレントパッケージとする。
+
+<例>
+        (package-name (current-package)) -> "abc"
+        (in-package sys:bas-package)) -> {vector}32228(package . 12))
+        (package-name (current-package)) -> "bas"|))
+
+
+
 ;;; inc                                    関数[#!macro]
 ;;;
 ;;; <説明>
