@@ -39,6 +39,7 @@
              :-
              :1+
              :1-
+             :declare
              ))
   (:export . #0#)
   (:export
@@ -71,6 +72,27 @@
    :defsetf
    :deftype
    :defvar
+   :delete
+   :delete-duplicates
+   :delete-file
+   :delete-if
+   :delete-if-not
+   :denominator
+   :describe
+   :digit-char
+   :digit-char-p
+   :directory
+   :directory-namestring
+   :do-symbols
+   :decode-float
+   :defprop
+   :del
+   :del-if
+   :del-if-not
+   :delq
+   :delql
+   :delqu
+   :decnum
    :disassemble
    :do
    :do*
@@ -151,13 +173,17 @@
    :find-throw
    :current-dir
    ;; d
-   #:day-of-week-string
-   #:de
-   #:dec
-   #:define
-   #:do-forever
+   :day-of-week-string
+   :de
+   :dec
+   :decf
+   :define
+   :do-forever
    :do-all-symbols
    :do-external-symbols
+   :define-modify-macro
+   :define-setf-method
+   :defstruct
    :do-symbols
    :dribble
    :dye

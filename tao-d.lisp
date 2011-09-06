@@ -161,19 +161,21 @@ var の値から val の値を引き、その結果を返す。 val の既定値
         (dec 3) -> エラー"
   `(setq ,var (- ,var ,val)))
 
-;; decf                                   関数[#!macro]
-;;
-;; <説明>
-;;   形式 : decf place &opt delta
-;; place の値から delta の値を引き、その結果を返すとともに、 place に
-;; 代入する。  delta の既定値は 1 。機能は dec と同じ。
-;;
-;; <例>
-;;         (!n 0)
-;;         (decf n 3) -> -3  そして  n=-3
-;;         (decf n -5) -> 2  そして  n=2
-;;         (decf n)   -> 1   そして  n=1
+(defclsynonym tao:decf
+    "decf                                   関数[#!macro]
 
+<説明>
+  形式 : decf place &opt delta
+place の値から delta の値を引き、その結果を返すとともに、 place に
+代入する。  delta の既定値は 1 。機能は dec と同じ。
+
+<例>
+        (!n 0)
+        (decf n 3) -> -3  そして  n=-3
+        (decf n -5) -> 2  そして  n=2
+        (decf n)   -> 1   そして  n=1")
+
+;; ->cl
 ;; declare                                関数[#!subr]
 ;;
 ;; <説明>
@@ -222,29 +224,36 @@ var の値から val の値を引き、その結果を返す。 val の既定値
 ;;             (cons (symbol-value 'x) x))
 ;;         (foo 1) -> (1 . 2)
 
-;; decnum                                 関数[#!expr]
-;;
-;; <説明>
-;;   形式 : decnum number
-;; number を 10 進数に変換し、それを返す。
-;;
-;; <例>
-;;         (decnum #x10) -> 16
-;;         (decnum #o10) -> 8
+(defun tao:decnum (number)
+  "decnum                                 関数[#!expr]
 
-;; decode-float                           関数[#!expr]
-;;
-;; <説明>
-;;   形式 : decode-float number
-;; 浮動小数点数 number の値に対応する、以下の 3 つの値を返す。
-;; (1) 小数部を表す新しい浮動小数点数
-;; (2) 指数部を表す整数
-;; (3) 符号を表す同一形式の浮動小数点数
-;;
-;; <例>
-;;         (decode-float 3.278) -> !(0.8195 2 1.0)
-;;         (decode-float 3.0) -> !(0.75 2 1.0)
-;;         (decode-float -0.239) -> !(0.956001 -2 -1.0)
+<説明>
+  形式 : decnum number
+number を 10 進数に変換し、それを返す。
+
+<例>
+        (decnum #x10) -> 16
+        (decnum #o10) -> 8"
+  number)
+
+(defun tao:decode-float (number)
+  "decode-float                           関数[#!expr]
+
+<説明>
+  形式 : decode-float number
+浮動小数点数 number の値に対応する、以下の 3 つの値を返す。
+\(1) 小数部を表す新しい浮動小数点数
+\(2) 指数部を表す整数
+\(3) 符号を表す同一形式の浮動小数点数
+
+<例>
+        (decode-float 3.278) -> !(0.8195 2 1.0)
+        (decode-float 3.0) -> !(0.75 2 1.0)
+        (decode-float -0.239) -> !(0.956001 -2 -1.0)"
+  (let ((fr (float-radix number)))
+    (values (/ number (expt 2 fr))
+            (float-radix number)
+            (float-sign number))))
 
 (defclsynonym tao:decode-universal-time
     "decode-universal-time                  関数[#!expr]
@@ -308,7 +317,7 @@ var の値から val の値を引き、その結果を返す。 val の既定値
 ;;         (!aa (make-instance 'a3)) -> {udo}40766a3
 ;;         [aa b11] -> 1
 ;;         [aa b22] -> 4
-;; ＠
+
 ;; defclass-method                        関数[#!expr]
 ;;
 ;; <説明>
@@ -376,57 +385,60 @@ symbol を関数オブジェクト applobj に結び付ける。
      (setf (symbol-function ',symbol) #'values)
      (setf (symbol-function ',symbol)) ,applobj))
 
-;; define-modify-macro                    関数[#!macro]
-;;
-;; <説明>
-;;   形式 : define-modify-macro &rest name lambda-list f-name doc
-;; 指定された方法で変数の値を変更する関数を生成したいとき、使用。
-;; de や defun 等の関数定義関数によって生成できず、マクロを用いること
-;; によってのみ定義される。
-;; (define-modify-macro name (arg1 arg2 ...) func doc)
-;;     = (defmacro name (x arg1 arg2 ...)
-;;           doc
-;;         	  (setf ,x (func ,arg1 ,arg2 ...)))
-;; doc は省略可。
-;;
-;; <例>
-;;         (define-modify-macro (counter (up-by) +) -> counter
-;;         (!count 0) -> 0
-;;         (counter count 2) -> 1
-;;         count -> 2
-;;         (counter count 3) -> 5
-;;         count -> 5
-;;         以下のように defmacro 関数を使って同様な関数が定義できる。
-;;         (defmacro calc (n delta) ｀(setf ,n (+ ,n ,delta))) -> calc
-;;         (calc count 4) -> 9
-;;         (calc count -3) -> 6
 
-;; define-setf-method                     関数[#!macro]
-;;
-;; <説明>
-;;   形式 : define-setf-method &rest x
-;; 関数 setf が指定された関数式に対してどう働くかを定義する。
-;; 次の 2 つのどちらかの方法で用いる。
-;; (1)
-;; (defsetf access-fn update-fn)
-;; access-fn は setf が新しい値を格納する場所を供給する関数。
-;; update-fn は 場所内に新しい値を格納する関数。
-;; つまり、(setf (access-fn argument) new-value) は (access-fn argument)
-;; が供給する場所に新しい値を格納する。
-;; (2)
-;; (define-setf-method access-fn (arg1 arg2 ... ) forms)
-;; (access-fn arg1 arg2 ... ) は新しい値が格納される場所を供給する。
-;; 一時的な変数である var は place に格納されるべき新しい値を持つ。
-;; form は (access-fn arg1 arg2 ... ) によって指定された場所に新しい値を
-;; 格納するのに使用。
-;; 両方法共に access-fn は関数、またはマクロの名前でなくてはならない。
-;; get-setf-method、defsetf を参照。
-;;
-;; (define-setf-method access-fn (arg1 arg2 ... ) forms)
-;; は以下の点を除いて関数 defsetf と同じ。
-;; forms が評価されている間は arg1 arg2 ... は一時的な変数に束縛されない。
-;; access-fn は関数とマクロどちらの名前も必要としない。
-;; 返される値は 5 つの値のリストである。
+(defclsynonym tao:define-modify-macro
+    "define-modify-macro                    関数[#!macro]
+
+<説明>
+  形式 : define-modify-macro &rest name lambda-list f-name doc
+指定された方法で変数の値を変更する関数を生成したいとき、使用。
+de や defun 等の関数定義関数によって生成できず、マクロを用いること
+によってのみ定義される。
+\(define-modify-macro name (arg1 arg2 ...) func doc)
+    = (defmacro name (x arg1 arg2 ...)
+          doc
+        	  (setf ,x (func ,arg1 ,arg2 ...)))
+doc は省略可。
+
+<例>
+        (define-modify-macro (counter (up-by) +) -> counter
+        (!count 0) -> 0
+        (counter count 2) -> 1
+        count -> 2
+        (counter count 3) -> 5
+        count -> 5
+        以下のように defmacro 関数を使って同様な関数が定義できる。
+        (defmacro calc (n delta) ｀(setf ,n (+ ,n ,delta))) -> calc
+        (calc count 4) -> 9
+        (calc count -3) -> 6")
+
+(defsynonym tao:define-setf-method cl:define-setf-expander
+  "define-setf-method                     関数[#!macro]
+
+<説明>
+  形式 : define-setf-method &rest x
+関数 setf が指定された関数式に対してどう働くかを定義する。
+次の 2 つのどちらかの方法で用いる。
+\(1)
+\(defsetf access-fn update-fn)
+access-fn は setf が新しい値を格納する場所を供給する関数。
+update-fn は 場所内に新しい値を格納する関数。
+つまり、(setf (access-fn argument) new-value) は (access-fn argument)
+が供給する場所に新しい値を格納する。
+\(2)
+\(define-setf-method access-fn (arg1 arg2 ... ) forms)
+\(access-fn arg1 arg2 ... ) は新しい値が格納される場所を供給する。
+一時的な変数である var は place に格納されるべき新しい値を持つ。
+form は (access-fn arg1 arg2 ... ) によって指定された場所に新しい値を
+格納するのに使用。
+両方法共に access-fn は関数、またはマクロの名前でなくてはならない。
+get-setf-method、defsetf を参照。
+
+\(define-setf-method access-fn (arg1 arg2 ... ) forms)
+は以下の点を除いて関数 defsetf と同じ。
+forms が評価されている間は arg1 arg2 ... は一時的な変数に束縛されない。
+access-fn は関数とマクロどちらの名前も必要としない。
+返される値は 5 つの値のリストである。")
 
 ;; definition                             関数[#!expr]
 ;;
@@ -563,28 +575,30 @@ symbol をグローバル変数として宣言し、init-value を初期値と�
         (defparameter aa (- 4 1)) -> aa
         aa -> 3|))
 
-;; defprop                                関数[#!macro]
-;;
-;; <説明>
-;;   形式 : defprop p-list val ind
-;; 属性リスト p-list において ind と eq な最初のインディケータに対応し
-;; た属性値を val に置き換え ind を返す。 eq なインディケータがない場合
-;; は、 p-list に ind と val のペアをコンスし ind を返す。
-;; p-list は破壊される。
-;; 引数が評価されないこと以外は putprop と同じ。
-;; (defprop foo bar next-to) = (putprop 'foo 'bar 'next-to)
-;; 連想リストのかわりに属性リストを扱う点を除いて、putalist と同じ。
-;;
-;; <例>
-;;         (!(plist 'xxx) '(q 2 r 3 s 4)) -> (q 2 r 3 s 4)  そして
-;;         xxx の属性リストは、 (q 2 r 3 s 4)
-;;         (!yyy (plist 'xxx)) -> (q 2 r 3 s 4)  そして
-;;         (defprop xxx 1 p) -> 1  そして
-;;         (plist 'xxx) -> (p 1 q 2 r 3 s 4)  しかし
-;;         yyy = (q 2 r 3 s 4)
-;;         (defprop xxx 5 s) -> 5
-;;         (plist 'xxx) -> (p 1 q 2 r 3 s 5)  そして
-;;         ここで  yyy = (q 2 r 3 s 5)
+(defmacro tao:defprop (p-list val ind)
+  "defprop                                関数[#!macro]
+
+<説明>
+  形式 : defprop p-list val ind
+属性リスト p-list において ind と eq な最初のインディケータに対応し
+た属性値を val に置き換え ind を返す。 eq なインディケータがない場合
+は、 p-list に ind と val のペアをコンスし ind を返す。
+p-list は破壊される。
+引数が評価されないこと以外は putprop と同じ。
+\(defprop foo bar next-to) = (putprop 'foo 'bar 'next-to)
+連想リストのかわりに属性リストを扱う点を除いて、putalist と同じ。
+
+<例>
+        (!(plist 'xxx) '(q 2 r 3 s 4)) -> (q 2 r 3 s 4)  そして
+        xxx の属性リストは、 (q 2 r 3 s 4)
+        (!yyy (plist 'xxx)) -> (q 2 r 3 s 4)  そして
+        (defprop xxx 1 p) -> 1  そして
+        (plist 'xxx) -> (p 1 q 2 r 3 s 4)  しかし
+        yyy = (q 2 r 3 s 4)
+        (defprop xxx 5 s) -> 5
+        (plist 'xxx) -> (p 1 q 2 r 3 s 5)  そして
+        ここで  yyy = (q 2 r 3 s 5)"
+  `(tao:putprop ',p-list ',val ',ind))
 
 ;; defrel                                 関数[#!expr]
 ;;
@@ -660,48 +674,49 @@ formは (access-fn arg1 arg2 ... ) によって指定された場所に新しい
         	      (replace #:g1 #:g4 :star1 #:g2 :end1 #:g3) #:g4)
         上記の 2 番目の例の返される値について get-setf-method を参照。")
 
-;; defstruct                              関数[#!macro]
-;;
-;; <説明>
-;;   形式 : defstruct 'name-opts &rest 'slots
-;; レコード構造のデータ型を定義する関数。一般的には、次の様に呼び出す。
-;; (defstruct (symbol option-1 option-2 ... )
-;;             doc-string
-;;             slot-description-1 slot-description-2 ... )
-;; symbol が構造の全具体例を構成する新しいデータ型の名前となる。
-;; symbol がリターン値。
-;; slot-description-1 slot-description-2 ... は、それぞれ次のような形を
-;; している。
-;; (slot-name default-init
-;;         slot-option-name-1 slot-option-value-1
-;;         slot-option-name-2 slot-option-value-2
-;;         ...)
-;; slot-name は、シンボル。
-;; default-init は、構造が作られる度に評価される形式で、その値はスロット
-;; の初期値として用いられる。
-;; 構造を定義するフォームの評価は以下のことを含んでいる。
-;; ・レコードの実体をアクセスするためのアクセス関数が、それぞれのスロット
-;;   に対して定義される。
-;; ・レコードの実体を生成するコンストラクタ関数が定義される。
-;; ・name は、関数 typep で受け入れ可能なものとなる。
-;; ・#s 構文が、構造の具体例を読むために用いることができる。
-;; ・オブジェクトが与えられた時に、その与えられたもののコピーである新しい
-;;   オブジェクトを生成するコピー関数が定義される。
-;; ・関数 setf を用いて、それぞれのスロットの実体を変更することができる。
-;; ・name により name-p という 1 引数の関数が定義される。
-;;
-;; <例>
-;;         (defstruct date day month year) -> date
-;;         コンストラクタ関数 make-date 、
-;;         アクセス関数 date-day, date-month, date-year が用意される。
-;;         (setq today (make-date :day 1 :month 6 :year 1987)
-;;         		-> #S(date day 1 monyh 6 year 1987)
-;;         (date-day today) -> 1
-;;         (date-month today) -> 6
-;;         (setf (date-day today) 3) -> 3
-;;         (date-day today) -> 3
-;;         (typep today date) -> t
-;;         (typep tommorow date) -> nil
+(defclsynonym tao:defstruct
+    "defstruct                              関数[#!macro]
+
+<説明>
+  形式 : defstruct 'name-opts &rest 'slots
+レコード構造のデータ型を定義する関数。一般的には、次の様に呼び出す。
+\(defstruct (symbol option-1 option-2 ... )
+            doc-string
+            slot-description-1 slot-description-2 ... )
+symbol が構造の全具体例を構成する新しいデータ型の名前となる。
+symbol がリターン値。
+slot-description-1 slot-description-2 ... は、それぞれ次のような形を
+している。
+\(slot-name default-init
+        slot-option-name-1 slot-option-value-1
+        slot-option-name-2 slot-option-value-2
+        ...)
+slot-name は、シンボル。
+default-init は、構造が作られる度に評価される形式で、その値はスロット
+の初期値として用いられる。
+構造を定義するフォームの評価は以下のことを含んでいる。
+・レコードの実体をアクセスするためのアクセス関数が、それぞれのスロット
+  に対して定義される。
+・レコードの実体を生成するコンストラクタ関数が定義される。
+・name は、関数 typep で受け入れ可能なものとなる。
+・#s 構文が、構造の具体例を読むために用いることができる。
+・オブジェクトが与えられた時に、その与えられたもののコピーである新しい
+  オブジェクトを生成するコピー関数が定義される。
+・関数 setf を用いて、それぞれのスロットの実体を変更することができる。
+・name により name-p という 1 引数の関数が定義される。
+
+<例>
+        (defstruct date day month year) -> date
+        コンストラクタ関数 make-date 、
+        アクセス関数 date-day, date-month, date-year が用意される。
+        (setq today (make-date :day 1 :month 6 :year 1987)
+        		-> #S(date day 1 monyh 6 year 1987)
+        (date-day today) -> 1
+        (date-month today) -> 6
+        (setf (date-day today) 3) -> 3
+        (date-day today) -> 3
+        (typep today date) -> t
+        (typep tommorow date) -> nil")
 
 (defclsynonym tao:deftype
     "deftype                                関数[#!expr]
@@ -753,20 +768,33 @@ symbol をスペシャル変数として定義し、init-value (省略時 nil)�
         (defvar bb 100) -> bb
         bb -> 12")
 
-;; del                                    関数[#!subr]
-;;
-;; <説明>
-;;   形式 : del pred item list &opt n
-;; list の要素を順に item とともに述語 pred に適用し、その述語を満足する
-;; 要素を n 個取り除く。 pred は引数を 2 つとる関数で、第 1 引数は item 、
-;; 第 2 引数は list の各要素。n が、省略されたり pred を満足する要素の個数
-;; 以上の数の場合、あるいは負の場合は、pred を満足するすべての要素を
-;; 取り除く。list は破壊される。rem の破壊版。
-;;
-;; <例>
-;;         x を (1 2 3 4 5 6 7) とする
-;;         (del #'< 4 x) -> (1 2 3 4)
-;;         (del #'< 4 x 2) -> ( 1 2 3 4 7)
+(defun tao:del (pred item list &optional n)
+  "del                                    関数[#!subr]
+
+<説明>
+  形式 : del pred item list &opt n
+list の要素を順に item とともに述語 pred に適用し、その述語を満足する
+要素を n 個取り除く。 pred は引数を 2 つとる関数で、第 1 引数は item 、
+第 2 引数は list の各要素。n が、省略されたり pred を満足する要素の個数
+以上の数の場合、あるいは負の場合は、pred を満足するすべての要素を
+取り除く。list は破壊される。rem の破壊版。
+
+<例>
+        x を (1 2 3 4 5 6 7) とする
+        (del #'< 4 x) -> (1 2 3 4)
+        (del #'< 4 x 2) -> ( 1 2 3 4 7)"
+  (declare (list list))
+  (delete-if (lambda (x) (funcall pred item x))
+             list :count n))
+
+#|(let ((x (list 1 2 3 4 5 6 7)))
+  (!!tao:del #'< 4 !x 8)
+  x)|#
+
+#|(let ((x (list 1 2 3 4 5 6 7)))
+  (!!tao:del #'< 4 !x 2)
+  x)|#
+;=> (1 2 3 4 7)
 
 ;; del-alist                              関数[#!subr]
 ;;
@@ -784,41 +812,56 @@ symbol をスペシャル変数として定義し、init-value (省略時 nil)�
 ;;         x -> ((a . 1) (c . 3))
 ;;         (!x (del-alist 'p x)) -> ((a . 1) (c . 3))
 
-;; del-if                                 関数[#!macro]
-;;
-;; <説明>
-;;   形式 : del-if pred list
-;; list から、述語 pred を満足する要素をすべて削除し、その結果を返す
-;; ( list は破壊される)。 pred は引数を 1 つしかとらない。すなわち、
-;; list の各要素。
-;; rem-if の破壊版。
-;;
-;; <例>
-;;         x = (1 a 2 b 3 c 4 d 5)
-;;         (del-if #'integerp x) -> (a b c d)
+(declaim (inline tao:del-if))
+(defun tao:del-if (pred list)
+  "del-if                                 関数[#!macro]
 
-;; del-if-not                             関数[#!macro]
-;;
-;; <説明>
-;;   形式 : del-if-not pred list
-;; list から、述語 pred を満足しない要素をすべて削除し、その結果のリスト
-;; を返す ( list は破壊される)。 pred は、引数を 1 つしかとらない。
-;; rem-if-not の破壊版。
+<説明>
+  形式 : del-if pred list
+list から、述語 pred を満足する要素をすべて削除し、その結果を返す
+\(list は破壊される)。 pred は引数を 1 つしかとらない。すなわち、
+list の各要素。
+rem-if の破壊版。
 
-;; delete                                 関数[#!macro]
-;;
-;; <説明>
-;;   形式 : delete item sequence
-;;          &key :from-end :test :test-not :start :end :count :key
-;; sequence の :start から :end までの範囲で item を :count 個削除し、その
-;; 結果を返す。  関数 remove の破壊版。
-;;
-;; <例>
-;;         (delete 4 '(1 2 4 1 3 4 5)) -> (1 2 1 3 5)
-;;         (delete 4 '(1 2 4 1 3 4 5) :count 2) -> (1 2 1 3 5)
-;;         (delete 4 '(1 2 4 1 3 4 5) :count 1 :from-end t) ->
-;;                                                  (1 2 4 1 3 5)
-;;         (delete 3 '(1 2 4 1 3 4 5) :test #'>) -> (4 3 4 5)
+<例>
+        x = (1 a 2 b 3 c 4 d 5)
+        (del-if #'integerp x) -> (a b c d)"
+  (declare (optimize (speed 3) (safety 0) (debug 0)))
+  (declare (list list))
+  (delete-if pred list))
+
+#|(let ((x '(1 a 2 b 3 c 4 d 5)))
+  (!!tao:del-if #'integerp !x)
+  x)|#
+
+(declaim (inline tao:del-if-not))
+(defun tao:del-if-not (pred list)
+  "del-if-not                             関数[#!macro]
+
+<説明>
+  形式 : del-if-not pred list
+list から、述語 pred を満足しない要素をすべて削除し、その結果のリスト
+を返す ( list は破壊される)。 pred は、引数を 1 つしかとらない。
+rem-if-not の破壊版。"
+  (declare (optimize (speed 3) (safety 0) (debug 0)))
+  (declare (list list))
+  (tao:delete-if-not pred list))
+
+(defclsynonym tao:delete
+    "delete                                 関数[#!macro]
+
+<説明>
+  形式 : delete item sequence
+         &key :from-end :test :test-not :start :end :count :key
+sequence の :start から :end までの範囲で item を :count 個削除し、その
+結果を返す。  関数 remove の破壊版。
+
+<例>
+        (delete 4 '(1 2 4 1 3 4 5)) -> (1 2 1 3 5)
+        (delete 4 '(1 2 4 1 3 4 5) :count 2) -> (1 2 1 3 5)
+        (delete 4 '(1 2 4 1 3 4 5) :count 1 :from-end t) ->
+                                                 (1 2 4 1 3 5)
+        (delete 3 '(1 2 4 1 3 4 5) :test #'>) -> (4 3 4 5)")
 
 ;; delete-dir                             関数[#!expr]
 ;;
@@ -829,108 +872,127 @@ symbol をスペシャル変数として定義し、init-value (省略時 nil)�
 ;; <例>
 ;;         (delete-dir "cs:<work>")
 
-;; delete-duplicates                      関数[#!macro]
-;;
-;; <説明>
-;;   形式 : delete-duplicates seq &key :from-end :test :test-not
-;;                                     :start :end :key
-;; シーケンス seq の :start から :end までの範囲内の要素のうち重複する要素
-;; を前方から取り除き (from-end が nil 以外なら後方)、 最後の要素
-;; (from-end が nil 以外なら前の 1 つ) を残し、その結果を返す。
-;;
-;; <例>
-;;         (!x '(a b c b d d e)) -> (a b c b d d e)
-;;         (delete-duplicates x) -> (a c b d e)
-;;         X -> (a c b d e)
+(defclsynonym tao:delete-duplicates
+    "delete-duplicates                      関数[#!macro]
 
-;; delete-file                            関数[#!expr]
-;;
-;; <説明>
-;;   形式 : delete-file file
-;; ファイルまたはファイル群 file を削除する。file は、文字列、パス名の
-;; udo 、ストリームの udo のいずれか。
-;; 削除に成功すれば nil でない値を返し、削除操作に成功しなければエラーを
-;; 警告する。最新バージョンファイルのみ削除する。
-;;
-;; <例>
-;;         (delete-file "qwe.tao") -> ("cs:<dire>qwe.tao.1")
-;;         (delete-file "foo.*.*")は
-;;         カレントディレクトリ中の foo という名のファイルを全て削除する。
-;;         (delete-file "*.abc")は
-;;         カレントディレクトリ中の拡張子 (type) が "abc" のファイルを
-;;         全て削除する。
+<説明>
+  形式 : delete-duplicates seq &key :from-end :test :test-not
+                                    :start :end :key
+シーケンス seq の :start から :end までの範囲内の要素のうち重複する要素
+を前方から取り除き (from-end が nil 以外なら後方)、 最後の要素
+\(from-end が nil 以外なら前の 1 つ) を残し、その結果を返す。
 
-;; delete-if                              関数[#!macro]
-;;
-;; <説明>
-;;   形式 : delete-if test seq &key :from-end :start :end :count :key
-;; シーケンス seq の :start から :end までの範囲内で、条件 test を満足
-;; する要素を :count 個削除し、その結果を返す。remove-if の破壊版。
-;;
-;; <例>
-;;         (delete-if #'odpp '(1 2 4 1 3 4 5)) -> (2 4 4)
-;;         (delete-if #'odpp '(1 2 4 1 3 4 5) : count 1 : from-end t)
-;;                            	-> (1 2 4 1 3 5)
+<例>
+        (!x '(a b c b d d e)) -> (a b c b d d e)
+        (delete-duplicates x) -> (a c b d e)
+        X -> (a c b d e)")
 
-;; delete-if-not                          関数[#!macro]
-;;
-;; <説明>
-;;   形式 : delete-if-not test seq &key :from-end :start :end :count :key
-;; シーケンス seq の :start から :end までの範囲内で、条件 test を満足
-;; しない要素を :count 個削除し、その結果を返す。
-;; remove-if-not の破壊版。
-;;
-;; <例>
-;;         (delete-if-not #'oddp '(1 2 4 1 3 4 5)) -> (1 1 3 5)
-;;         (delete-if-not #'oddp '(1 2 4 1 3 4 5) :count 1 :from-end t)
-;;                                 -> (1 2 4 1 3 5)
+(defclsynonym tao:delete-file
+    #.(string '#:|delete-file                            関数[#!expr]
 
-;; delq                                   関数[#!subr]
-;;
-;; <説明>
-;;   形式 : delq item list &opt n
-;; list から item と eq な要素を n 個削除し、その結果を返す。
-;; (delq x y z) = (del eq x y z)
-;;
-;; <例>
-;;         (delq 'a '(b a c (a b) d a e)) -> (b c (a b) d e)
-;;         (delq '(1 2) '(b (1 2) c ((1 2) b) d (1 2) e)) ->
-;;         			   (b (1 2) c ((1 2) b) d (1 2) e)
-;;         {(eq '(1 2) '(1 2)) -> nil}
+<説明>
+  形式 : delete-file file
+ファイルまたはファイル群 file を削除する。file は、文字列、パス名の
+udo 、ストリームの udo のいずれか。
+削除に成功すれば nil でない値を返し、削除操作に成功しなければエラーを
+警告する。最新バージョンファイルのみ削除する。
 
-;; delql                                  関数[#!subr]
-;;
-;; <説明>
-;;   形式 : delql item list &opt n
-;; list から item と eql な要素を n 個削除し、その結果を返す。
-;; (delql x y z) = (del eql x y z)
-;;
-;; <例>
-;;         (delql "ab" '(ab "ab" c "de" "ab")) -> (ab c "de")
+<例>
+        (delete-file "qwe.tao") -> ("cs:<dire>qwe.tao.1")
+        (delete-file "foo.*.*")は
+        カレントディレクトリ中の foo という名のファイルを全て削除する。
+        (delete-file "*.abc")は
+        カレントディレクトリ中の拡張子 (type) が "abc" のファイルを
+        全て削除する。|))
 
-;; delqu                                  関数[#!subr]
-;;
-;; <説明>
-;;   形式 : delqu item list &opt n
-;; list から item と equal な要素を n 個削除し、その結果を返す。
-;; (delqu x y z) = (del equal x y z)
-;;
-;; <例>
-;;         (delqu '(1 2) '(b (1 2) c ((1 2) b) d (1 2) e))
-;;         	-> (b c ((1 2) b) d e)
+(defclsynonym tao:delete-if
+    "delete-if                              関数[#!macro]
 
-;; denominator                            関数[#!expr]
-;;
-;; <説明>
-;;   形式 : denominator number
-;; number (整数又は分数) をとり、その分母を正の整数で返す。
-;; 整数の分母は 1 。
-;;
-;; <例>
-;;         (denominator 3) -> 1
-;;         (denominator -1/3) -> 3
-;;         (denominator 1/3) -> 3
-;;         (denominator 8/2) -> 1
+<説明>
+  形式 : delete-if test seq &key :from-end :start :end :count :key
+シーケンス seq の :start から :end までの範囲内で、条件 test を満足
+する要素を :count 個削除し、その結果を返す。remove-if の破壊版。
+
+<例>
+        (delete-if #'odpp '(1 2 4 1 3 4 5)) -> (2 4 4)
+        (delete-if #'odpp '(1 2 4 1 3 4 5) : count 1 : from-end t)
+                           	-> (1 2 4 1 3 5)")
+
+(defclsynonym tao:delete-if-not
+    "delete-if-not                          関数[#!macro]
+
+<説明>
+  形式 : delete-if-not test seq &key :from-end :start :end :count :key
+シーケンス seq の :start から :end までの範囲内で、条件 test を満足
+しない要素を :count 個削除し、その結果を返す。
+remove-if-not の破壊版。
+
+<例>
+        (delete-if-not #'oddp '(1 2 4 1 3 4 5)) -> (1 1 3 5)
+        (delete-if-not #'oddp '(1 2 4 1 3 4 5) :count 1 :from-end t)
+                                -> (1 2 4 1 3 5)")
+(declaim (inline tao:delq))
+(defun tao:delq (item list &optional n)
+  "delq                                   関数[#!subr]
+
+<説明>
+  形式 : delq item list &opt n
+list から item と eq な要素を n 個削除し、その結果を返す。
+\(delq x y z) = (del eq x y z)
+
+<例>
+        (delq 'a '(b a c (a b) d a e)) -> (b c (a b) d e)
+        (delq '(1 2) '(b (1 2) c ((1 2) b) d (1 2) e)) ->
+        			   (b (1 2) c ((1 2) b) d (1 2) e)
+        {(eq '(1 2) '(1 2)) -> nil}"
+  (declare (optimize (speed 3) (safety 0) (debug 0)))
+  (declare (list list))
+  (delete item list :test #'eq :count n))
+
+(declaim (inline tao:delql))
+(defun tao:delql (item list &optional n)
+  #.(string '#:|delql                                  関数[#!subr]
+
+<説明>
+  形式 : delql item list &opt n
+list から item と eql な要素を n 個削除し、その結果を返す。
+\(delql x y z) = (del eql x y z)
+
+<例>
+        (delql "ab" '(ab "ab" c "de" "ab")) -> (ab c "de")|)
+  (declare (optimize (speed 3) (safety 0) (debug 0)))
+  (declare (list list))
+  (delete item list :test #'eql :count n))
+
+(declaim (inline tao:delqu))
+(defun tao:delqu (item list &optional n)
+  "delqu                                  関数[#!subr]
+
+<説明>
+  形式 : delqu item list &opt n
+list から item と equal な要素を n 個削除し、その結果を返す。
+\(delqu x y z) = (del equal x y z)
+
+<例>
+        (delqu '(1 2) '(b (1 2) c ((1 2) b) d (1 2) e))
+        	-> (b c ((1 2) b) d e)"
+  (declare (optimize (speed 3) (safety 0) (debug 0)))
+  (declare (list list))
+  (delete item list :test #'equal :count n))
+
+(defclsynonym tao:denominator
+    "denominator                            関数[#!expr]
+
+<説明>
+  形式 : denominator number
+number (整数又は分数) をとり、その分母を正の整数で返す。
+整数の分母は 1 。
+
+<例>
+        (denominator 3) -> 1
+        (denominator -1/3) -> 3
+        (denominator 1/3) -> 3
+        (denominator 8/2) -> 1")
 
 ;; deposit-field                          関数[#!expr]
 ;;
@@ -962,30 +1024,31 @@ symbol をスペシャル変数として定義し、init-value (省略時 nil)�
 ;;         @x -> #123
 ;;         (!aaa @x) -> #123
 
-;; describe                               メッセージ
-;;
-;; <説明>
-;;   メッセージとして使われた describe は、関数として使われた describe
-;; と同じ。
-;; [obj describe] = (describe obj)
+(defclsynonym tao:describe
+    "describe                               メッセージ
 
-;; describe                               関数[#!expr]
-;;
-;; <説明>
-;;   形式 : describe object
-;; object に関する参考になる情報をプリントする。
-;;
-;; <例>
-;;         (defclass aaa ()
-;;          ((a '(white . black)) (b "abcdefg") (c 12345)) ) -> aaa
-;;         (!aa (make-instance 'aaa)) -> {udo}59617aaa
-;;         (describe aa) -> {udo}59617aaa, an object of class aaa
-;;         		 (version 0),
-;;                               has instance variable values:
-;;                                   a:    (white . black)
-;;                                   b:    "abcdefg"
-;;                                   c:    12345
-;;                                 nil
+<説明>
+  メッセージとして使われた describe は、関数として使われた describe
+と同じ。
+[obj describe] = (describe obj)
+
+describe                               関数[#!expr]
+
+<説明>
+  形式 : describe object
+object に関する参考になる情報をプリントする。
+
+<例>
+        (defclass aaa ()
+         ((a '(white . black)) (b \"abcdefg\") (c 12345)) ) -> aaa
+        (!aa (make-instance 'aaa)) -> {udo}59617aaa
+        (describe aa) -> {udo}59617aaa, an object of class aaa
+        		 (version 0),
+                              has instance variable values:
+                                  a:    (white . black)
+                                  b:    \"abcdefg\"
+                                  c:    12345
+                                nil")
 
 ;; describe-operations                    メッセージ
 ;;
@@ -1055,67 +1118,70 @@ symbol をスペシャル変数として定義し、init-value (省略時 nil)�
 ;;                  ----------
 ;;               ok
 
-;; digit-char                             関数[#!subr]
-;;
-;; <説明>
-;;   形式 : digit-char integer &opt radix font-attr
-;; フォント情報 font-attr を持ち、基数 radix 進法における integer を表す
-;; 文字データを返す。そのような文字が存在しなければ、nil を返す。radix の
-;; 既定値は 10。
-;;
-;; <例>
-;;         (digit-char 7) -> "7"
-;;         (digit-char 10) -> エラー
-;;         (digit-char 12 16) -> "C"
-;;         (char= "c" (digit-char 12 16)) -> nil
-;;         (char-equal "c" (digit-char 12 16)) -> "C"
-;;         (digit-char 6 2) -> エラー
-;;         (digit-char 1 2) -> "1"
+(defclsynonym tao:digit-char
+    #.(string '#:|digit-char                             関数[#!subr]
 
-;; digit-char-p       未インプリメント    関数[#!subr]
-;;
-;; <説明>
-;;   形式 : digit-char-p char &opt radix
-;; 文字 char が、基数 radix 進法の数字を表す文字データならその数を返し、
-;; そうでなければ、nil を返す。 radix の既定値は 10。
-;;
-;; <例>
-;;         (digit-char-p #\7) -> 7
-;;         (digit-char-p #\a) -> nil
-;;         (digit-char-p #\b 16) -> 11
+<説明>
+  形式 : digit-char integer &opt radix font-attr
+フォント情報 font-attr を持ち、基数 radix 進法における integer を表す
+文字データを返す。そのような文字が存在しなければ、nil を返す。radix の
+既定値は 10。
 
-;; directory                              関数[#!expr]
-;;
-;; <説明>
-;;   形式 : directory &opt pathname flag
-;; pathname （デバイス、ディレクトリ）にマッチする全てのファイルのリスト
-;; を返す。 pathname の既定値はカレントディレクトリ。
-;; flag の値が nil (既定値) なら、返されるファイル名に各々バージョン番号
-;; がつけられるが、 nil でなければバージョン番号は省略される。
-;; 関数 all-files と同じような働きをする。
-;;
-;; <例>
-;;         vdir "bs:<dire>"
-;;           bs:<dire>
-;;         asd.tao.1 .....................
-;;         qwe.tao.2 .....................
-;;           2 files 152 bytes.
-;;         (vdir "bs:<dire>")
-;;         (directory "bs:<dire>")
-;;         	-> ("bs:<dire>asd.tao.1" "bs:<dire>qwe.tao.2")
-;;         (directory "bs:<dire>" t)
-;;         	-> ("bs:<dire>asd.tao" "bs:<dire>qwe.tao")
+<例>
+        (digit-char 7) -> "7"
+        (digit-char 10) -> エラー
+        (digit-char 12 16) -> "C"
+        (char= "c" (digit-char 12 16)) -> nil
+        (char-equal "c" (digit-char 12 16)) -> "C"
+        (digit-char 6 2) -> エラー
+        (digit-char 1 2) -> "1"|))
 
-;; directory-namestring                   関数[#!expr]
-;;
-;; <説明>
-;;   形式 : directory-namestring pathname
-;; 文字列イメージの pathname によって指定されたファイルのディレクトリ名
-;; を返す。pathname-directory 参照。
-;;
-;; <例>
-;;         (directory-namestring "Ti::bs:<anata>konata.sonata.5") ->
-;;         	"<anata>"
+(defclsynonym tao:digit-char-p
+    "digit-char-p       未インプリメント    関数[#!subr]
+
+<説明>
+  形式 : digit-char-p char &opt radix
+文字 char が、基数 radix 進法の数字を表す文字データならその数を返し、
+そうでなければ、nil を返す。 radix の既定値は 10。
+
+<例>
+        (digit-char-p #\7) -> 7
+        (digit-char-p #\a) -> nil
+        (digit-char-p #\b 16) -> 11")
+
+(defclsynonym tao:directory
+    #.(string '#:|directory                              関数[#!expr]
+
+<説明>
+  形式 : directory &opt pathname flag
+pathname （デバイス、ディレクトリ）にマッチする全てのファイルのリスト
+を返す。 pathname の既定値はカレントディレクトリ。
+flag の値が nil (既定値) なら、返されるファイル名に各々バージョン番号
+がつけられるが、 nil でなければバージョン番号は省略される。
+関数 all-files と同じような働きをする。
+
+<例>
+        vdir "bs:<dire>"
+          bs:<dire>
+        asd.tao.1 .....................
+        qwe.tao.2 .....................
+          2 files 152 bytes.
+        (vdir "bs:<dire>")
+        (directory "bs:<dire>")
+        	-> ("bs:<dire>asd.tao.1" "bs:<dire>qwe.tao.2")
+        (directory "bs:<dire>" t)
+        	-> ("bs:<dire>asd.tao" "bs:<dire>qwe.tao")|))
+(defclsynonym tao:directory-namestring
+    "directory-namestring                   関数[#!expr]
+
+<説明>
+  形式 : directory-namestring pathname
+文字列イメージの pathname によって指定されたファイルのディレクトリ名
+を返す。pathname-directory 参照。
+
+<例>
+        (directory-namestring \"Ti::bs:<anata>konata.sonata.5\") ->
+        	\"<anata>\"")
 
 ;; dired                                  関数[#!expr]
 ;;
@@ -1388,21 +1454,22 @@ body の中のどこかで return を実行するまで body の中の式の実�
 ;;                       (cond ((x = 10)
 ;;                              (return-from first-do (cons i j)))))
 ;;             (!x (a + b)))
-;; ＠
-;; do-symbols                             関数[#!macro]
-;;
-;; <説明>
-;;   形式 : do-symbols vpr &rest body
-;; パッケージに登録されているシンボルに対して一定の操作を行なう。
-;; 最初にパッケージ式 (値がパッケージであるもの) を評価し、
-;; 次に指定されたパッケージの全シンボルにバインドされ評価を行ない、
-;; 最後に値が評価され do-symbols 式の値となる。
-;;
-;; <例>
-;;         (do-symbols (i (current-packge)) (print i))
-;;         	 -> i-buffer-class
-;;                     z
-;;         		...
+
+(defclsynonym tao:do-symbols
+    "do-symbols                             関数[#!macro]
+
+<説明>
+  形式 : do-symbols vpr &rest body
+パッケージに登録されているシンボルに対して一定の操作を行なう。
+最初にパッケージ式 (値がパッケージであるもの) を評価し、
+次に指定されたパッケージの全シンボルにバインドされ評価を行ない、
+最後に値が評価され do-symbols 式の値となる。
+
+<例>
+        (do-symbols (i (current-packge)) (print i))
+        	 -> i-buffer-class
+                    z
+        		...")
 
 (defclsynonym tao:documentation
     #.(string '#:|documentation                          関数[#!expr]
