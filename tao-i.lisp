@@ -131,20 +131,22 @@
 ;;;         (idp 3) -> nil
 ;;;         (idp '_x) -> nil
 ;;;         (idp #!expr) -> nil
-;;; ＠
-;;; if                                     関数[#!macro]
-;;;
-;;; <説明>
-;;;   形式 : if pred then &opt else
-;;; pred を評価し、その結果が nil でなければ then を評価し、nil ならば
-;;; else を評価する。 else の指定がない時は nil となる。
-;;;  (if pred then else) = (cond (pred then) (t else))
-;;;
-;;; <例>
-;;;         (!a 5)→ 5
-;;;         (if (oddp a) 'kisuu 'guusuu)→ kisuu
-;;;         (if (listp "a b c") 'list)→ nil
-;;; ＠
+
+(defmacro tao:if (pred then else)
+    "if                                     関数[#!macro]
+
+<説明>
+  形式 : if pred then &opt else
+pred を評価し、その結果が nil でなければ then を評価し、nil ならば
+else を評価する。 else の指定がない時は nil となる。
+ (if pred then else) = (cond (pred then) (t else))
+
+<例>
+        (!a 5)→ 5
+        (if (oddp a) 'kisuu 'guusuu)→ kisuu
+        (if (listp \"a b c\") 'list)→ nil"
+    `(cl:if ,pred ,then ,else))
+
 ;;; ifundef                                関数[#!subr]
 ;;;
 ;;; <説明>
@@ -187,23 +189,33 @@
 ;(tao-ignore 33)
 ;; 評価し…ってのが気になるが…。
 
-#|
- (defmacro image (var list &body forms)
+(defmacro tao:image (var list &body forms)
+  ;; CLの場合関数では無理
+  "image                                  関数[#!subr]
+
+<説明>
+  形式 : image var list form1 form2 ... formN
+list の第 1 要素を変数 var に代入して form1 form2 ... を順に評価する。
+次に list の第 2 要素を var に代入して form1 form2 ... を評価する。
+これを継続し、 list の最後の要素を var に代入して form1 form2 ... を
+評価したところで終了する。そして最後の formN の評価結果を並べて新しい
+リストを作り、それを返す。返されるリストの長さは list と同じ長さ。
+
+<例>
+        (image i (index 1 10) (i * i)) ->
+        	(1 4 9 16 25 36 49 64 81 100)
+        (image i (index 1 5) (!j (1+ i)) (i * j)) -> (2 6 12 20 30)
+        (image i '(0 2 4 6 8) (!j (i * i)) (j - i)) -> (0 2 12 30 56)"
   `(let (result)
      (dolist (,var ,list (nreverse result))
        (push (progn ,@forms) result))))
-|#
 
-#|
- (funcall #'image '(i (index 1 10) (* i i)))
- (let (j)
-  (image i (index 1 5)
-    (setq j (1+ i))
-    (* i j)))
+;(tao:image i (tao:index 1 10) [i * i])
+;=> (1 4 9 16 25 36 49 64 81 100)
 
- (let (j)
-  (image i '(0 2 4 6 8) (setq j (* i i)) (- j i)))
-|#
+;(tao:image i (tao:index 1 5) (!j (1+ i)) [i * j])
+;(2 6 12 20 30)
+
 
 (defmacro tao:image-can (var list &body forms)
   "image-can                              関数[#!macro]
