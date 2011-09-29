@@ -112,7 +112,7 @@ fn が関数名、var-list が引数リストである expr 型関数、すな�
                 (t 0) ))  ->  cell-count"
   ;; evalは、null lexical environmentにするために利用
   `(eval
-    '(defun ,fn ,(substitute '&optional '&opt var-list)
+    '(defun ,fn ,(substitute 'cl:&optional 'tao:&opt var-list)
       ,@body)))
 
 ;; debug                                  関数[#!expr]
@@ -845,7 +845,7 @@ list から、述語 pred を満足しない要素をすべて削除し、その
 rem-if-not の破壊版。"
   (declare (optimize (speed 3) (safety 0) (debug 0)))
   (declare (list list))
-  (tao:delete-if-not pred list))
+  (delete-if-not pred list))
 
 (defclsynonym tao:delete
     "delete                                 関数[#!macro]

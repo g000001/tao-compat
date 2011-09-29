@@ -267,44 +267,46 @@ nil を返す。
       (apply #'< numbers)
       t))
 
-;;; #### CL
-;;; let                                    関数[#!subr]
-;;;
-;;; <説明>
-;;;   形式 : let ((var1 val-form1)
-;;;               (var2 val-form2)
-;;;               ... )
-;;;              body
-;;; まず、フォーム val-form1 val-form2 ... を各々左から右へ順に評価する。
-;;; 次に変数 val1 val2 ... を各々 val-form1 val-form2 ... の値に同時に束縛
-;;; する。そして body 中のフォームを左から右へ順に評価し、最後のフォームの
-;;; 値を返す。val-formI は省略可能で、その場合、varI は nil となる。
-;;;
-;;; <例>
-;;;         (!x 2) -> 2
-;;;         (let ((x 3) (y (* x x)))
-;;;               (* x y y)) -> 48
+(defmacro tao:let ((&rest bindings) &body body)
+    "let                                    関数[#!subr]
 
-;;; #### CL
-;;; let*                                   関数[#!subr]
-;;;
-;;; <説明>
-;;;   形式 : let* ((var1 val-form1)
-;;;                (var2 val-form2)
-;;;                ... )
-;;;               form1 form2 ...
-;;; まずフォーム val-form1 を評価し変数 var1 をその評価結果に束縛する。
-;;; 次に val-form2 を評価し var2 をその評価結果に束縛する。
-;;; 以下、逐次的に、val-formI を評価し varI をその評価結果に束縛していく。
-;;; そして、form1 form2 ... を順に評価し、最後のフォームの評価結果を返す。
-;;; val-formI は省略可能で、その場合、varI は nil となる。
-;;; ローカル変数の初期値の評価とその束縛は順に実行されるので先に束縛された
-;;; ローカル変数 (例えば var1) の束縛結果を次のローカル変数 (例えば var2)
-;;; の初期値の評価に使うことができる。
-;;;
-;;; <例>
-;;;         (let* ((x 3) (y (* x x)))
-;;;               (* x y y)) -> 243
+<説明>
+  形式 : let ((var1 val-form1)
+              (var2 val-form2)
+              ... )
+             body
+まず、フォーム val-form1 val-form2 ... を各々左から右へ順に評価する。
+次に変数 val1 val2 ... を各々 val-form1 val-form2 ... の値に同時に束縛
+する。そして body 中のフォームを左から右へ順に評価し、最後のフォームの
+値を返す。val-formI は省略可能で、その場合、varI は nil となる。
+
+<例>
+        (!x 2) -> 2
+        (let ((x 3) (y (* x x)))
+              (* x y y)) -> 48"
+    `(cl:let (,@bindings) ,@body))
+
+(defmacro tao:let* ((&rest bindings) &body body)
+    "let*                                   関数[#!subr]
+
+<説明>
+  形式 : let* ((var1 val-form1)
+               (var2 val-form2)
+               ... )
+              form1 form2 ...
+まずフォーム val-form1 を評価し変数 var1 をその評価結果に束縛する。
+次に val-form2 を評価し var2 をその評価結果に束縛する。
+以下、逐次的に、val-formI を評価し varI をその評価結果に束縛していく。
+そして、form1 form2 ... を順に評価し、最後のフォームの評価結果を返す。
+val-formI は省略可能で、その場合、varI は nil となる。
+ローカル変数の初期値の評価とその束縛は順に実行されるので先に束縛された
+ローカル変数 (例えば var1) の束縛結果を次のローカル変数 (例えば var2)
+の初期値の評価に使うことができる。
+
+<例>
+        (let* ((x 3) (y (* x x)))
+              (* x y y)) -> 243"
+    `(cl:let* (,@bindings) ,@body))
 
 (defun tao:lins (vector key)
   "lins                                   関数[#!subr]
@@ -332,31 +334,30 @@ vector の偶数番目の要素に key があれば、その次の要素の値�
 なんか知らんが、arefの方がsvrefより速い。allegroでは。
 |#
 
+(defclsynonym tao:lisp-implementation-type
+    #.(string '#:|lisp-implementation-type               関数[#!expr]
 
-;;; ＠
-;;; lisp-implementation-type               関数[#!expr]
-;;;
-;;; <説明>
-;;;   特定の Common Lisp 処理系の一般の名前を表す文字列を返す。
-;;; ELIS システムでは、"TAO" を返す。
-;;;
-;;; <例>
-;;;         "TAO"
-;;;         "SpiceLisp"
-;;;         "ZetaLisp"
-;;; ＠
-;;; lisp-implementation-version            関数[#!expr]
-;;;
-;;; <説明>
-;;;   特定の Common Lisp 処理系のバージョンを識別する文字列を返す。
-;;; ELIS システムでは、"25-Mar-87 TAO interpreter" を返す。
-;;;
-;;; <例>
-;;;         "25-Mar-87 TAO interpreter"
-;;;         "1192"
-;;;         "53, 7 with complex numbers"
-;;;         "1746.9A,NEWIO 53, ETHER 5.3"
-;;; ＠
+<説明>
+  特定の Common Lisp 処理系の一般の名前を表す文字列を返す。
+ELIS システムでは、"TAO" を返す。
+
+<例>
+        "TAO"
+        "SpiceLisp"
+        "ZetaLisp"|))
+
+(defclsynonym tao:lisp-implementation-version
+    #.(string '#:|lisp-implementation-version            関数[#!expr]
+
+<説明>
+  特定の Common Lisp 処理系のバージョンを識別する文字列を返す。
+ELIS システムでは、"25-Mar-87 TAO interpreter" を返す。
+
+<例>
+        "25-Mar-87 TAO interpreter"
+        "1192"
+        "53, 7 with complex numbers"
+        "1746.9A,NEWIO 53, ETHER 5.3"|))
 
 (defclsynonym tao:list
     "list                                   関数[#!subr]

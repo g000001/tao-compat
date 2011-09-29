@@ -3,7 +3,8 @@
 (defpackage #:tao
   (:use #:named-readtables)
   (:import-from
-   :cl . #0=(:*
+   :cl . #0=(:&optional
+             :*
              :***
              :*debug-io*
              :*default-pathname-defaults*
@@ -40,6 +41,7 @@
              :1+
              :1-
              :declare
+             :t
              ))
   (:export . #0#)
   (:export
@@ -58,6 +60,10 @@
    :double-float-negative-epsilon
    :length
    :list
+   :let
+   :let*
+   :lisp-implementation-type
+   :lisp-implementation-version
    :listp
    :loop
    :make-string
@@ -109,6 +115,11 @@
    :assoc
    :assignp
    :assigneep
+   :nil
+   :nconc
+   :nconc!
+   :nlistp
+   :nreverse
    )
   (:export
    ;; 0
@@ -216,6 +227,7 @@
    #:index
    #:intersectionq
    #:ignore
+   :if
    ;; j
    ;; k
    ;; l
@@ -375,6 +387,7 @@
            :>=
            :apply
            :arrayp
+           :nreverse
            ))
 
 (defpackage #:tao-internal

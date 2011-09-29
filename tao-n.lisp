@@ -160,35 +160,48 @@ exit-id を持つ exit-for 関数により脱出できる。
 ;;;         (ncadblep "abc") -> t
 ;;;         (ncadblep 'abc) -> t
 ;;;         (ncadblep nil) -> t
-;;; ＠
-;;; nconc                                  関数[#!subr]
-;;;
-;;; <説明>
-;;;   形式 : nconc &rest list1 list2 ... listN
-;;; list1 list2 ... listN をこの順序で、しかもコピーしないで連結する。
-;;;
-;;; <例>
-;;;         (nconc (list 1 2 3) (list 'a 'b 'c 'd)) -> (1 2 3 a b c d)
-;;;         x = (h e a d)  y = (a n d)  z = (t a i l)  なら
-;;;         (nconc x y z) -> (h e a d a n d t a i l)
-;;;         そして   x = (h e a d a n d t a i l)   y = (a n d t a i l)
-;;;         z = (t a i l)
-;;;         x = (h e a d)  y = nil  z = (t a i l)  なら
-;;;         (nconc x y z) -> (h e a d t a i l)
-;;;         そして  x = (h e a d t a i l)   y = nil    z = (t a i l)
-;;; ＠
-;;; nconc!                                 関数[#!macro]
-;;;
-;;; <説明>
-;;;   形式 : nconc! var list
-;;; (nconc! var list) = (!var (nconc list var))
-;;; ただし左辺では var は一度だけしか評価されない。
-;;;
-;;; <例>
-;;;         a = '(1 2 3) のとき
-;;;         (nconc! a '(a b c)) -> (a b c 1 2 3)
-;;; ＠
 
+(defclsynonym tao:nconc
+    "nconc                                  関数[#!subr]
+
+<説明>
+  形式 : nconc &rest list1 list2 ... listN
+list1 list2 ... listN をこの順序で、しかもコピーしないで連結する。
+
+<例>
+        (nconc (list 1 2 3) (list 'a 'b 'c 'd)) -> (1 2 3 a b c d)
+        x = (h e a d)  y = (a n d)  z = (t a i l)  なら
+        (nconc x y z) -> (h e a d a n d t a i l)
+        そして   x = (h e a d a n d t a i l)   y = (a n d t a i l)
+        z = (t a i l)
+        x = (h e a d)  y = nil  z = (t a i l)  なら
+        (nconc x y z) -> (h e a d t a i l)
+        そして  x = (h e a d t a i l)   y = nil    z = (t a i l)")
+
+(defmacro tao:nconc! (var list)
+  ;; CLの関数では無理なのでマクロ
+  "nconc!                                 関数[#!macro]
+
+<説明>
+  形式 : nconc! var list
+\(nconc! var list) = (!var (nconc list var))
+ただし左辺では var は一度だけしか評価されない。
+
+<例>
+        a = '(1 2 3) のとき
+        (nconc! a '(a b c)) -> (a b c 1 2 3)"
+  `(!!nconc !,var ,list))
+
+#|(let ((x ()))
+  (tao:nconc! x (list 1 2 3))
+  x)|#
+;=> (1 2 3)
+
+
+#|(let ((x ()))
+  (nconc x (list 1 2 3))
+  x)|#
+;=> NIL
 
 (defun tao:ncons (x)
   "ncons                                  関数[#!subr]
@@ -255,13 +268,14 @@ object1 と object2 が以下の条件を満足すれば、nil、それ以外な
 ;;;         (nidp 3) -> t
 ;;;         (nidp '_x) -> t
 ;;;         (nidp #!expr) -> t
-;;; ＠
-;;; nil                                    定数
-;;;
-;;; <説明>
-;;;   "偽" を表す。nil は、空のリスト () を意味するシンボル。
-;;; TAO では、nil は nil と呼ばれるデータを作る。
-;;; ＠
+
+(defconstant tao:nil cl:nil
+  "nil                                    定数
+
+<説明>
+  \"偽\" を表す。nil は、空のリスト () を意味するシンボル。
+TAO では、nil は nil と呼ばれるデータを作る。")
+
 ;;; nintersection                          関数[#!macro]
 ;;;
 ;;; <説明>
@@ -308,27 +322,29 @@ object1 と object2 が以下の条件を満足すれば、nil、それ以外な
 	(and (tailp list2 list1)
 	     (nthcdr (- len number) list1)))))
 
-;;; ＠
-;;; nlistp                                 関数[#!subr]
-;;;
-;;; <説明>
-;;;   形式 : nlistp list
-;;; list がリストか、car 関数と cdr 関数が両方とも適用できるものであれば、
-;;; nil を返し、それ以外なら t を返す。
-;;; list は listp 関数に適用される前に評価される。
-;;; (nlistp list) = (not (listp list))
-;;;
-;;; <例>
-;;;         (nlistp '(a b c d)) -> nil
-;;;         (nlistp '[a b c d]) -> nil
-;;;         (nlistp 'a) -> t
-;;;         (nlistp ''a) -> nil
-;;;         (nlistp '^(a b `c d)) -> nil
-;;;         (nlistp '(!x (fn y))) -> nil
-;;;         (nlistp (caddr '(list a b))) -> t
-;;;         (nlistp ()) -> nil
-;;;         (nlistp '(a . b)) -> nil
-;;; ＠
+(declaim (inline tao:nlistp))
+(defun tao:nlistp (list)
+  "nlistp                                 関数[#!subr]
+
+<説明>
+  形式 : nlistp list
+list がリストか、car 関数と cdr 関数が両方とも適用できるものであれば、
+nil を返し、それ以外なら t を返す。
+list は listp 関数に適用される前に評価される。
+\(nlistp list) = (not (listp list))
+
+<例>
+        (nlistp '(a b c d)) -> nil
+        (nlistp '[a b c d]) -> nil
+        (nlistp 'a) -> t
+        (nlistp ''a) -> nil
+        (nlistp '^(a b `c d)) -> nil
+        (nlistp '(!x (fn y))) -> nil
+        (nlistp (caddr '(list a b))) -> t
+        (nlistp ()) -> nil
+        (nlistp '(a . b)) -> nil"
+  (not (listp list)))
+
 ;;; no-dumb                                関数[#!expr]
 ;;;
 ;;; <説明>
@@ -441,19 +457,24 @@ object1 と object2 が以下の条件を満足すれば、nil、それ以外な
 ;;;         (!y (common:nreverse x)) -> (d c b a)
 ;;;         y -> (d c b a)
 ;;;         x -> (a)
-;;; ＠
-;;; nreverse                               関数[#!subr]
-;;;
-;;; <説明>
-;;;   形式 : nreverse list
-;;; list の要素の並び順を逆転させたリストを返す。
-;;; list は破壊される。reverse の破壊版。
-;;;
-;;; <例>
-;;;         x = (1 2 3)  なら
-;;;         (nreverse x) -> (3 2 1)
-;;;         そして  x は '(1) となる
-;;; ＠
+
+(defun tao:nreverse (list)
+  "nreverse                               関数[#!subr]
+
+<説明>
+  形式 : nreverse list
+list の要素の並び順を逆転させたリストを返す。
+list は破壊される。reverse の破壊版。
+
+<例>
+        x = (1 2 3)  なら
+        (nreverse x) -> (3 2 1)
+        そして  x は '(1) となる"
+  (declare (optimize (speed 3) (safety 0) (debug 0)))
+  (typecase list
+    (list (cl:nreverse list))
+    (otherwise nil)))
+
 ;;; nset-difference                        関数[#!macro]
 ;;;
 ;;; <説明>
