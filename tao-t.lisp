@@ -44,7 +44,7 @@ arg がトガ ^ のついた式なら t を返し、そうでなければ nil �
         (trim i '(1 2 3 4 5) (!!1+ !i) (evenp i)) -> (2 4 6)
         (trim i (index 1 10) (oddp i) (evenp i)) -> (2 4 6 8 10)"
   `(cl:loop :for ,var :in ,list
-            :when (progn ,@forms) :collect ,var))
+            :when (cl:progn ,@forms) :collect ,var))
 
 #|(progn
   (trim i '(1 2 3 4 5 6 7) (oddp i))
