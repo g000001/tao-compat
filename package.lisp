@@ -358,6 +358,7 @@
    ;; t
    :togap
    :trans-progi-if-toga
+   :trim
    ;; u
    #:unionq
    #:unquote
