@@ -127,11 +127,9 @@
   (let ((expr (read-delimited-list #\] stream 'T)))
     (apply #'infix-to-prefix expr)))
 
-
-
 (defreadtable :tao
   (:merge :standard)
-  (:macro-char #\( #'tao-read-list 'T)
+  (:macro-char #\( #'tao-read-list)
   (:macro-char #\^ #'tao-read-toga)
   (:macro-char #\. #'read-|.| 'T)
   (:syntax-from :common-lisp #\) #\])
