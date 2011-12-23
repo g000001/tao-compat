@@ -392,4 +392,5 @@
            ))
 
 (defpackage #:tao-internal
-  (:use #:cl #:named-readtables))
+  (:use #:cl #:named-readtables)
+  (:shadowing-import-from :tao :trim))

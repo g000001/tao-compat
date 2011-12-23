@@ -352,6 +352,7 @@ symbol に代入することはできない。
 
 
 (defsynonym tao:defglobal #+sbcl sb-ext:defglobal
+                          #+lispworks system:defvar-global
   #.(string '#:|defglobal                              関数[#!expr]
 
 <説明>
@@ -1641,4 +1642,3 @@ fn を名前、var-list を引数リストとする exprdyn 型関数 (スコー
   `(defun ,fn ,var-list
      (declare (special ,@var-list))
      ,@body))
-

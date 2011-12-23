@@ -387,7 +387,10 @@ symbol の属性リストを作るためにも用いられる。
         (!(plist 'xxx) '(a 1 b 2 c 3 d 4)) -> (a 1 b 2 c 3 d 4)
         	 xxx は (a 1 b 2 c 3 d 4) になる。")
 
-(defsynonym (setf tao:plist) (setf cl:symbol-plist))
+#-lispworks (defsynonym (setf tao:plist) (setf cl:symbol-plist))
+#+lispworks
+(defun (setf tao:plist) (var sym)
+  (system::set-symbol-plist sym var))
 
 (defsynonym tao:plus cl:+
   "plus                                   関数[#!subr]
@@ -988,7 +991,7 @@ number1, number2, ... numberN の値の和を返す。
 ;;;   (progi ^(car x) (setq x (cdr x)))
 ;;;   x)
 
-(defmacro tao:progi (&body body)
+#|?(defmacro tao:progi (&body body)
   "progi                                  関数[#!subr]
 
 <説明>
@@ -1013,7 +1016,7 @@ progi-id は、関数 exit-progi による脱出のためのマーク。
 		 (null ,cache))
 	     (setq ,cache ,@(last body))
 	     ,@(last body))
-	 ,cache))))
+	 ,cache))))|#
 
 (defmacro trans-progi-if-toga (toga-form cache)
   (if (tao:togap toga-form)
@@ -1247,7 +1250,7 @@ item をその要素対の第 1 要素に代入する。ない場合は、item �
         (push (cons item value) a-list))
     a-list))
 
-;;; put-comma                              関数[#!expr]
+;;; put-comma                              "関数"[#!expr]
 ;;;
 ;;; <説明>
 ;;;   形式 : put-comma object &optn y
@@ -1315,5 +1318,4 @@ putalist 関数と同じ。
   (setf (get object ind) val)
   (get object ind))
 
-
-
+;;; eof

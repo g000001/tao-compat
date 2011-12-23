@@ -50,15 +50,16 @@
         `(setf ,var (,fn ,@expr))))))
 
 
-(defun tao-read-toga (stream ignore)
-  (declare (ignore ignore))
-  (case (peek-char nil stream)
-    ((#\( #\' #\")
-       (list 'toga (read stream T nil T)))
-    ((#\Space #\Tab #\Newline #\Return)
-       (intern "^" *package*))
-    (otherwise
-       (list 'toga (read stream T nil T)))))
+(eval-when (:compile-toplevel :load-toplevel :execute)
+  (defun tao-read-toga (stream ignore)
+    (declare (ignore ignore))
+    (case (peek-char nil stream)
+      ((#\( #\' #\")
+       (list 'toga (read stream T nil T)) )
+      ((#\Space #\Tab #\Newline #\Return)
+       (intern "^" *package*) )
+      (otherwise
+       (list 'toga (read stream T nil T)) ))))
 
 #|(let ((*readtable* (copy-readtable nil)))
   ;(in-package :cl-user)
@@ -68,22 +69,26 @@
         (read-from-string "^'\"||\"")
         (read-from-string "(^ foo)")))|#
 
-#+sbcl
+(defun read-list (stream ignore)
+  #+sbcl (sb-impl::read-list stream ignore)
+  #+lispworks (system::read-list stream ignore))
+
+#+(or :lispworks :sbcl)
 (defun tao-read-list (stream ignore)
   (case (peek-char t stream)
     ((#\!) (read-char stream)
-       (case (peek-char nil stream)
-         ((#\space #\newline #\return #\tab)
-            (read-char stream)
-            `(or ,@(sb-impl::read-list stream ignore)))
-         ((#\!)
-            (read-char stream)
-            `(tao:selfass
-              ,@(sb-impl::read-list stream ignore)))
-         (otherwise
-            `(setf ,@(sb-impl::read-list stream ignore)))))
+     (case (peek-char nil stream)
+       ((#\space #\newline #\return #\tab)
+        (read-char stream)
+        `(or ,@(read-list stream ignore)) )
+       ((#\!)
+        (read-char stream)
+        `(tao:selfass
+          ,@(read-list stream ignore) ))
+       (otherwise
+        `(setf ,@(read-list stream ignore)) )))
     (otherwise
-       (sb-impl::read-list stream ignore))))
+     (read-list stream ignore) )))
 
 (defun read-|.| (stream char)
   (declare (ignore char))
