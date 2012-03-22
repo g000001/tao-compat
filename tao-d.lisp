@@ -353,6 +353,8 @@ symbol に代入することはできない。
 
 (defsynonym tao:defglobal #+sbcl sb-ext:defglobal
                           #+lispworks system:defvar-global
+                          #+allegro cl:defvar
+                          #+ccl ccl::defglobal
   #.(string '#:|defglobal                              関数[#!expr]
 
 <説明>
@@ -383,7 +385,7 @@ symbol を関数オブジェクト applobj に結び付ける。
         (define aa (array 10)) -> aa"
   `(progn
      (setf (symbol-function ',symbol) #'values)
-     (setf (symbol-function ',symbol)) ,applobj))
+     (setf (symbol-function ',symbol) ,applobj)))
 
 
 (defclsynonym tao:define-modify-macro
