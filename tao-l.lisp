@@ -244,9 +244,6 @@ arg がリストなら、その長さ (要素の数) を返し、そうでなけ
 	   (1+ (length (cdr arg)))
 	   0)))|#
 
-;;; ＠
-
-;; (lessp) ->t の意味が良くわからんがまあ、そのとおり実装してみた。
 (defun tao:lessp (&rest numbers)
   "lessp                                  関数[#!macro]
 
@@ -263,9 +260,7 @@ nil を返す。
         (lessp 1 1) -> nil
         (lessp) -> t
         (lessp #c(2 3) #c(4 5)) -> エラー"
-  (if numbers
-      (apply #'< numbers)
-      t))
+  (every #'< numbers (cdr numbers)))
 
 (defmacro tao:let ((&rest bindings) &body body)
     "let                                    関数[#!subr]

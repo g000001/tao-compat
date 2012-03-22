@@ -5,22 +5,22 @@
   "New-name is a subst for old-name.  Uses rest arg so be careful."
   `(progn
      ,(if (and (every #'symbolp (list new-name old-name))
-               (macro-function old-name))
+               (macro-function old-name) )
 
           `(!(macro-function ',new-name)
-             (macro-function ',old-name))
+             (macro-function ',old-name) )
 
           `(!(fdefinition ',new-name)
-             (fdefinition ',old-name)) )
+             (fdefinition ',old-name) ) )
 
      ,(when docstring
         `(!(documentation ',new-name 'function)
-               ,docstring))
-     ',new-name))
+               ,docstring ))
+     ',new-name ))
 
 (defmacro defclsynonym (new-name &optional docstring)
   (let ((clsym (intern (string new-name) :cl)))
-    `(defsynonym ,new-name ,clsym ,docstring)))
+    `(defsynonym ,new-name ,clsym ,docstring) ))
 
 ;;; ＠
 ;;; !                                      スペシャルシンボル
@@ -47,15 +47,15 @@
 
 #|(& (&aux (foo 1) result)
    (progn (incf foo)
-          (push foo result))
+          (push foo result) )
    (= foo 100)
-   result)
+   result )
 
 
  (! (&aux (foo 1) result)
    result
    (= foo 100)
-   (progn (incf foo) (push foo result)))
+   (progn (incf foo) (push foo result)) )
 |#
 
 ;;  8:50pm Sunday,19 August 2007
@@ -74,8 +74,8 @@ Bn では body の最後が評価される。
 の ! と考えられる。"
   (let ((aux-vars (and (consp (car forms))
                        (string-equal '&aux (string (caar forms)))
-                       (prog1 (cdar forms) (pop forms))))
-        (exit (gensym "EXIT-")))
+                       (prog1 (cdar forms) (pop forms)) ))
+        (exit (gensym "EXIT-")) )
     (cl:loop
        :with cuts
        :and tags := (list exit)
@@ -87,16 +87,16 @@ Bn では body の最後が評価される。
        :do (progn
              (push (gensym "CUT-") cuts)
              (push `(if ,(car cuts) (go ,exit) (setq ,(car cuts) t))
-                   (cdr body)))
+                   (cdr body) ))
        :else
        :do (progn
              (push (gensym "TAG-") tags)
              (push (car tags) body)
-             (push `(and (setq ,ans ,x) (go ,(cadr tags))) body))
+             (push `(and (setq ,ans ,x) (go ,(cadr tags))) body) )
        :finally (return `(prog* (,ans ,@aux-vars ,@cuts)
                             ,@(nreverse body)
                             ,exit
-                            (return ,ans))))))
+                            (return ,ans) )))))
 
 ;;; !                                      特殊シンボルマクロ
 ;;;
@@ -110,19 +110,19 @@ Bn では body の最後が評価される。
 ;;;         x -> (123 b c d e)
 
 (defmacro tao:self (var)
-  `(quote ,var))
+  `(quote ,var) )
 
 #|(defmacro selfass (fn &rest args)
   (let ((self (dolist (item args)
                 (and (listp item)
                      (eq 'self (car item))
-                     (return (cadr item)))))
+                     (return (cadr item)) )))
         (vars (mapcar #'(lambda (item)
                           (if (and (listp item) (eq 'self (car item)))
                               (cadr item)
-                              item))
-                      args)))
-    `(setf ,self (,fn ,@vars))))|#
+                              item ))
+                      args )))
+    `(setf ,self (,fn ,@vars)) ))|#
 
 ;;; readtable.lisp
 ;;; (defmacro tao:selfass (fn &rest args)
@@ -149,9 +149,9 @@ B1, B2, ... または、Bn で使われる局所変数、特に論理変数は�
         (prog (_x _y) (& (concatenate _x _y (1 2 3)) (== _x _y)))"
   (let ((aux-vars (and (consp (car forms))
                        (eq '&aux (caar forms))
-                       (prog1 (cdar forms) (pop forms))))
+                       (prog1 (cdar forms) (pop forms)) ))
         (cuts)
-        (cut-mark (gensym)))
+        (cut-mark (gensym)) )
     (let ((body
            (mapcar (lambda (x)
                      (if (eq '! x)
@@ -465,7 +465,7 @@ number1 の値を number2 の値でべき乗した結果を返す。
 ;;; 働く。つまり、エラーメッセージをプリントし、その後、デバッガに行くか、
 ;;; ループをブレイクする。
 
-(defsynonym tao:*catch cl:catch
+(defmacro tao:*catch (tag &body body)
   "*catch                                 関数[#!macro]
 
 <説明>
@@ -473,7 +473,8 @@ number1 の値を number2 の値でべき乗した結果を返す。
 *catch は *catch が多値変数を返すのを除いて catch と同じ。
 複数のリターン値の最初の値は catch のリターン値と同じ。
 2 番目の値は常に nil であり、それは *catch が *throw によってではなく、
-正常に終了されることを示す。")
+正常に終了されることを示す。"
+  `(cl:catch ,tag ,@body))
 
 ;;; import & export
 ;;; *debug-io*                             変数
@@ -833,13 +834,14 @@ number1 の値を number2 の値でべき乗した結果を返す。
 ;;; とはキーボードからの入力を受け入れることとなる。
 ;;; ＠
 
-(defsynonym tao:*throw cl:throw
+(defmacro tao:*throw (tag value)
   "*throw                                 関数[#!expr]
 
 <説明>
   形式 : *throw tag form
 *throw は *throw が form の値と、tag の値を示す多値を返すことを除き、
-throw のように働く。")
+throw のように働く。"
+  `(cl:throw ,tag ,value))
 
 ;;; tao:*trace-level*                          変数
 ;;;

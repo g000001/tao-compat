@@ -1,7 +1,8 @@
 (in-package #:cl-user)
 ;(delete-package :tao)
+
 (defpackage #:tao
-  (:use #:named-readtables)
+  (:use :named-readtables)
   (:import-from
    :cl . #0=(:&optional
              :*
@@ -228,6 +229,7 @@
    #:intersectionq
    #:ignore
    :if
+   :inc
    ;; j
    ;; k
    ;; l

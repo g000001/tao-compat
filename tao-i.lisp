@@ -305,23 +305,23 @@ form の評価により終了する。他のリストの余分な要素は無視
         (in-package sys:bas-package)) -> {vector}32228(package . 12))
         (package-name (current-package)) -> "bas"|))
 
+(defmacro tao:inc (var &optional (val 1))
+  "inc                                    関数[#!macro]
 
+<説明>
+  形式 : inc var &opt val
+var の値に val の値 (既定値は 1) を加えた結果を var に代入し、その値
+を返す。(!!+ !x n) と同じ。
 
-;;; inc                                    関数[#!macro]
-;;;
-;;; <説明>
-;;;   形式 : inc var &opt val
-;;; var の値に val の値 (既定値は 1) を加えた結果を var に代入し、その値
-;;; を返す。(!!+ !x n) と同じ。
-;;;
-;;; <例>
-;;;         (!x 10) -> 10
-;;;         (inc x) -> 11
-;;;         (!x 11) -> 11
-;;;         (inc x -2) -> 9
-;;;         x -> 9
-;;;         (inc 3 2) -> エラー
-;;; ＠
+<例>
+        (!x 10) -> 10
+        (inc x) -> 11
+        (!x 11) -> 11
+        (inc x -2) -> 9
+        x -> 9
+        (inc 3 2) -> エラー"
+  `(!!+ !,var ,val))
+
 ;;; incf                                   関数[#!macro]
 ;;;
 ;;; <説明>

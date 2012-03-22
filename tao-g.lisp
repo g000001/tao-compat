@@ -468,11 +468,7 @@
 ;;;         (greaterp #c(4 5) #c( 3 7)) -> エラー
 
 (defun tao:greaterp (&rest numbers)
-  (if numbers
-      (apply #'> numbers)
-      t))
-
-;(greaterp 3 2)
+  (every #'> numbers (cdr numbers)))
 
 ;;; ＠
 ;;; grep                                   関数[#!expr]

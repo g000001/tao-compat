@@ -71,9 +71,10 @@
 
 (defun read-list (stream ignore)
   #+sbcl (sb-impl::read-list stream ignore)
-  #+lispworks (system::read-list stream ignore))
+  #+lispworks (system::read-list stream ignore)
+  #+allegro (excl::read-list stream ignore )
+  #+ccl (ccl::read-list stream))
 
-#+(or :lispworks :sbcl)
 (defun tao-read-list (stream ignore)
   (case (peek-char t stream)
     ((#\!) (read-char stream)
@@ -122,7 +123,9 @@
 
 (defun infix-to-prefix (obj mesg &rest args)
   (cond ((null args)
-         (list mesg obj))
+         (if (typep mesg 'fixnum)
+             (list 'cl:elt obj mesg)
+             (list mesg obj)))
         ((null (cdr args))
          `(,mesg ,obj ,@args))
         ('T `(,mesg ,obj ,(apply #'infix-to-prefix args)))))
@@ -135,8 +138,8 @@
 (defreadtable :tao
   (:merge :standard)
   (:macro-char #\( #'tao-read-list)
-  (:macro-char #\^ #'tao-read-toga)
-  (:macro-char #\. #'read-|.| 'T)
+  ;; (:macro-char #\^ #'tao-read-toga)
+  ;; (:macro-char #\. #'read-|.| 'T)
   (:syntax-from :common-lisp #\) #\])
   (:macro-char #\[ #'read-|[|)
   (:case :upcase))

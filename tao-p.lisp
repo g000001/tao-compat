@@ -387,10 +387,17 @@ symbol の属性リストを作るためにも用いられる。
         (!(plist 'xxx) '(a 1 b 2 c 3 d 4)) -> (a 1 b 2 c 3 d 4)
         	 xxx は (a 1 b 2 c 3 d 4) になる。")
 
-#-lispworks (defsynonym (setf tao:plist) (setf cl:symbol-plist))
+#-(or allegro lispworks ccl) (defsynonym (setf tao:plist) (setf cl:symbol-plist))
 #+lispworks
 (defun (setf tao:plist) (var sym)
   (system::set-symbol-plist sym var))
+#+ccl
+(defun (setf tao:plist) (var sym)
+  (ccl::set-symbol-plist sym var))
+
+#+allegro
+(defun (setf tao:plist) (var sym)
+  (setf (excl::sy_plist sym) var))
 
 (defsynonym tao:plus cl:+
   "plus                                   関数[#!subr]
@@ -1023,8 +1030,8 @@ progi-id は、関数 exit-progi による脱出のためのマーク。
       `(setq ,cache ,toga-form)
       toga-form))
 
-(defclsynonym tao:progn
-    "progn                                  関数[#!subr]
+(defmacro tao:progn (&body body)
+  "progn                                  関数[#!subr]
 
 <説明>
   形式 : progn &rest form1 form2 ...
@@ -1037,10 +1044,11 @@ form1 form2 ... を逐次評価し、その最後の値を返す。
             (progn (!!+ !*count*)
         	   (cons x y))) -> count-cons
         (count-cons 'a 'b) -> (a . b)
-        *count* -> 1")
+        *count* -> 1"
+  `(progn ,@body))
 
-(defclsynonym tao:progv
-    "progv                                  関数[#!expr]
+(defmacro tao:progv ((&rest vars) (&rest values) &body body)
+  "progv                                  関数[#!expr]
 
 <説明>
   形式 : progv '(var1 var2 ...) '(value1 value2 ...)
@@ -1060,7 +1068,8 @@ var1, var2, ... はグローバル変数。ローカル変数スコープに影�
         	  (progv '(p) '(2)
         		 (write p) (symbol-value p)))
         	  (write p)) -> 100
-        100 (ローカル変数)、2 (グローバル変数)、100 の順に逐次プリント。")
+        100 (ローカル変数)、2 (グローバル変数)、100 の順に逐次プリント。"
+  `(progv ,vars ,values ,body))
 
 ;;; protect-file                           関数[#!expr]
 ;;;
