@@ -1620,7 +1620,7 @@ string を文字又はシンボルに変換し、その結果を返す。
   (cl:schar string 0))
 
 (defsynonym tao:string cl:string
-  #.(string '|string                                 関数[#!expr]
+  #.(cl:string '|string                                 関数[#!expr]
 
 <説明>
   形式 : string arg

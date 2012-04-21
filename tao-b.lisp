@@ -449,7 +449,7 @@ vector の偶数番目の要素に、key と eq な値があるかどうかを�
 ;;;         (bit-xor a c) -> エラー
 ;;; ＠
 
-(defun blank (&optional (stream t))
+(defun tao:blank (&optional (stream t))
   "blank                                  関数[#!subr]
 
 <説明>

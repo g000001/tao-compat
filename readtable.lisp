@@ -1,7 +1,6 @@
-(in-package :tao-internal)
+(in-package :cl-user)                   ;cl-user!
 
-
-(defmacro toga (obj) obj)
+(defmacro tao-internal::toga (obj) obj)
 
 (defmacro tao:selfass (fn &rest args)
   "<説明>
@@ -51,7 +50,7 @@
 
 
 (eval-when (:compile-toplevel :load-toplevel :execute)
-  (defun tao-read-toga (stream ignore)
+  (defun tao-internal::tao-read-toga (stream ignore)
     (declare (ignore ignore))
     (case (peek-char nil stream)
       ((#\( #\' #\")
@@ -69,29 +68,29 @@
         (read-from-string "^'\"||\"")
         (read-from-string "(^ foo)")))|#
 
-(defun read-list (stream ignore)
+(defun tao-internal::read-list (stream ignore)
   #+sbcl (sb-impl::read-list stream ignore)
   #+lispworks (system::read-list stream ignore)
   #+allegro (excl::read-list stream ignore )
   #+ccl (ccl::read-list stream))
 
-(defun tao-read-list (stream ignore)
+(defun tao-internal::tao-read-list (stream ignore)
   (case (peek-char t stream)
     ((#\!) (read-char stream)
      (case (peek-char nil stream)
        ((#\space #\newline #\return #\tab)
         (read-char stream)
-        `(or ,@(read-list stream ignore)) )
+        `(or ,@(tao-internal::read-list stream ignore)) )
        ((#\!)
         (read-char stream)
         `(tao:selfass
-          ,@(read-list stream ignore) ))
+          ,@(tao-internal::read-list stream ignore) ))
        (otherwise
-        `(setf ,@(read-list stream ignore)) )))
+        `(setf ,@(tao-internal::read-list stream ignore)) )))
     (otherwise
-     (read-list stream ignore) )))
+     (tao-internal::read-list stream ignore) )))
 
-(defun read-|.| (stream char)
+(defun tao-internal::read-|.| (stream char)
   (declare (ignore char))
   (case (peek-char nil stream 'T nil 'T)
     ((#\. )
@@ -101,7 +100,7 @@
        '|.|)
     (otherwise (values))))
 
-(defun method.chain-to-prefix (symbol &rest args)
+(defun tao-internal::method.chain-to-prefix (symbol &rest args)
   (let* ((form (ppcre:split "\\." (string symbol)))
          (form (mapcar #'intern form)))
     (if (cdr form)
@@ -121,25 +120,25 @@
         ('T `(,@(method.chain-to-prefix mesg obj)
                 ,(apply #'infix-to-prefix args)))))|#
 
-(defun infix-to-prefix (obj mesg &rest args)
+(defun tao-internal::infix-to-prefix (obj mesg &rest args)
   (cond ((null args)
          (if (typep mesg 'fixnum)
              (list 'cl:elt obj mesg)
              (list mesg obj)))
         ((null (cdr args))
          `(,mesg ,obj ,@args))
-        ('T `(,mesg ,obj ,(apply #'infix-to-prefix args)))))
+        ('T `(,mesg ,obj ,(apply #'tao-internal::infix-to-prefix args)))))
 
-(defun read-|[| (stream char)
+(defun tao-internal::read-|[| (stream char)
   (declare (ignore char))
   (let ((expr (read-delimited-list #\] stream 'T)))
-    (apply #'infix-to-prefix expr)))
+    (apply #'tao-internal::infix-to-prefix expr)))
 
-(defreadtable :tao
+(tao-internal::defreadtable :tao
   (:merge :standard)
-  (:macro-char #\( #'tao-read-list)
+  (:macro-char #\( #'tao-internal::tao-read-list)
   ;; (:macro-char #\^ #'tao-read-toga)
   ;; (:macro-char #\. #'read-|.| 'T)
   (:syntax-from :common-lisp #\) #\])
-  (:macro-char #\[ #'read-|[|)
+  (:macro-char #\[ #'tao-internal::read-|[|)
   (:case :upcase))
