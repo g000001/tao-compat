@@ -1326,8 +1326,8 @@ list の全ての要素を、関数 func に従い並べ変え、その結果を
         (sort (list '((3 . c) (1 . d) (1 . e)))
               (lambda (x y) (<= (car x) (car y))) )
         	 -> ((1 . d) (1 . e) (3 . c))"
-  (cl:sort list func)
-  'T)
+  ;; func は常に t を返す。はsortの返り値のことではないのでは？
+  (cl:sort list func))
 
 (defsynonym common:sort cl:sort
   #.(string '|common:sort                            関数[#!macro]
