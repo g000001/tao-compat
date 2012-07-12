@@ -1069,7 +1069,7 @@ var1, var2, ... はグローバル変数。ローカル変数スコープに影�
         		 (write p) (symbol-value p)))
         	  (write p)) -> 100
         100 (ローカル変数)、2 (グローバル変数)、100 の順に逐次プリント。"
-  `(progv ,vars ,values ,body))
+  `(progv ,vars ,values ,@body))
 
 ;;; protect-file                           関数[#!expr]
 ;;;
