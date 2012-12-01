@@ -854,20 +854,14 @@ frame-size の値は、関数 array-dimensions または array-dimension に
 ;;;         (max2 -1 1) -> 1
 ;;;         (max2 10 10) -> 10
 ;;; ＠
-;;; mem                                    関数[#!subr]
-;;;
-;;; <説明>
-;;;   形式 : mem pred item list
-;;; list 中に item と条件 pred を満足する要素を検索し、その要素以降を
-;;; リストとして返す。そのような要素がないときは nil を返す。
-;;;
-;;; <例>
-;;;         (mem 'equal 'c '(a b c d e)) = (c d e)
-;;;         (mem 'equal '(a c) '((a x) (a c b) (a c) (c b) d)) =
-;;;         ((a c) (c b) d)
-;;;         (mem 'equal 'c '(a b (c d) d c b a)) = (c b a)
-;;;         (mem '< 4 (list 1 3 7 3 4 2)) -> (7 3 4 2)
-;;;         (mem '< 10 (list 1 3 7 3 4 2)) -> nil
+
+(defun mem (pred item list)
+  
+  (cl:member item list :test (lambda (x y) 
+                               (declare (ignore x))
+                               (funcall pred item y))))
+
+
 ;;; ＠
 ;;; memass                                 関数[#!subr]
 ;;;
@@ -956,46 +950,63 @@ frame-size の値は、関数 array-dimensions または array-dimension に
 ;;;         (memory-capacity) -> 16384
 ;;;         システムが主記憶上に  16384 バイト持つことを意味する。
 ;;; ＠
-;;; memq                                   関数[#!subr]
-;;;
-;;; <説明>
-;;;   形式 : memq item list
-;;; item の値と eq なリスト list の要素を左から右に検索し、最初の要素を
-;;; 発見したら、その要素以降の要素をリストとして返す。
-;;; そのような要素がないときは nil を返す。
-;;; (memq x y) = (mem eq x y)
-;;;
-;;; <例>
-;;;         (memq 3 '(1 2 3 4)) -> (3 4)
-;;;         (memq 5 '(1 2 3 4)) -> nil
-;;;         (memq 'm '(m e m q)) -> (m e m q)
-;;;         (memq '(3 4) '((1 2) (3 4))) -> nil
-;;; ＠
-;;; memql                                  関数[#!macro]
-;;;
-;;; <説明>
-;;;   形式 : memql item list
-;;; item の値と eql なリスト list の要素を左から右に検索し、最初の要素を
-;;; 発見したら、その要素以降の要素をリストとして返す。
-;;; そのような要素がないときは nil を返す。
-;;; (memql x y) = (mem eql x y)
-;;;
-;;; <例>
-;;;         (memql 'x '(a x b c)) -> (x b c)
-;;;         (memql '1 '(2 3 4) ->  nil
-;;; ＠
-;;; memqu                                  関数[#!subr]
-;;;
-;;; <説明>
-;;;   形式 : memqu item list
-;;; item の値と equal な list の要素を左から右に検索し、最初の要素を発見
-;;; したら、その要素以降の要素をリストとして返す。
-;;; そのような要素がないときは nil を返す。
-;;; (memqu x y) = (mem equal x y)
-;;;
-;;; <例>
-;;;         (memqu 'x '(a x b)) -> (x b)
-;;;         (memqu 'x '(1 2) -> nil
+
+(def-q-ql-qu-fun mem (item list)
+    ("mem                                    関数[#!subr]
+
+<説明>
+  形式 : mem pred item list
+list 中に item と条件 pred を満足する要素を検索し、その要素以降を
+リストとして返す。そのような要素がないときは nil を返す。
+
+<例>
+        (mem 'equal 'c '(a b c d e)) = (c d e)
+        (mem 'equal '(a c) '((a x) (a c b) (a c) (c b) d)) =
+        ((a c) (c b) d)
+        (mem 'equal 'c '(a b (c d) d c b a)) = (c b a)
+        (mem '< 4 (list 1 3 7 3 4 2)) -> (7 3 4 2)
+        (mem '< 10 (list 1 3 7 3 4 2)) -> nil"
+    "memq                                   関数[#!subr]
+
+<説明>
+  形式 : memq item list
+item の値と eq なリスト list の要素を左から右に検索し、最初の要素を
+発見したら、その要素以降の要素をリストとして返す。
+そのような要素がないときは nil を返す。
+\(memq x y) = (mem eq x y)
+
+<例>
+        (memq 3 '(1 2 3 4)) -> (3 4)
+        (memq 5 '(1 2 3 4)) -> nil
+        (memq 'm '(m e m q)) -> (m e m q)
+        (memq '(3 4) '((1 2) (3 4))) -> nil"
+    "memql                                  関数[#!macro]
+
+<説明>
+  形式 : memql item list
+item の値と eql なリスト list の要素を左から右に検索し、最初の要素を
+発見したら、その要素以降の要素をリストとして返す。
+そのような要素がないときは nil を返す。
+ (memql x y) = (mem eql x y)
+
+<例>
+        (memql 'x '(a x b c)) -> (x b c)
+        (memql '1 '(2 3 4) ->  nil"
+    "memqu                                  関数[#!subr]
+
+<説明>
+  形式 : memqu item list
+item の値と equal な list の要素を左から右に検索し、最初の要素を発見
+したら、その要素以降の要素をリストとして返す。
+そのような要素がないときは nil を返す。
+\(memqu x y) = (mem equal x y)
+
+<例>
+        (memqu 'x '(a x b)) -> (x b)
+        (memqu 'x '(1 2) -> nil")
+    (member item list :test %test%))
+
+
 ;;; ＠
 ;;; merge                                  関数[#!macro]
 ;;;
