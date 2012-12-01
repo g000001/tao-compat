@@ -139,6 +139,7 @@
   (:macro-char #\( #'tao-internal::tao-read-list)
   ;; (:macro-char #\^ #'tao-read-toga)
   ;; (:macro-char #\. #'read-|.| 'T)
+  (:macro-char #\' (get-macro-character #\' (tao-internal::find-readtable :standard)) 'T)
   (:syntax-from :common-lisp #\) #\])
   (:macro-char #\[ #'tao-internal::read-|[|)
   (:case :upcase))
