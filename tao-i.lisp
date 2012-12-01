@@ -132,7 +132,7 @@
 ;;;         (idp '_x) -> nil
 ;;;         (idp #!expr) -> nil
 
-(defmacro tao:if (pred then else)
+(defmacro tao:if (pred then &optional else)
     "if                                     関数[#!macro]
 
 <説明>
