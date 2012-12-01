@@ -1225,7 +1225,8 @@ object1 object2 ... objectN を要素とする巡回リストを作成し返す�
         (cg 10) -> (6 210)
         (cf 5) -> (11 210)
         (cg 1000) -> (11 1210)"
-  `(lambda ,@(cdr var-list) ,func))
+  `(let (,@(mapcar (lambda (x) (list x x)) (eval var-list))) ;--- TODO
+     ,func))
 
 ;; (setf (symbol-function 'a1)
 ;;      (closure '(x) (lambda (u) (+ x u))))
