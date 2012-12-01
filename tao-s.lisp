@@ -2669,6 +2669,11 @@ a-list のいずれかの要素の car 部 と eq であるようなシンボル
           (eq (sublisq-copy '((aa . 11) (bb . 22)) x) x) -> nil"
   (sublis a-list (copy-tree tree) :test #'eq))
 
+(declaim (inline tao:sublisql))
+(defun tao:sublisql (a-list tree)
+  (sublis a-list tree :test #'eql))
+
+
 (declaim (inline tao:subpackages))
 (defun tao:subpackages (&optional (package *package*))
   "subpackages                            関数[#!expr]
