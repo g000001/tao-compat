@@ -830,7 +830,7 @@ rem-if の破壊版。
         (del-if #'integerp x) -> (a b c d)"
   (declare (optimize (speed 3) (safety 0) (debug 0)))
   (declare (list list))
-  (delete-if pred list))
+  (delete-if (the function pred) list))
 
 #|(let ((x '(1 a 2 b 3 c 4 d 5)))
   (!!tao:del-if #'integerp !x)

@@ -2843,6 +2843,11 @@ tree をコピーして修正するので、この操作は非破壊的。nsubst
         x -> (a b (bar . c) bar . bar)"
   (subst new old tree :test #'equal))
 
+
+(defun tao:substql (new old tree)
+  (subst new old tree :test #'eql))
+
+
 (defun string*-arg-check (string start end)
   (let ((string (typecase string
 		  (string string)

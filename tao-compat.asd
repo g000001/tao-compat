@@ -20,6 +20,7 @@
   :version tao-compat-asd:*tao-compat-version-string*
   :serial t
   :components ((:file "package")
+               (:file "util")
                (:file "readtable" :depends-on ("package"))
 	       (:file "tao-0")
 	       (:file "tao-a")

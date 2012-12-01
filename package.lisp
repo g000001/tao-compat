@@ -514,7 +514,9 @@
    :string-input-stream :string-length :string-less-or-equal
    :string-output-stream :string-replace :string-reverse :string-reverse-search
    :string-reverse-search-case :string-search :string-search-case :sublisq
-   :sublisq-copy :subpackages :subset :subset-not :substqu :substring :super
+   :sublisql
+   :sublisq-copy :subpackages :subset :subset-not :substql
+   :substqu :substring :super
    :symeval :systat)
   (:export
    :talk :tao-standard-readtable :tao-standard-sysmode :tconc :tcons
