@@ -1667,7 +1667,7 @@ string1 string2 ... stringN を連結した文字列を作成し、返す。
 			  (string-downcase (string s))))
 	  (remove nil strings))))
 
-(defun string-byte-count (string)
+(defun tao:string-byte-count (string)
   "string-byte-count                      関数[#!subr]
 
 <説明>
