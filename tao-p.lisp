@@ -423,18 +423,25 @@ number1, number2, ... numberN の値の和を返す。
 ;;;         (plusp -123) -> nil
 ;;;         (plusp 0) -> nil
 ;;; ＠
-;;; pname                                  関数[#!subr]
-;;;
-;;; <説明>
-;;;   形式 : pname object
-;;; object の値を文字列として返す。symbol-name 参照。
-;;; (pname x) は、x が string である点を除けば (write-to-string x) と同じ。
-;;;
-;;; <例>
-;;;         (pname 'uvwxyz) -> "uvwxyz"
-;;;         (pname "abcdefg") -> "abcdefg" ( ""abcdefg""ではない)
-;;;         (pname '(a . b)) -> "(a . b)"
-;;; ＠
+
+
+(defun tao:pname (object)
+  "pname                                  関数[#!subr]
+
+<説明>
+  形式 : pname object
+object の値を文字列として返す。symbol-name 参照。
+\(pname x) は、x が string である点を除けば (write-to-string x) と同じ。
+
+<例>
+        (pname 'uvwxyz) -> \"uvwxyz\"
+        (pname \"abcdefg\") -> \"abcdefg\" ( \"\"abcdefg\"\"ではない)
+        (pname '(a . b)) -> \"(a . b)\""
+  (typecase object
+    (string object)
+    (symbol (string object))
+    (otherwise (write-to-string object))))
+
 
 (defun tao:pname-of-time (universal-time)
   "pname-of-time                          関数[#!expr-simpl]
