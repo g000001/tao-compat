@@ -111,8 +111,11 @@ fn が関数名、var-list が引数リストである expr 型関数、すな�
                  (+ 1 (cell-count (car x)) (cell-count (cdr x))))
                 (t 0) ))  ->  cell-count"
   ;; evalは、null lexical environmentにするために利用
-  `(defun ,fn ,(substitute 'cl:&optional 'tao:&opt var-list)
-     ,@body))
+  (let ((result (gensym)))
+   `(defun ,fn ,(substitute 'cl:&optional 'tao:&opt var-list)
+      (macrolet ((tao:exit (&optional ,result)
+                   `(return-from ,',fn ,,result)))
+        ,@body))))
 
 ;; debug                                  関数[#!expr]
 ;;
