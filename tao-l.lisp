@@ -1113,27 +1113,34 @@ form1 form2 ... を順に評価する。そして、:until 文が成立、また
                   (!result ((inc c) * result)) ))
         n の階乗を計算する。"
   (let ((exit-id (and (atom (car body)) (pop body)))
-	(loop-tag (gensym))
-	aux init newbody)
+        (loop-tag (gensym))
+        (exit-result (gensym))
+        aux init newbody)
     (dolist (l body)
-      (case (car l)
-	(&aux   (!aux (cdr l)))
-	(:init  (!init (cdr l)))
-	(otherwise (push l newbody))))
-    `(block ,exit-id
-       (let (,@aux)
-	 (tagbody
-	    (progn ,@init)
-	    ,loop-tag
-	    ,@(mapcar
-	       (lambda (x)
-		 (cond ((eq :while (car x))
-			`(or ,(cadr x) (return-from ,exit-id (progn ,@(cddr x)))))
-		       ((eq :until (car x))
-			`(and ,(cadr x) (return-from ,exit-id (progn ,@(cddr x)))))
-		       ('T x)))
-	       (nreverse newbody))
-	    (go ,loop-tag))))))
+        (case (car l)
+          (&aux   (!aux (cdr l)))
+          (:init  (!init (cdr l)))
+          (otherwise (push l newbody))))
+    `(macrolet ((tao:cycle (&optional exit-id)
+                  ;;--- TODO exit-id
+                  (declare (cl:ignore exit-id))
+                  `(go ,',loop-tag))
+                (tao:exit (&optional ,exit-result)
+                  `(return-from ,',exit-id ,,exit-result)))
+       (block ,exit-id
+         (let (,@aux)
+           (tagbody
+             (progn ,@init)
+             ,loop-tag
+             ,@(mapcar
+                (lambda (x)
+                  (cond ((eq :while (car x))
+                         `(or ,(cadr x) (tao:exit (progn ,@(cddr x)))))
+                        ((eq :until (car x))
+                         `(and ,(cadr x) (tao:exit (progn ,@(cddr x)))))
+                        ('T x)))
+                (nreverse newbody))
+             (go ,loop-tag)))))))
 
 
 #|(defun f (n)
