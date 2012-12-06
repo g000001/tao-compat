@@ -854,7 +854,7 @@ list1 には含まれているが、list2 ... listN には含まれていない�
 ;;;         (shadowing-import window:x) -> t
 ;;;         x -> 30
 
-(defun shead (object &optional (n 1))
+(defun tao:shead (object &optional (n 1))
   "shead                                  関数[#!subr]
 
 <説明>
