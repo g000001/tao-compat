@@ -1667,18 +1667,22 @@ string1 string2 ... stringN を連結した文字列を作成し、返す。
 			  (string-downcase (string s))))
 	  (remove nil strings))))
 
-;;; string-byte-count                      関数[#!subr]
-;;;
-;;; <説明>
-;;;   形式 : string-byte-count string
-;;; string のバイト数を返す。
-;;;
-;;; <例>
-;;;         (!x "a b c")
-;;;         (string-byte-count x) -> 5
-;;;         (string-byte-count "1 2 3" -> 5
-;;;         (string-byte-count "あいうえお") -> 10
-;;;         (string-byte-count "今日は") -> 6
+(defun string-byte-count (string)
+  "string-byte-count                      関数[#!subr]
+
+<説明>
+  形式 : string-byte-count string
+string のバイト数を返す。
+
+<例>
+        (!x \"a b c\")
+        (string-byte-count x) -> 5
+        (string-byte-count \"1 2 3\" -> 5
+        (string-byte-count \"あいうえお\") -> 10
+        (string-byte-count \"今日は\") -> 6"
+  #+sbcl (length (sb-ext:string-to-octets string))
+  #-sbcl :not-implemented)
+
 
 (defun tao:string-capitalize (string &optional (start 0) end)
   "string-capitalize                      関数[#!subr]
