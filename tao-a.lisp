@@ -568,17 +568,23 @@ arg が配列なら関数オブジェクト、それ以外なら nil を返す�
         (as-char 65) -> \"A\""
   (code-char integer))
 
-;;; ＠
-;;; as-shortnum                            関数[#!expr]
-;;;
-;;; <説明>
-;;;   形式 : as-shortnum arg
-;;; arg のアドレス部を shortnum と見なし、その値を返す。
-;;; Lisp オブジェクトの実アドレスと文字のコードを見ることができる。
-;;;
-;;; <例>
-;;;         (as-shortnum "a") -> 97
-;;;         (as-shortnum 'a) -> 1115112
+
+(defun tao:as-shortnum (arg)
+  "as-shortnum                            関数[#!expr]
+
+<説明>
+  形式 : as-shortnum arg
+arg のアドレス部を shortnum と見なし、その値を返す。
+Lisp オブジェクトの実アドレスと文字のコードを見ることができる。
+
+<例>
+        (as-shortnum \"a\") -> 97
+        (as-shortnum 'a) -> 1115112"
+  (typecase arg
+    (character (char-code arg))
+    (T #+sbcl (sb-kernel:get-lisp-obj-address arg))))
+
+
 ;;; ＠
 ;;; ash                                    関数[#!subr]
 ;;;
