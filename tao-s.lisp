@@ -1731,8 +1731,8 @@ string の :start と :end の範囲の単語の先頭文字を大文字にし�
 	('T nil)))
 
 (defun string-compare-* (object1 object2 elt= elt< elt>)
-  (let ((x (string-or-symbol->string object1))
-	(y (string-or-symbol->string object2))
+  (let ((x (->string object1))
+	(y (->string object2))
 	i)
     (cond ((funcall elt= x y) 0)
 	  ((setq i (funcall elt< x y)) (1+ i))
@@ -2207,8 +2207,8 @@ string を逆順に並び換え、そのコピーを返す。
 
 
 (defun string-reverse-search-* (string1 string2 n test-fn)
-  (let ((str1 (string-or-symbol->string string1))
-	(str2 (string-or-symbol->string string2)))
+  (let ((str1 (->string string1))
+	(str2 (->string string2)))
     (let* ((len1 (cl:length str1))
 	   (len2 (cl:length str2))
 	   (start2 (if n (- (1- len2) n) 0)))
@@ -2292,19 +2292,20 @@ n が省略された場合には、string2 の文字列の一番最後の文字�
 ;;;         x -> "たちつたたれたたた"
 
 (defun string-search-* (string1 string2 number elt=)
-  (let ((s1 (string-or-symbol->string string1))
-	(s2 (string-or-symbol->string string2)))
+  (let ((s1 (->string string1))
+	(s2 (->string string2)))
     (let ((len1 (cl:length s1)))
       (do ((s (subseq s2 number) (subseq s 1))
 	   (cnt 0 (1+ cnt)))
 	  ((equal "" s))
-	(or (zerop (mismatch string1 s :test elt=))
+	(or (zerop (mismatch s1 s :test elt=))
 	    (return (and (< len1 (cl:length s))
 			 (+ cnt number))))))))
 
-(defun string-or-symbol->string (obj)
+(defun ->string (obj)
   (typecase obj
     (string obj)
+    (character (string obj))
     (number (princ-to-string obj))
     (atom (string-downcase (string obj)))
     (otherwise (error "~S is not of type ATOM." obj))))
