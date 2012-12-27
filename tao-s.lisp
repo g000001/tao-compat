@@ -1406,6 +1406,7 @@ var1 var2 ... varN をスペシャル変数、つまり静的スコープの外�
         (de main-func (x y &aux status line)
             (special-variables status line)
                  ... )"
+  ;;--- TODO
   `'(:todo declare (special ,@args)))
 
 
