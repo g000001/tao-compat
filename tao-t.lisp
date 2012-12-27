@@ -28,7 +28,7 @@ arg がトガ ^ のついた式なら t を返し、そうでなければ nil �
 ;(togap '^(x y `z))
 
 
-(defmacro trim (var list &rest forms)
+(defmacro tao:trim (var list &rest forms)
   "trim                                   関数[#!subr]
 
 <説明>
