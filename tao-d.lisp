@@ -90,6 +90,43 @@ number に対応する曜日名を文字列で返す。number が 0～6 以外�
 ;; <説明>
 ;;   インスタンスが dcu ターミナルであるクラス。
 
+
+(defconstant tao-lambda-list-keywords
+  '(tao:&optional
+    tao:&optn
+    tao:&opt
+    :opt
+    tao:&rest
+    :rest 
+    tao:&key
+    tao:&allow-other-keys
+    tao:&aux
+    :aux
+    tao:&whole
+    tao:&body
+    tao:&environment ))
+
+
+(defun nomalize-lambda-list-keyword (arg-list)
+  (mapcar (lambda (a)
+            (case a
+              (tao:&optional 'tao:&optional)
+              (tao:&optn 'tao:&optional)
+              (tao:&opt 'tao:&optional)
+              (:opt 'tao:&optional)
+              (tao:&rest 'tao:&rest)
+              (:rest 'tao:&rest) 
+              (tao:&key 'tao:&key)
+              (tao:&allow-other-keys 'tao:&allow-other-keys)
+              (tao:&aux 'tao:&aux)
+              (:aux 'tao:&aux)
+              (tao:&whole 'tao:&whole)
+              (tao:&body 'tao:&body)
+              (tao:&environment 'tao:&environment)
+              (otherwise a)))
+          arg-list))
+
+
 ;; deは、define exprの略
 ;; defunとの差異が不明 拡張されたlambdaリストが取れるのが、
 ;; defunかもしれない。
@@ -114,7 +151,7 @@ fn が関数名、var-list が引数リストである expr 型関数、すな�
   (let ((result (gensym)))
     `(macrolet ((tao:exit (&optional ,result)
                  `(return-from ,',fn ,,result)))
-       (defun ,fn ,(substitute 'cl:&optional 'tao:&opt var-list)
+       (defun ,fn ,(nomalize-lambda-list-keyword var-list)
          ,@body))))
 
 ;; debug                                  関数[#!expr]

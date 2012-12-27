@@ -378,6 +378,9 @@
    :with-standard-io-syntax :write :write-byte :write-char :write-line
    :write-sequence :write-string :write-to-string :y-or-n-p :yes-or-no-p :zerop)
   ;; TAO
+  ;; lambda-list-keywords
+  (:export :&optional :&optn :&opt :&rest :&key :&allow-other-keys 
+           :&aux :&whole :&body :&environment)
   (:export
    :! :! :! :!! :& :& :&+ :&+dyn :&and :&assert :&cond :&repeat :&opt
    :&retract :*applyhook* :*break-on-warnings* :*catch :*evalhook*
@@ -573,4 +576,5 @@
   (:export
    :prestk-memblk :id-hash-memblk :64bloc-memblk :strhead-memblk :locbit-memblk
    :cell-memblk :vector-memblk :id-memblk :str-memblk :bad-memblk :free-memblk)
+  (:export :key-package)
   (:export :bigfloat :float :de :dye :shortfloat))
