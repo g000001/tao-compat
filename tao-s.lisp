@@ -1393,18 +1393,21 @@ car に対して適用されるということを除けば、sort と同じ。
 ;;;   形式 : special-stream-p stream
 ;;; stream が normal-stream ならば stream を返し、そうでなければ nil を返す。
 
-;;; special-variables                      関数[#!subr]
-;;;
-;;; <説明>
-;;;   形式 : special-variables &rest var1 var2 ... varN
-;;; var1 var2 ... varN をスペシャル変数、つまり静的スコープの外側から
-;;; アクセスできる変数として宣言し、その名前を返す。これらの変数を宣言する
-;;; これは、プログラムの本体もしくは関数の本体の 1 番最初に指定する。
-;;;
-;;; <例>
-;;;         (de main-func (x y &aux status line)
-;;;             (special-variables status line)
-;;;                  ... )
+(defmacro tao:special-variables (&rest args)
+  "special-variables                      関数[#!subr]
+
+<説明>
+  形式 : special-variables &rest var1 var2 ... varN
+var1 var2 ... varN をスペシャル変数、つまり静的スコープの外側から
+アクセスできる変数として宣言し、その名前を返す。これらの変数を宣言する
+これは、プログラムの本体もしくは関数の本体の 1 番最初に指定する。
+
+<例>
+        (de main-func (x y &aux status line)
+            (special-variables status line)
+                 ... )"
+  `'(:todo declare (special ,@args)))
+
 
 ;;; speed                                  関数[#!expr]
 ;;;
