@@ -21,6 +21,7 @@
   :serial t
   :components ((:file "package")
                (:file "util")
+               (:file "reader")
                (:file "readtable" :depends-on ("package"))
 	       (:file "tao-0")
 	       (:file "tao-a")

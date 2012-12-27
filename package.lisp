@@ -1,5 +1,5 @@
 (in-package #:cl-user)
-;(delete-package :tao)
+;(g1::delete-package* :tao)
 
 (defpackage #:tao
   (:use :named-readtables)
@@ -40,7 +40,7 @@
    :call-arguments-limit :call-method :call-next-method :car :case :catch :ccase
    :cdaaar :cdaadr :cdaar :cdadar :cdaddr :cdadr :cdar :cddaar :cddadr :cddar
    :cdddar :cddddr :cdddr :cddr :cdr :ceiling :cell-error :cell-error-name
-   :cerror :change-class :char :char-code :char-code-limit :char-downcase
+   :cerror :change-class :char-code :char-code-limit :char-downcase
    :char-equal :char-greaterp :char-int :char-lessp :char-name :char-not-equal
    :char-not-greaterp :char-not-lessp :char-upcase :char/= :char< :char<= :char=
    :char> :char>= :character :characterp :check-type :cis :class :class-name
@@ -222,7 +222,7 @@
    :call-arguments-limit :call-method :call-next-method :car :case :catch :ccase
    :cdaaar :cdaadr :cdaar :cdadar :cdaddr :cdadr :cdar :cddaar :cddadr :cddar
    :cdddar :cddddr :cdddr :cddr :cdr :ceiling :cell-error :cell-error-name
-   :cerror :change-class :char :char-code :char-code-limit :char-downcase
+   :cerror :change-class :char-code :char-code-limit :char-downcase
    :char-equal :char-greaterp :char-int :char-lessp :char-name :char-not-equal
    :char-not-greaterp :char-not-lessp :char-upcase :char/= :char< :char<= :char=
    :char> :char>= :character :characterp :check-type :cis :class :class-name
@@ -417,6 +417,7 @@
    :blank :blanks :bra-cons :bra-list :bracketp :broadcast)
   (:export
    :cadblep :caseq :catcher :catcher-case :caught-value :cdr! :cell
+   :char
    :cellp :change-font :char-bit :char-bits :char-bits-limit :char-code-p
    :char-control-bit :char-font :char-font-limit :char-hyper-bit :char-meta-bit
    :char-super-bit :char-to-strh :charp :circular-list :cit101e-terminal
@@ -536,7 +537,12 @@
    :within-class :within-package :without-interrupts :wrap :write-string-justify
    :write-string-with-blank)
   (:export
-   :xcons :xor\#))
+   :xcons :xor\#)
+  ;; codnum
+  (:export 
+   :expr :exprdyn :macro :subst :closure :array :&+ :hclauses :&+dyn :subr
+   :expr-simple :exprdyn-simple :subr-simple :unit-clauses :1b-memblk :2b-memblk
+   :4b-memblk :8b-memblk :16b-memblk :32b-memblk :64b-memblk))
 
 ;(delete-package :common)
 (defpackage common
@@ -557,5 +563,14 @@
            :nreverse
            ))
 
+
 (defpackage #:tao-internal
   (:use #:cl #:named-readtables))
+
+
+(defpackage tao.sys 
+  (:use)
+  (:export
+   :prestk-memblk :id-hash-memblk :64bloc-memblk :strhead-memblk :locbit-memblk
+   :cell-memblk :vector-memblk :id-memblk :str-memblk :bad-memblk :free-memblk)
+  (:export :bigfloat :float :de :shortfloat))

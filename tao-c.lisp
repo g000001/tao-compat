@@ -694,18 +694,25 @@ throw はすべて tagN が受け取り、tagN に結び付けられたレシー
 ;;;         "d" "e" "f" は、反転してブリンク
 ;;;         "g" "h" "i" は、通常
 ;;; ＠
-;;; char                                   関数[#!subr]
-;;;
-;;; <説明>
-;;;   形式 : char string index
-;;; 文字列 string の文字位置 index (0 から始まる) の文字を返す。index は、
-;;; string の長さより小さくなければならない。
-;;;
-;;; <例>
-;;;         (char "abcdefghij" 0) -> "a"
-;;;         (char "abcdefghij" 3) -> "d"
-;;;         (char "おはようざいます" 2) -> "よ"
-;;;         (char "asd" 5) -> ""
+
+(defun tao:char (string index)
+  "char                                   関数[#!subr]
+
+<説明>
+  形式 : char string index
+文字列 string の文字位置 index (0 から始まる) の文字を返す。index は、
+string の長さより小さくなければならない。
+
+<例>
+        (char \"abcdefghij\" 0) -> \"a\"
+        (char \"abcdefghij\" 3) -> \"d\"
+        (char \"おはようざいます\" 2) -> \"よ\"
+        (char \"asd\" 5) -> \"\""
+  (if (< index (length string))
+      (cl:char string index)
+      #\Nul))
+
+
 ;;; ＠
 ;;; char-bit                               関数[#!expr]
 ;;;
