@@ -625,21 +625,26 @@ throw はすべて tagN が受け取り、tagN に結び付けられたレシー
 ;;;         第 2 cell = 第 3 cell への q ポインタ
 ;;;         第 3 cell = r  nil
 ;;; ＠
-;;; cellp                                  関数[#!subr]
-;;;
-;;; <説明>
-;;;   形式 : cellp object
-;;; object がセル又は名前付きセルならば、評価値を返し、それ以外なら nil を
-;;; 返す。
-;;;
-;;; <例>
-;;;         (cellp nil) -> nil
-;;;         (cellp ()) -> nil
-;;;         (cellp '(a b c)) -> (a b c)
-;;;         (cellp 'fn(x y)) -> fn(x y) if *fn-notation* is non-nil.
-;;;         (cellp ''(a b c)) -> nil
-;;;         (cellp '^(a b c)) -> nil
-;;;         (cellp '[a b c]) -> nil
+
+(defun tao:cellp (object)
+  "cellp                                  関数[#!subr]
+
+<説明>
+  形式 : cellp object
+object がセル又は名前付きセルならば、評価値を返し、それ以外なら nil を
+返す。
+
+<例>
+        (cellp nil) -> nil
+        (cellp ()) -> nil
+        (cellp '(a b c)) -> (a b c)
+        (cellp 'fn(x y)) -> fn(x y) if *fn-notation* is non-nil.
+        (cellp ''(a b c)) -> nil
+        (cellp '^(a b c)) -> nil
+        (cellp '[a b c]) -> nil"
+  ;;--- TODO
+  (consp object))
+
 ;;; ＠
 ;;; cerror                                 関数[#!expr]
 ;;;
