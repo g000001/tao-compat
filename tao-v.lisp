@@ -17,25 +17,30 @@
 ;;; プロセスは、semaphore を開放する。プロセスがリソースを使い終え、それを
 ;;; 開放した時に実行されなければならない。
 ;;; ＠
-;;; value                                  関数[#!subr]
-;;;
-;;; <説明>
-;;;   形式 : value var
-;;; var のグローバル値を返す。
-;;;
-;;; <例>
-;;;         (!y "asd")
-;;;         (value 'y) -> "asd"
-;;;         (value 'z) -> (unbound-variable z)
-;;;         (prog (p) (special-variables p) (!p 25) (value 'p))
-;;;         	-> (unbound-variable p)
-;;;         (!p 12) -> 12
-;;;         (prog (p) (!p 25) (value 'p)) -> 12
-;;;         (prog (p) (special-variables p) (!p 25) (value 'p)) -> 12
 
-#|(declaim (inline value))|#
-#|(defun value (var)
-  (symbol-value var))|#
+
+(declaim (inline tao:value (setf tao:value)))
+(defun tao:value (sym)
+  "value                                  関数[#!subr]
+
+<説明>
+  形式 : value var
+var のグローバル値を返す。
+
+<例>
+        (!y \"asd\")
+        (value 'y) -> \"asd\"
+        (value 'z) -> (unbound-variable z)
+        (prog (p) (special-variables p) (!p 25) (value 'p))
+        	-> (unbound-variable p)
+        (!p 12) -> 12
+        (prog (p) (!p 25) (value 'p)) -> 12
+        (prog (p) (special-variables p) (!p 25) (value 'p)) -> 12"
+  (symbol-value sym))
+
+(defun (setf value) (val var)
+  (setf (symbol-value var) val))
+
 
 ;;; values                                 関数[#!subr]
 ;;;
