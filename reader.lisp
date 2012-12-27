@@ -195,7 +195,7 @@
   (defun codnum-reader (stream char arg)
     (declare (ignore char arg))
     (let* ((codnum (read stream t nil t))
-           (num (cdr (rassoc codnum nums))))
+           (num (car (rassoc codnum nums))))
       (or num
           (error "Unknown codnum: #!~A." codnum)))))
 
