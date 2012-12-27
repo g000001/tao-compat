@@ -801,21 +801,25 @@ list の要素を順に item とともに述語 pred に適用し、その述語
   x)|#
 ;=> (1 2 3 4 7)
 
-;; del-alist                              関数[#!subr]
-;;
-;; <説明>
-;;   形式 : del-a-list item a-list
-;; 連想リスト a-list の要素対のうち、第 1 要素が item と eq な要素対を
-;; a-list から破壊的に削除し、その結果を返す。そのような要素がなければ
-;; a-list を返す。代入形式で使用する。
-;;
-;; <例>
-;;         (!x '((a . 1) (b . 2) (c . 3))) -> ((a . 1) (b . 2) (c . 3))
-;;         (del-alist 'a x) -> ((b . 2) (c . 3))
-;;         x -> ((a . 1) (b . 2) (c . 3)).
-;;         (del-alist 'b x) -> ((a . 1) (c . 3))
-;;         x -> ((a . 1) (c . 3))
-;;         (!x (del-alist 'p x)) -> ((a . 1) (c . 3))
+(declaim (inline tao:del-alist))
+(defun tao:del-alist (item a-list)
+  "del-alist                              関数[#!subr]
+
+<説明>
+  形式 : del-a-list item a-list
+連想リスト a-list の要素対のうち、第 1 要素が item と eq な要素対を
+a-list から破壊的に削除し、その結果を返す。そのような要素がなければ
+a-list を返す。代入形式で使用する。
+
+<例>
+        (!x '((a . 1) (b . 2) (c . 3))) -> ((a . 1) (b . 2) (c . 3))
+        (del-alist 'a x) -> ((b . 2) (c . 3))
+        x -> ((a . 1) (b . 2) (c . 3)).
+        (del-alist 'b x) -> ((a . 1) (c . 3))
+        x -> ((a . 1) (c . 3))
+        (!x (del-alist 'p x)) -> ((a . 1) (c . 3))"
+  (delete item a-list :key #'car))
+
 
 (declaim (inline tao:del-if))
 (defun tao:del-if (pred list)
