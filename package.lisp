@@ -61,7 +61,7 @@
    :dynamic-extent :ecase :echo-stream :echo-stream-input-stream
    :echo-stream-output-stream :ed :eighth :elt :encode-universal-time
    :end-of-file :endp :enough-namestring :ensure-directories-exist
-   :ensure-generic-function :eq :eql :equal :equalp :error :etypecase :eval
+   :ensure-generic-function :eq :eql :equal :equalp :etypecase :eval
    :eval-when :evenp :every :exp :export :expt :extended-char :fboundp :fceiling
    :fdefinition :ffloor :fifth :file-author :file-error :file-error-pathname
    :file-length :file-namestring :file-position :file-stream :file-string-length
@@ -437,7 +437,7 @@
   (:export
    :elapse-time :environment :eval-in-upper-env :eval-inside-yourself
    :evalhook :evalp :exit :exit-for :exit-image :exit-loop :exit-progi :exploden
-   :expr :expunge-files)
+   :expr :expunge-files :error)
   (:export
    :fatjstringp :fatstringp :fgrep :file-conc :filstring :filter-copy
    :find-position-in-list :find-position-in-list-equal :find-symbol-local
@@ -573,4 +573,4 @@
   (:export
    :prestk-memblk :id-hash-memblk :64bloc-memblk :strhead-memblk :locbit-memblk
    :cell-memblk :vector-memblk :id-memblk :str-memblk :bad-memblk :free-memblk)
-  (:export :bigfloat :float :de :shortfloat))
+  (:export :bigfloat :float :de :dye :shortfloat))
