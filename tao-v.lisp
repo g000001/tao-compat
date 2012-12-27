@@ -38,7 +38,7 @@ var のグローバル値を返す。
         (prog (p) (special-variables p) (!p 25) (value 'p)) -> 12"
   (symbol-value sym))
 
-(defun (setf value) (val var)
+(defun (setf tao:value) (val var)
   (setf (symbol-value var) val))
 
 
