@@ -452,7 +452,7 @@ stream に読まれるものがなければ :eof を返す。
         返される値
         \"a b c d (a b) ((sd nil)) nil\" が、コンソールターミナル上に
         表示される."
-  (write-line (read-line stream)))
+  (read-line stream nil :eof nil))
 
 #|(with-input-from-string (str "a b c d (a b) ((sd nil)) nil")
   (readline-to-string str))|#
