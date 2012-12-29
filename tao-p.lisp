@@ -589,20 +589,24 @@ object の値を文字列として返す。symbol-name 参照。
 ;;; <例>
 ;;;         (princ-to-string 'qwert) -> "qwert"
 ;;; ＠
-;;; prins                                  関数[#!subr]
-;;;
-;;; <説明>
-;;;   形式 : prins object &opt stream
-;;; stream に object をプリントし、object の値を返す。
-;;; stream の既定値は、変数 *standard-output* の値。
-;;; object が数なら、prins は、関数 tyo と同じ。
-;;; object がシンボルなら、その印字名をプリントする。
-;;; object が文字列なら、ダブルクォートなしに、プリントする。
-;;;
-;;; <例>
-;;;         (prins 70) -> F70
-;;;         (prins 'abc) -> abcabc
-;;;         (prins "abc def") -> abc def"abc def"
+
+(defun tao:prins (object &optional stream)
+  "prins                                  関数[#!subr]
+
+<説明>
+  形式 : prins object &opt stream
+stream に object をプリントし、object の値を返す。
+stream の既定値は、変数 *standard-output* の値。
+object が数なら、prins は、関数 tyo と同じ。
+object がシンボルなら、その印字名をプリントする。
+object が文字列なら、ダブルクォートなしに、プリントする。
+
+<例>
+        (prins 70) -> F70
+        (prins 'abc) -> abcabc
+        (prins \"abc def\") -> abc def\"abc def\""
+  (princ object stream))
+
 ;;; ＠
 ;;; print                                  関数[#!exprdyn]
 ;;;
