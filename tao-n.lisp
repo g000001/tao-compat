@@ -984,17 +984,24 @@ list は破壊される。reverse の破壊版。
 ;;; (!*standard-output* null-stream) とすると、コンソールターミナル
 ;;; (*standard-output*) には、入力文字しか現れれない。
 ;;; ＠
-;;; null-string                            関数[#!subr]
-;;;
-;;; <説明>
-;;;   形式 : null-string string
-;;; string が空ストリング ("") なら、"" を返し、そうでなければ nil を返す。
-;;;
-;;; <例>
-;;;         (null-string "") -> ""
-;;;         (null-string 123) -> nil
-;;;         (null-string "abc") -> nil
-;;;         (null-string "あいう") -> nil
+
+(defun tao:null-string (string)
+  "null-string                            関数[#!subr]
+
+<説明>
+  形式 : null-string string
+string が空ストリング (\"\") なら、\"\" を返し、そうでなければ nil を返す。
+
+<例>
+        (null-string \"\") -> \"\"
+        (null-string 123) -> nil
+        (null-string \"abc\") -> nil
+        (null-string \"あいう\") -> nil"
+  (and (stringp string)
+       (string= "" string)
+       (make-string 0)))
+
+
 ;;; ＠
 ;;; numberp                                関数[#!subr]
 ;;;
