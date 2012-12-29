@@ -232,7 +232,6 @@ progi-id が省略された時は、最も内側にある progi 節から脱出�
 ;;; ＠
 
 
-
 (defun tao:error (string &optional arg1 arg2)
   "error                                  関数[#!expr]
 
@@ -243,7 +242,8 @@ progi-id が省略された時は、最も内側にある progi 節から脱出�
 arg1 は最初の補助情報であり、大抵の場合、エラーが発生した内部関数を示す。
 arg2 は 2 番目の補助情報であり、大抵の場合、エラーを引き起こした誤った
 引数を示す。"
-  (cl:error "~A at ~A: ~A" arg2 arg1 string))
+  (cl:error "~:[~;~:*~A at ~]~:[~;~:*~A: ~]~A" arg2 arg1 string))
+
 
 ;;; ＠
 ;;; sys:error-in-error                     関数[#!subr]
