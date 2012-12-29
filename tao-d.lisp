@@ -198,7 +198,7 @@ var の値から val の値を引き、その結果を返す。 val の既定値
         x -> 11
         (dec 3 2) -> エラー
         (dec 3) -> エラー"
-  `(setq ,var (- ,var ,val)))
+  `(setf ,var (- ,var ,val)))
 
 (defclsynonym tao:decf
     "decf                                   関数[#!macro]
