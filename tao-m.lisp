@@ -1137,26 +1137,36 @@ item の値と equal な list の要素を左から右に検索し、最初の�
 ;;;         (s <- (p mod# 7 )) -> 2
 ;;;         (r <- (q mod# 8 )) -> 0
 ;;; ＠
-;;; month-string                           関数[#!expr]
-;;;
-;;; <説明>
-;;;   形式 : month-string number
-;;; number に対応する月名 (上 3 桁) を文字列で返す。
-;;; number が 1〜12 以外の時は、nil が返る。
-;;;
-;;; <例>
-;;;         (month-string 1) -> "Jan"
-;;;         (month-string 2) -> "Feb"
-;;;         (month-string 3) -> "Mar"
-;;;         (month-string 4) -> "Apr"
-;;;         (month-string 5) -> "May"
-;;;         (month-string 6) -> "Jun"
-;;;         (month-string 7) -> "Jul"
-;;;         (month-string 8) -> "Aug"
-;;;         (month-string 9) -> "Sep"
-;;;         (month-string 10) -> "Oct"
-;;;         (month-string 11) -> "Nov"
-;;;         (month-string 12) -> "Dec"
+
+
+(defun tao:month-string (n)
+  "month-string                           関数[#!expr]
+
+<説明>
+  形式 : month-string number
+number に対応する月名 (上 3 桁) を文字列で返す。
+number が 1〜12 以外の時は、nil が返る。
+
+<例>
+        (month-string 1) -> \"Jan\"
+        (month-string 2) -> \"Feb\"
+        (month-string 3) -> \"Mar\"
+        (month-string 4) -> \"Apr\"
+        (month-string 5) -> \"May\"
+        (month-string 6) -> \"Jun\"
+        (month-string 7) -> \"Jul\"
+        (month-string 8) -> \"Aug\"
+        (month-string 9) -> \"Sep\"
+        (month-string 10) -> \"Oct\"
+        (month-string 11) -> \"Nov\"
+        (month-string 12) -> \"Dec\""
+  (and (typep n '(integer 1 12))
+       (svref #(0
+                "Jan" "Feb" "Mar" "Apr" "May" "Jun"
+                "Jul" "Aug" "Sep" "Oct" "Nov" "Dec")
+              n)))
+
+
 ;;; ＠
 ;;; more                                   関数[#!expr]
 ;;;
