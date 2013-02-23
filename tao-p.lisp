@@ -1009,7 +1009,7 @@ object が文字列なら、ダブルクォートなしに、プリントする�
 ;;;   (progi ^(car x) (setq x (cdr x)))
 ;;;   x)
 
-#|?(defmacro tao:progi (&body body)
+(defmacro tao:progi (&body body)
   "progi                                  関数[#!subr]
 
 <説明>
@@ -1029,12 +1029,13 @@ progi-id は、関数 exit-progi による脱出のためのマーク。
 	(cache (gensym "TOGA-CACHE-")))
     `(block ,progi-id
        (let (,cache)
-	 ,@(mapcar (lambda (x) (if (tao:togap x) `(setq ,cache ,x) x)) (butlast body))
-	 (if (or (tao:togap ',@(last body))
+	 ,@(mapcar (lambda (x) (if (tao:togap x) `(setq ,cache ,x) x))
+                   (butlast body))
+	 (if (or ,@(and (tao:togap (last body)) (list t))
 		 (null ,cache))
 	     (setq ,cache ,@(last body))
 	     ,@(last body))
-	 ,cache))))|#
+	 ,cache))))
 
 (defmacro trans-progi-if-toga (toga-form cache)
   (if (tao:togap toga-form)

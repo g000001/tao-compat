@@ -4,6 +4,7 @@
 (tao-internal::defreadtable :tao
   (:merge :standard)
   (:macro-char #\( #'tao-internal::tao-read-list)
+  (:macro-char #\^ #'tao-internal::tao-read-toga)
   ;; (:macro-char #\^ #'tao-read-toga)
   ;; (:macro-char #\. #'read-|.| 'T)
   (:macro-char #\' (get-macro-character 

@@ -258,7 +258,7 @@ stream に object の値をプリントし、object の値を返す。stream の
         (vprint 'abc) -> abc!(abc 3)
         (vprint 70) -> 70!(70 2)
         (vprint \"abc def\") -> \"abc def\"!(\"abc def\" 9)"
-  (let ((len (cl:length (string object))))
+  (let ((len (cl:length (princ-to-string object))))
     (values (princ object stream) len)))
 
 ;;; vsize                                  関数[#!subr]

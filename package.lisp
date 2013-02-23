@@ -249,7 +249,7 @@
    :dynamic-extent :ecase :echo-stream :echo-stream-input-stream
    :echo-stream-output-stream :ed :eighth :elt :encode-universal-time
    :end-of-file :endp :enough-namestring :ensure-directories-exist
-   :ensure-generic-function :eq :eql :equal :equalp :error :etypecase :eval
+   :ensure-generic-function :eq :eql :equal :equalp :etypecase :eval
    :eval-when :evenp :every :exp :export :expt :extended-char :fboundp :fceiling
    :fdefinition :ffloor :fifth :file-author :file-error :file-error-pathname
    :file-length :file-namestring :file-position :file-stream :file-string-length

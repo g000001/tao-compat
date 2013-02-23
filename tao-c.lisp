@@ -715,7 +715,7 @@ string の長さより小さくなければならない。
         (char \"asd\" 5) -> \"\""
   (if (< index (length string))
       (cl:char string index)
-      #\Nul))
+      ""))
 
 
 ;;; ＠
