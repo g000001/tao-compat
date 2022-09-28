@@ -532,7 +532,7 @@
                                ((cons (eql tao:&+) (cons * (cons (cons (eql tao:&aux)))))
                                 (destructuring-bind (tao:&+ pat aux &body body)
                                                     clause
-                                  `(tao:&let (,@(cdr aux))
+                                  `(tao:&progn (&aux ,@(cdr aux))
                                      ,(compile-clause parameters `(,(cons tao:&+ pat) ,@body) 'cont))))
                                ((cons (eql tao:&+) *)
                                 (compile-clause parameters (translate-&+ clause) 'cont))

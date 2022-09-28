@@ -45,6 +45,7 @@
 	       (:file "tao-n")
 	       (:file "tao-t")
 	       (:file "tao-p" :depends-on ("tao-t"))
+               (:file "tao-q")
 	       (:file "tao-r")
 	       (:file "tao-u")
 	       (:file "tao-v")

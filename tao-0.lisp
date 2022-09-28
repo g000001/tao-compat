@@ -303,10 +303,9 @@ body の最後に ! がないことを除いては & と同じ。
                               ((&+dyn () B1 B2 ... Bn))"
   (typecase (car body)
     ((cons (eql &aux) *)
-     `(tao:&let (,@(cdar body))
+     `(tao:&progn (&aux ,@(cdar body)) ;TODO
         ,@(cdr body)))
-    (T `(tao:&let ()
-          ,@body))) )
+    (T `(progn ,@body))) )
 
 ;;; ＠
 ;;; &assert                                メッセージ
@@ -457,24 +456,28 @@ number1 の値を number2 の値でべき乗した結果を返す。
         (** 3 3) -> 27"
   (expt number1 number2))
 
-(defmacro tao::&let ((&rest vars) &body body)
-  `(let (,@(mapcar (lambda (v) `(,v (tao:_))) vars))
-     (symbol-macrolet ((tao:_ (tao:_)))
-       (declare (ignorable _))
-       (flet ((tao.logic::logvar-setter ()
-                ,@(mapcar (lambda (v) `(when (and (tao.logic::var-p ,v)
-                                                  (tao.logic::bound-p ,v))
-                                         (setq ,v (tao.logic::deref-exp ,v))))
-                          vars)
-                T))
-         ,@(mapcar (lambda (c)
-                     (if (and (typep c '(cons symbol *))
-                              (or (tao.logic::get-clauses (car c))
-                                  (eq 'tao:= (car c))))
-                         (let ((ari (1- (length c))))
-                           `(,(tao.logic::make-predicate (car c) ari) ,@(cdr c) #'tao.logic::logvar-setter))
-                         c))
-                   body)))))
+(defmacro tao::&progn (&body body)
+  (typecase (car body)
+    ((cons (eql &aux) *)
+     (let ((vars (cdar body)))
+       `(let (,@(mapcar (lambda (v) `(,v (tao:_))) vars))
+          (symbol-macrolet ((tao:_ (tao:_)))
+            (declare (ignorable _))
+            (flet ((tao.logic::logvar-setter ()
+                     ,@(mapcar (lambda (v) `(when (and (tao.logic::var-p ,v)
+                                                       (tao.logic::bound-p ,v))
+                                              (setq ,v (tao.logic::deref-exp ,v))))
+                               vars)
+                     T))
+              ,@(mapcar (lambda (c)
+                          (if (and (typep c '(cons symbol *))
+                                   (or (tao.logic::get-clauses (car c))
+                                       (eq 'tao:= (car c))))
+                              (let ((ari (1- (length c))))
+                                `(,(tao.logic::make-predicate (car c) ari) ,@(cdr c) #'tao.logic::logvar-setter))
+                              c))
+                        (cdr body)))))))
+    (T `(progn ,@body))))
 
 ;;; import & export
 ;;; ***                                    変数

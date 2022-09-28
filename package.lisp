@@ -547,7 +547,7 @@
    :expr-simple :exprdyn-simple :subr-simple :unit-clauses :1b-memblk :2b-memblk
    :4b-memblk :8b-memblk :16b-memblk :32b-memblk :64b-memblk)
   (:export :assert)
-  (:export :&let :query))
+  (:export :&progn :query))
 
 (defpackage tao-user
   (:use tao))
