@@ -678,15 +678,18 @@ pred を満足する要素を見つけたらその要素を返し、後はもう
         (ass '> 5 '((6 . six) (3 . three) (4 . four))) -> (3 . three)"
   (assoc data a-list :test pred))
 
-;;; ＠
-;;; assert                                 関数[#!macro]
-;;;
-;;; <説明>
-;;;   形式 : assert &rest clause
-;;; ホーン節を定義する。この定理宣言と関連した関数の名前は、主ファンクタと
-;;; 呼ばれる。同じ主ファンクタにおいて、複数の節を定義するために assert を
-;;; 複数回使う時は、順番は保証されない。
-;;;
+
+(defmacro tao:assert (&rest clauses)
+  "assert                                 関数[#!macro]
+
+<説明>
+  形式 : assert &rest clause
+ホーン節を定義する。この定理宣言と関連した関数の名前は、主ファンクタと
+呼ばれる。同じ主ファンクタにおいて、複数の節を定義するために assert を
+複数回使う時は、順番は保証されない。
+"
+  `(tao.logic::<- ,@clauses))
+
 ;;; <例>
 ;;; (assert (concatenate (_a . _x) _y (_a . _z)) (concatenate _x _y _z) )
 ;;; (assert (concatenate ()  _x _x) )

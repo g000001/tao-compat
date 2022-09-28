@@ -28,7 +28,7 @@
    :array-dimensions :array-displacement :array-element-type
    :array-has-fill-pointer-p :array-in-bounds-p :array-rank :array-rank-limit
    :array-row-major-index :array-total-size :array-total-size-limit :ash
-   :asin :asinh :assert
+   :asin :asinh 
    :base-char :base-string :bignum :bit :bit-and :bit-andc1 :bit-andc2 :bit-eqv
    :bit-ior :bit-nand :bit-nor :bit-not :bit-orc1 :bit-orc2 :bit-vector
    :bit-vector-p :bit-xor :block :boole :boole-1 :boole-2 :boole-and :boole-andc1
@@ -545,7 +545,12 @@
   (:export 
    :expr :exprdyn :macro :subst :closure :array :&+ :hclauses :&+dyn :subr
    :expr-simple :exprdyn-simple :subr-simple :unit-clauses :1b-memblk :2b-memblk
-   :4b-memblk :8b-memblk :16b-memblk :32b-memblk :64b-memblk))
+   :4b-memblk :8b-memblk :16b-memblk :32b-memblk :64b-memblk)
+  (:export :assert)
+  (:export :&let :query))
+
+(defpackage tao-user
+  (:use tao))
 
 ;(delete-package :common)
 (defpackage common
@@ -578,3 +583,8 @@
    :cell-memblk :vector-memblk :id-memblk :str-memblk :bad-memblk :free-memblk)
   (:export :key-package)
   (:export :bigfloat :float :de :dye :shortfloat))
+
+
+(defpackage tao.logic 
+  (:use cl)
+  (:shadowing-import-from tao _))

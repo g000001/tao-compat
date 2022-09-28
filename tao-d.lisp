@@ -91,20 +91,22 @@ number に対応する曜日名を文字列で返す。number が 0～6 以外�
 ;;   インスタンスが dcu ターミナルであるクラス。
 
 
-(defconstant tao-lambda-list-keywords
-  '(tao:&optional
-    tao:&optn
-    tao:&opt
-    :opt
-    tao:&rest
-    :rest 
-    tao:&key
-    tao:&allow-other-keys
-    tao:&aux
-    :aux
-    tao:&whole
-    tao:&body
-    tao:&environment ))
+(eval-when (:compile-toplevel :load-toplevel :execute)
+  (or (boundp 'tao-lambda-list-keywords)
+      (defconstant tao-lambda-list-keywords
+        '(tao:&optional
+          tao:&optn
+          tao:&opt
+          :opt
+          tao:&rest
+          :rest 
+          tao:&key
+          tao:&allow-other-keys
+          tao:&aux
+          :aux
+          tao:&whole
+          tao:&body
+          tao:&environment ))))
 
 
 (defun nomalize-lambda-list-keyword (arg-list)
@@ -410,7 +412,7 @@ symbol をグローバル変数として宣言し、init-val (省略時は nil)�
         (defglobal cc "fight") -> cc
         cc -> "fight"|))
 
-(defmacro tao:define (symbol applobj)
+(defmacro tao:define (symbol &body body)
   "define                                 関数[#!expr]
 
 <説明>
@@ -423,9 +425,16 @@ symbol を関数オブジェクト applobj に結び付ける。
         (define fn (expr (x y) (list x y)))
                  = (de fn (x y) (list x y))
         (define aa (array 10)) -> aa"
-  `(progn
-     (setf (symbol-function ',symbol) #'values)
-     (setf (symbol-function ',symbol) ,applobj)))
+  (let ((applobj (car body)))
+    `(progn
+       ,(typecase applobj
+          ((cons (member lambda function) *)
+           `(progn
+              (declaim (ftype function ,symbol))
+              (setf (symbol-function ',symbol)
+                    ,applobj)))
+          ((cons (member tao:Hclauses tao:&+ tao:&+dyn) *)
+           `(tao.logic::define-logic ,symbol ,applobj))))))
 
 
 (defclsynonym tao:define-modify-macro
@@ -1669,8 +1678,6 @@ close する。")
 ;; <例>
 ;;         (dump-to-floppy "bs:<gonbe>" "dy1:")
 
-;; コンパイラが自動でスペシャルにするのを期待するという手抜き
-;; 本格的にはCodewalkerを利用しないと駄目
 (defmacro tao:dye (fn var-list &body body)
   "dye                                    関数[#!expr]
 
@@ -1686,5 +1693,4 @@ fn を名前、var-list を引数リストとする exprdyn 型関数 (スコー
                    ((state = 10) (!d-flag nil)) )
              (!result (fn state result)) )  ->  some-routine"
   `(defun ,fn ,var-list
-     (declare (special ,@var-list))
      ,@body))

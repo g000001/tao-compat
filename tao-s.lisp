@@ -1684,8 +1684,7 @@ string のバイト数を返す。
         (string-byte-count \"1 2 3\" -> 5
         (string-byte-count \"あいうえお\") -> 10
         (string-byte-count \"今日は\") -> 6"
-  #+sbcl (length (sb-ext:string-to-octets string))
-  #-sbcl :not-implemented)
+  (babel:string-to-octets string))
 
 
 (defun tao:string-capitalize (string &optional (start 0) end)
@@ -2295,16 +2294,30 @@ n が省略された場合には、string2 の文字列の一番最後の文字�
 ;;;         (common:string-right-trim "た" x) -> "たちつたたれ"
 ;;;         x -> "たちつたたれたたた"
 
-(defun string-search-* (string1 string2 number elt=)
+#|(defun string-search-* (string1 string2 number elt=)
+  (declare (number number)
+           (function elt=))
   (let ((s1 (->string string1))
 	(s2 (->string string2)))
     (let ((len1 (cl:length s1)))
       (do ((s (subseq s2 number) (subseq s 1))
 	   (cnt 0 (1+ cnt)))
 	  ((equal "" s))
-	(or (zerop (mismatch s1 s :test elt=))
-	    (return (and (< len1 (cl:length s))
-			 (+ cnt number))))))))
+        (let ((mm (mismatch s1 s :test elt=)))
+          (when (null mm) (return 0))
+          (or (zerop mm)
+              (return (and (< len1 (cl:length s))
+                           (+ cnt number)))))))))|#
+
+
+(defun string-search-* (string1 string2 number elt=)
+  (declare (number number)
+           (function elt=))
+  (let ((s1 (->string string1))
+	(s2 (->string string2)))
+    (declare (simple-string s1 s2))
+    (cl:search s1 s2 :start2 number :test elt=)))
+
 
 (defun ->string (obj)
   (typecase obj
@@ -2334,7 +2347,7 @@ string1 の先頭の文字が string2 の中で何文字目になっているの
         (string-search \"an\" 'foobar) -> nil
         (string-search \"あか\" \"しろあかき\") -> 2
         (string-search \"あか\" \"あかしろきいろ\" 3) -> nil"
-  (string-search-* string1 string2 number #'equalp))
+  (string-search-* string1 string2 number #'char-equal))
 
 (defun tao:string-search-case (string1 string2 &optional (number 0))
   "string-search-case                     関数[#!subr]

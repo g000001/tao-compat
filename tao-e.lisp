@@ -475,8 +475,7 @@ JISコード) のリスト形式で返す。
         (exploden 'abc) -> (97 98 99))    (ASCII)
         (exploden '123) → (49 50 51)     (ASCII)
         (exploden \"あいう\") -> (42146 42148 42150)  (JIS)"
-  (let ((str (string-or-symbol->string char-list)))
-    (map 'list #'char-code (coerce str 'list))))
+  (map 'list #'char-code (princ-to-string char-list)))
 
 ;;; tao:export                             関数[#!expr]
 ;;;

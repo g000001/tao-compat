@@ -281,6 +281,7 @@ nil を返す。
               (* x y y)) -> 48"
     `(cl:let (,@bindings) ,@body))
 
+
 (defmacro tao:let* ((&rest bindings) &body body)
     "let*                                   関数[#!subr]
 

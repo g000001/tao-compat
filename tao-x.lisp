@@ -1,5 +1,8 @@
 (in-package #:tao-internal)
+
+
 (in-readtable :tao)
+
 
 (defun tao:xcons (arg1 arg2)
   "xcons                                  関数[#!subr]
@@ -14,15 +17,20 @@ arg2 が car 部であり、arg1 が cdr 部であるコンスを作り、それ
         (xcons 'a 'b) -> (b . a)"
   (cons arg2 arg1))
 
-;;; xor#                                   ロカティブオペレータ
-;;;
-;;; <説明>
-;;;   形式 : loc1 xor# loc2
-;;; 2 つの引数のビット xor (exclusive or) 操作を行う。
-;;;
-;;; <例>
-;;;         (signed-integer-locatives p q r) -> (p q r)
-;;;         (p <- #5252) -> 2730
-;;;         (q <- #7070) -> 3640
-;;;         (r <- (p xor# q )) -> 1170 (#2222)
-;;; ＠
+
+(defun xor# (loc1 loc2)
+  "xor#                                   ロカティブオペレータ
+
+<説明>
+  形式 : loc1 xor# loc2
+2 つの引数のビット xor (exclusive or) 操作を行う。
+
+<例>
+       (signed-integer-locatives p q r) -> (p q r)
+        (p <- #5252) -> 2730
+        (q <- #7070) -> 3640
+        (r <- (p xor# q )) -> 1170 (#2222)"
+  (logxor loc1 loc2))
+
+
+;;; *EOF*

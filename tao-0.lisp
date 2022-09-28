@@ -253,29 +253,34 @@ B1, B2, ... または、Bn で使われる局所変数、特に論理変数は�
 ;;; タンスファクトを宣言していたら t を、そうでなければ nil を返す。
 ;;; &assert の例を参照。
 ;;; ＠
-;;; &+                                     関数[#!subr]
-;;;
-;;; <説明>
-;;;   形式 : &+ &rest 'x
-;;; (&+ A' [(&aux  var...)] B1 B2  ...  Bn) は、U-resolver と呼ばれる名前
-;;; なしのホーン節を作る。
-;;; シンボル A は、関数 assert においてはフォーム (p ...) の形をしている。
-;;; ここで P は、主ファンクタ、つまりホーン節の名前である。
-;;; シンボル A' は、A から主ファンクタ P を除いた残りのフォーム (...) で
-;;; あり、 U-resolver のヘッダと呼ばれる。B1 B2 ... Bn は、ボディと呼ばれる。
-;;; 関数 &+ は、使い方については、関数 expr とほぼ同じで、機能については、
-;;; 関数 assert とほぼ同じ。スコープ境界型である。
-;;; Lisp 関数の assert は、定義のボディを調べ自動的に補助変数宣言を行ない、
-;;; 主ファンクタに resolver を関連づける。
-;;; 関数 assert は、resolver がタイプ C なのか U なのかを自動的に決定する。
-;;; タイプ C の resolver は C-resolver と呼ばれる。
-;;;
-;;; <例>
-;;;         ((&+  ((_x  _))_x)  (1  2  3)) -> 1
-;;;         リスト (1  2  3) をヘッダ (_x  .  _) に, ユニファイすることを
-;;;         試み、x を 1 にすることによりうまくいく。
-;;;         expr の表現とほぼ同じ。
-;;;         ((expr (x) (car  x)) '(1  2  3)) -> 1
+
+(defmacro tao:&+ (&whole whole &rest args)
+  "&+                                     関数[#!subr]
+
+<説明>
+  形式 : &+ &rest 'x
+\(&+ A' [(&aux  var...)] B1 B2  ...  Bn) は、U-resolver と呼ばれる名前
+なしのホーン節を作る。
+シンボル A は、関数 assert においてはフォーム (p ...) の形をしている。
+ここで P は、主ファンクタ、つまりホーン節の名前である。
+シンボル A' は、A から主ファンクタ P を除いた残りのフォーム (...) で
+あり、 U-resolver のヘッダと呼ばれる。B1 B2 ... Bn は、ボディと呼ばれる。
+関数 &+ は、使い方については、関数 expr とほぼ同じで、機能については、
+関数 assert とほぼ同じ。スコープ境界型である。
+Lisp 関数の assert は、定義のボディを調べ自動的に補助変数宣言を行ない、
+主ファンクタに resolver を関連づける。
+関数 assert は、resolver がタイプ C なのか U なのかを自動的に決定する。
+タイプ C の resolver は C-resolver と呼ばれる。
+
+<例>
+        ((&+  ((_x  _))_x)  (1  2  3)) -> 1
+        リスト (1  2  3) をヘッダ (_x  .  _) に, ユニファイすることを
+        試み、x を 1 にすることによりうまくいく。
+        expr の表現とほぼ同じ。
+        ((expr (x) (car  x)) '(1  2  3)) -> 1"
+  (declare (ignore args))
+  `(tao:Hclauses ,whole))
+
 ;;; ＠
 ;;; &+dyn                                  関数[#!subr]
 ;;;
@@ -284,16 +289,25 @@ B1, B2, ... または、Bn で使われる局所変数、特に論理変数は�
 ;;; 変数のスコープについてスコープの制限がないということ以外は、関数 &+ と
 ;;; 同じ。関数 &+dyn の使い方は、関数 lambda とほぼ同じ。
 ;;; ＠
-;;; &and                                   関数[#!macro]
-;;;
-;;; <説明>
-;;;   形式 : &and &rest body
-;;; body の最後に ! がないことを除いては & と同じ。
-;;; バックトラックでは その制御は body の最後から入って行くことができる。
-;;;
-;;; <例>
-;;;         (&and [(&aux var ...)] B1 B2 ... Bn) =
-;;;                               ((&+dyn () B1 B2 ... Bn))
+
+(defmacro tao:&and (&rest body)
+  "&and                                   関数[#!macro]
+
+<説明>
+  形式 : &and &rest body
+body の最後に ! がないことを除いては & と同じ。
+バックトラックでは その制御は body の最後から入って行くことができる。
+
+<例>
+        (&and [(&aux var ...)] B1 B2 ... Bn) =
+                              ((&+dyn () B1 B2 ... Bn))"
+  (typecase (car body)
+    ((cons (eql &aux) *)
+     `(tao:&let (,@(cdar body))
+        ,@(cdr body)))
+    (T `(tao:&let ()
+          ,@body))) )
+
 ;;; ＠
 ;;; &assert                                メッセージ
 ;;;
@@ -442,6 +456,25 @@ number1 の値を number2 の値でべき乗した結果を返す。
         (** 3 2) -> 9
         (** 3 3) -> 27"
   (expt number1 number2))
+
+(defmacro tao::&let ((&rest vars) &body body)
+  `(let (,@(mapcar (lambda (v) `(,v (tao:_))) vars))
+     (symbol-macrolet ((tao:_ (tao:_)))
+       (declare (ignorable _))
+       (flet ((tao.logic::logvar-setter ()
+                ,@(mapcar (lambda (v) `(when (and (tao.logic::var-p ,v)
+                                                  (tao.logic::bound-p ,v))
+                                         (setq ,v (tao.logic::deref-exp ,v))))
+                          vars)
+                T))
+         ,@(mapcar (lambda (c)
+                     (if (and (typep c '(cons symbol *))
+                              (or (tao.logic::get-clauses (car c))
+                                  (eq 'tao:= (car c))))
+                         (let ((ari (1- (length c))))
+                           `(,(tao.logic::make-predicate (car c) ari) ,@(cdr c) #'tao.logic::logvar-setter))
+                         c))
+                   body)))))
 
 ;;; import & export
 ;;; ***                                    変数
@@ -1852,20 +1885,22 @@ number1 number2 ... numberN の値 (複素数でも可) を左から右に順に
         (common:= a #c(2 3)) -> #c(2 3)
         (common:= 2 2 3) -> nil")
 
-;;; ==                                     関数[#!&+]
-;;;
-;;; <説明>
-;;;   形式 : == _arg1 _arg2
-;;; _arg1 と ＿arg2 がユニファイされる。
-;;; ユニファイが成功すると、t を返し、そうでなければ nil を返す。
-;;; _arg1 _arg2 は、論理変数であれば、ユニフィケイションの前に評価されるが、
-;;; そうでなければ、評価されない。コンマの次に来る Lisp 変数や Lisp 関数は、
-;;; ユニフィケイションの前に評価される。
-;;;
-;;; <例>
-;;;         (prog (_x _y) (== (_x . _y) (1 2 3)) -> t.
-;;;         現在 _x は (1 2 3) の car になり、同時に _y は (1 2 3) の cdr
-;;;         となっている。
+(setf (tao.logic::get-clauses 'tao:==) T)
+(setf (documentation 'tao:== 'function)
+      "==                                     関数[#!&+]
+<説明>
+
+形式 : == _arg1 _arg2
+_arg1 と ＿arg2 がユニファイされる。
+ユニファイが成功すると、t を返し、そうでなければ nil を返す。
+_arg1 _arg2 は、論理変数であれば、ユニフィケイションの前に評価されるが、
+そうでなければ、評価されない。コンマの次に来る Lisp 変数や Lisp 関数は、
+ユニフィケイションの前に評価される。
+
+<例>
+        (prog (_x _y) (== (_x . _y) (1 2 3)) -> t.
+        現在 _x は (1 2 3) の car になり、同時に _y は (1 2 3) の cdr
+        となっている。")
 
 (defun tao:> (x y)
   #.(string '#:|>                                      関数[#!subr]

@@ -369,36 +369,42 @@
 ;;;         	  (!!cdr !more)
 ;;;         	 (go loop)))
 ;;; ＠
-;;; goal                                   関数[#!macro]
-;;;
-;;; <説明>
-;;;   形式 : goal &rest clause
-;;; clause で指定した問題の解として、満足する局所変数の値がプリントされ、
-;;; バックトラックが繰り返される。TAO のトップレベルで使う。
-;;; ユーザが、プリントされた値の後にセミコロン (;) を入力すると、
-;;; バックトラックが行なわれ、次の解としての値か no のどちらかが返る。no
-;;; は、clause で指定した問題の解として満足する局所変数の値がないことを意味
-;;; する。ユーザが、<cr> を入力すれば、yes か no だけが返る。yes は、
-;;; clause で指定した問題の解として満足する局所変数の他の値があることを意味
-;;; する。
-;;;
-;;; <例>
-;;; (assert (concatenate (_a . _x) _y (_a _z)) (concatenate _x _y _z) )
-;;; (assertz (concatenate () _x _x) )
-;;; (goal (concatenate _x _y (1 2 3))) ->
-;;; _y = nil
-;;; _x = (1 2 3) ;
-;;; [(;) は、そのフォームを失敗させバックトラックを行わせる]
-;;; _y = (3)
-;;; _x = (1 2) ;
-;;; _y = (2 3)
-;;; _x = (1) ;
-;;; _y = (1 2 3)
-;;; _x = () ;
-;;; no
-;;; _x = ...  と _y = ...  のペアが出力されるとセミコロン ; は、
-;;; ユーザにより入力される。そして no はリターン値。
-;;; ＠
+
+
+(defmacro tao:goal (&body clauses)
+  "goal                                   関数[#!macro]
+
+<説明>
+  形式 : goal &rest clause
+clause で指定した問題の解として、満足する局所変数の値がプリントされ、
+バックトラックが繰り返される。TAO のトップレベルで使う。
+ユーザが、プリントされた値の後にセミコロン (;) を入力すると、
+バックトラックが行なわれ、次の解としての値か no のどちらかが返る。no
+は、clause で指定した問題の解として満足する局所変数の値がないことを意味
+する。ユーザが、<cr> を入力すれば、yes か no だけが返る。yes は、
+clause で指定した問題の解として満足する局所変数の他の値があることを意味
+する。
+
+<例>
+\(assert (concatenate (_a . _x) _y (_a _z)) (concatenate _x _y _z) )
+\(assertz (concatenate () _x _x) )
+\(goal (concatenate _x _y (1 2 3))) ->
+_y = nil
+_x = (1 2 3) ;
+[(;) は、そのフォームを失敗させバックトラックを行わせる]
+_y = (3)
+_x = (1 2) ;
+_y = (2 3)
+_x = (1) ;
+_y = (1 2 3)
+_x = () ;
+no
+_x = ...  と _y = ...  のペアが出力されるとセミコロン ; は、
+ユーザにより入力される。そして no はリターン値。
+＠"
+  `(tao.logic::?- ,@clauses))
+
+
 ;;; goal-all                               関数[#!macro]
 ;;;
 ;;; <説明>
@@ -492,7 +498,7 @@
   (flet ((grepout (pattern files out start end)
 	   (mapcar (lambda (f)
 		     (grep* pattern f out start end))
-		   (directory files))))
+		   files)))
     (if out
 	(with-open-file (out out
 			     :direction :output
@@ -504,8 +510,9 @@
 (defun grep* (pattern file out start end)
   (flet ((p (line out)
 	   (cond ((cl-ppcre:scan pattern line)
-		  (princ line out)
-		  (terpri out)
+                  (when (not (eq :silent out)) 
+                    (princ line out)
+                    (terpri out))
 		  line))))
     (with-open-file (in file)
       (do ((out (if out out t))

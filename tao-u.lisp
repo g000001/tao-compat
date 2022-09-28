@@ -66,14 +66,18 @@
 ;;;         	*screen-out-file* *ansi$caution-type*)
 ;;;         (symbol-value 'a) -> (unbound-variable a)
 ;;; ＠
-;;; undef                                  関数[#!subr]
-;;;
-;;; <説明>
-;;;   新しい未定義のデータを返す。
-;;;
-;;; <例>
-;;;         (undef) -> {undef}654
-;;;         (undef) -> {undef}655
+
+(defun tao:undef ()
+  "undef                                  関数[#!subr]
+
+<説明>
+  新しい未定義のデータを返す。
+
+<例>
+        (undef) -> {undef}654
+        (undef) -> {undef}655"
+  (tao.logic::_))
+
 ;;; ＠
 ;;; undefclass                             関数[#!expr]
 ;;;

@@ -38,25 +38,30 @@
 ;;;         (hash-table-p a) -> t
 ;;;         (hash-table-p b) -> エラー
 ;;; ＠
-;;; hclauses                               関数[#!subr]
-;;;
-;;; <説明>
-;;;   形式 : hclauses (&+ A1' [(&aux var ...)] B11 ... B1n1) ...
-;;;          	  (&+ Am' [(&aux var ...)] Bm1 ... Bmnm)
-;;; 名前なしの C-resolver を作る。
-;;; シンボル A1' とシンボル A1 の違いについては、関数 &+ を参照。
-;;;
-;;; <例>
-;;;         (&(&aux _a) ((hclauses (&+ (_x _y 3) (list _x _y))
-;;;         		 (&+ (_x _y _x) (list _x _y)))
-;;;         	 	1 (_a 2) _a ))
-;;;         最初に、第 1  U-resolver (&+ (_x _y 3) (list _x _y) を選び、
-;;;         a を 3 にしてリスト (1 (3 2)) を返す。
-;;;         バックトラックが起これば、
-;;;         第 2 U-resolver (&+ (_x _y)) (list _x _y))
-;;;         を選び x を 1 にして (1 (1  2)) を返す。
-;;;         もう一度、バックトラックが起こればフォーム & は nil を返す。
-;;;         つまり選択は、完全に失敗となる。
+
+(defmacro tao:Hclauses (&body body)
+  "hclauses                               関数[#!subr]
+
+<説明>
+  形式 : hclauses (&+ A1' [(&aux var ...)] B11 ... B1n1) ...
+         	  (&+ Am' [(&aux var ...)] Bm1 ... Bmnm)
+名前なしの C-resolver を作る。
+シンボル A1' とシンボル A1 の違いについては、関数 &+ を参照。
+
+<例>
+        (&(&aux _a) ((hclauses (&+ (_x _y 3) (list _x _y))
+        		 (&+ (_x _y _x) (list _x _y)))
+        	 	1 (_a 2) _a ))
+        最初に、第 1  U-resolver (&+ (_x _y 3) (list _x _y) を選び、
+        a を 3 にしてリスト (1 (3 2)) を返す。
+        バックトラックが起これば、
+        第 2 U-resolver (&+ (_x _y)) (list _x _y))
+        を選び x を 1 にして (1 (1  2)) を返す。
+        もう一度、バックトラックが起こればフォーム & は nil を返す。
+        つまり選択は、完全に失敗となる。"  
+  `(tao.logic::compile-anonymous-predicate ,(length (elt (elt body 0) 1))
+                                           ',body))
+
 ;;; ＠
 ;;; hidar                                  関数[#!subr]
 ;;;

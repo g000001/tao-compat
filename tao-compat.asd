@@ -7,7 +7,7 @@
 
 (in-package #:tao-compat-asd)
 
-(defvar *tao-compat-version-string* "0.0.3"
+(defvar *tao-compat-version-string* "0.1.5"
   "Tao-compat's version number as a string.")
 
 (in-package #:cl-user)
@@ -20,6 +20,12 @@
   :version tao-compat-asd:*tao-compat-version-string*
   :serial t
   :components ((:file "package")
+               (:file "auxfns")
+               (:file "patmatch")
+               (:file "unify")
+               (:file "prolog")
+               (:file "prologc")
+               (:file "prologcp")
                (:file "util")
                (:file "reader")
                (:file "readtable" :depends-on ("package"))
@@ -44,5 +50,5 @@
 	       (:file "tao-v")
 	       (:file "tao-x")
 	       (:file "tao-z"))
-  :depends-on (#:cl-ppcre #:named-readtables))
+  :depends-on (#:cl-ppcre #:named-readtables #:babel))
 
