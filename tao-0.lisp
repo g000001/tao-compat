@@ -456,7 +456,7 @@ number1 の値を number2 の値でべき乗した結果を返す。
         (** 3 3) -> 27"
   (expt number1 number2))
 
-(defmacro tao::&progn (&body body)
+(defmacro tao::&progn (&body body &environment env)
   (typecase (car body)
     ((cons (eql &aux) *)
      (let ((vars (cdar body)))
@@ -471,10 +471,12 @@ number1 の値を number2 の値でべき乗した結果を返す。
                      T))
               ,@(mapcar (lambda (c)
                           (if (and (typep c '(cons symbol *))
-                                   (or (tao.logic::get-clauses (car c))
-                                       (eq 'tao:= (car c))))
-                              (let ((ari (1- (length c))))
-                                `(,(tao.logic::make-predicate (car c) ari) ,@(cdr c) #'tao.logic::logvar-setter))
+                                   (tao.logic::get-clauses (car c)))
+                              (if (macro-function (car c))
+                                  (append (butlast (macroexpand c env))
+                                          (list '#'tao.logic::logvar-setter))
+                                  (let ((ari (1- (length c))))
+                                    `(,(tao.logic::make-predicate (car c) ari) ,@(cdr c) #'tao.logic::logvar-setter)))
                               c))
                         (cdr body)))))))
     (T `(progn ,@body))))
@@ -1888,9 +1890,25 @@ number1 number2 ... numberN の値 (複素数でも可) を左から右に順に
         (common:= a #c(2 3)) -> #c(2 3)
         (common:= 2 2 3) -> nil")
 
+(defun var-name-p (expr)
+  (and (symbolp expr)
+       (eql 0 (position #\_ (string expr)))))
+
+(defun unquotify (expr)
+  (typecase expr
+    (null '())
+    (atom (if (var-name-p expr) ;TODO
+              expr
+              `',expr))
+    ((cons (eql tao:unquote)) (cadr expr))
+    (cons (list 'cons
+                (unquotify (car expr))
+                (unquotify (cdr expr))))))
+
+
 (setf (tao.logic::get-clauses 'tao:==) T)
-(setf (documentation 'tao:== 'function)
-      "==                                     関数[#!&+]
+(defmacro tao:== (arg1 arg2)
+  "==                                     関数[#!&+]
 <説明>
 
 形式 : == _arg1 _arg2
@@ -1903,7 +1921,11 @@ _arg1 _arg2 は、論理変数であれば、ユニフィケイションの前�
 <例>
         (prog (_x _y) (== (_x . _y) (1 2 3)) -> t.
         現在 _x は (1 2 3) の car になり、同時に _y は (1 2 3) の cdr
-        となっている。")
+        となっている。"
+  `(tao.logic::==/2 ,(unquotify arg1) ,(unquotify arg2)
+                    (constantly T)))
+
+
 
 (defun tao:> (x y)
   #.(string '#:|>                                      関数[#!subr]
