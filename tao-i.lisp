@@ -147,29 +147,21 @@ else を評価する。 else の指定がない時は nil となる。
         (if (listp \"a b c\") 'list)→ nil"
     `(cl:if ,pred ,then ,else))
 
-;;; ifundef                                関数[#!subr]
-;;;
-;;; <説明>
-;;;   形式 : ifundef object1 object2
-;;; object1 が未定義なら object2 の評価値を返し、その他の場合は object1 の
-;;; 評価値を返す。
-;;;
-;;; <例>
-;;;         (de f (&opt x)
-;;;             (!x (ifundef x 1)) ; x の既定値は 1
-;;;              ... )
+(defun tao:ifundef (object1 object2)
+  "ifundef                                関数[#!subr]
 
-;undefはどう定義されてるのか分からん
-;; orとどう違うのかも分からん。
+<説明>
+  形式 : ifundef object1 object2
+object1 が未定義なら object2 の評価値を返し、その他の場合は object1 の
+評価値を返す。
 
-(defmacro tao:ifundef (object1 object2)
-  `(if (and ,object1
-            (symbolp ',object1))
-       ,object1
-       ,object2))
-
-;(let (i)
-;  (ifundef i 3))
+<例>
+        (de f (&opt x)
+            (!x (ifundef x 1)) ; x の既定値は 1
+             ... )"
+  (if (tao:undefp object1)
+      object2
+      object1))
 
 ;;; ＠
 ;;; ignore                                 関数[#!expr]

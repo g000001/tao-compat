@@ -259,6 +259,5 @@
   (== _y (3 4 5))
   (append// _x _y _z))
 
-
-
-
+(let (_x)
+  (ifundef _x nil))

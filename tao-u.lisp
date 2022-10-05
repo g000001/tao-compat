@@ -121,16 +121,19 @@
 ;;;         [cc mult] -> 200
 ;;;         (undefmethod (a1 mult)) -> mult
 ;;;         [cc mult]   エラーを警告する
-;;; ＠
-;;; undefp                                 関数[#!subr]
-;;;
-;;; <説明>
-;;;   形式 : undefp data
-;;; data が未定義なら data を返し、それ以外なら nil を返す。
-;;;
-;;; <例>
-;;;         (undefp _x) -> {undef}1235 if _x is uninstantiated.
-;;; ＠
+
+(defun tao:undefp (obj)
+  "undefp                                 関数[#!subr]
+
+<説明>
+  形式 : undefp data
+data が未定義なら data を返し、それ以外なら nil を返す。
+
+<例>
+        (undefp _x) -> {undef}1235 if _x is uninstantiated.
+"
+  (tao.logic::var-p obj))
+
 ;;; undelete-file                          関数[#!expr]
 ;;;
 ;;; <説明>
