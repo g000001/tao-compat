@@ -38,4 +38,10 @@
      (setq *readtable* tao:tao-standard-readtable)))
 
 
+(defmacro tao:common-lisp ()
+  `(eval-when (:compile-toplevel :load-toplevel :execute)
+     (cl:in-package cl-user)
+     (setq *readtable* (copy-readtable nil))))
+
+
 ;;; *EOF*
