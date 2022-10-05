@@ -1,5 +1,5 @@
+(tao:tao)
 (in-package #:tao-internal)
-(in-readtable :tao)
 
 ;;; ＠
 ;;; labels                                 関数[#!expr]

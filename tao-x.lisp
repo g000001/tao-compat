@@ -1,8 +1,5 @@
+(tao:tao)
 (in-package #:tao-internal)
-
-
-(in-readtable :tao)
-
 
 (defun tao:xcons (arg1 arg2)
   "xcons                                  関数[#!subr]

@@ -1,5 +1,5 @@
+(tao:tao)
 (in-package #:tao-internal)
-(in-readtable :tao)
 
 ;;; ＠
 ;;; backquotedp                            関数[#!subr]

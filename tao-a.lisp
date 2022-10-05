@@ -1,6 +1,6 @@
 ;; -*- Mode: Lisp; Package: TAO; -*-
+(tao:tao)
 (in-package #:tao-internal)
-(in-readtable :tao)
 
 ;;; ＠
 ;;; abolish                                関数[#!&+]

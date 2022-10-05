@@ -598,6 +598,7 @@
 (defun get-char/2 (_stream-or-alias _char cont)
   "8.12.2"
   (with-stream (s (deref _stream-or-alias))
+    (cl:declare (cl:ignorable s))
     (when (unify! (deref _char) (intern (string (read-char _stream-or-alias))))
       (funcall cont))))
 

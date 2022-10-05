@@ -2,7 +2,7 @@
 ;(g1::delete-package* :tao)
 
 (defpackage #:tao
-  (:use :named-readtables)
+  (:use)
   (:import-from :cl
    :&allow-other-keys :&aux :&body :&environment :&key :&optional :&rest :&whole
    :*
@@ -188,6 +188,7 @@
    :with-package-iterator :with-simple-restart :with-slots
    :with-standard-io-syntax :write :write-byte :write-char :write-line
    :write-sequence :write-string :write-to-string :y-or-n-p :yes-or-no-p)
+  (:export :tao :common-lisp)
   ;; Common Lisp
   (:export
    :&allow-other-keys :&aux :&body :&environment :&key :&optional :&rest :&whole
@@ -575,7 +576,7 @@
 
 
 (defpackage #:tao-internal
-  (:use #:cl #:named-readtables))
+  (:use #:cl))
 
 
 (defpackage tao.sys 

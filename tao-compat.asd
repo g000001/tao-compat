@@ -1,25 +1,16 @@
 ;; -*- Mode: LISP; Syntax: COMMON-LISP; Package: CL-USER; -*-
 (in-package #:cl-user)
 
-(defpackage #:tao-compat-asd
-  (:use #:cl #:asdf)
-  (:export :*tao-compat-version-string*))
-
-(in-package #:tao-compat-asd)
-
-(defvar *tao-compat-version-string* "0.1.5"
-  "Tao-compat's version number as a string.")
-
-(in-package #:cl-user)
 
 (asdf:defsystem #:tao-compat
   :name "tao-compat"
   :description "TAO Compatible package for CL"
   :author "CHIBA Masaomi <chiba.masaomi@gmail.com>"
   :maintainer "CHIBA Masaomi <chiba.masaomi@gmail.com>"
-  :version tao-compat-asd:*tao-compat-version-string*
+  :version "0.1.6"
   :serial t
   :components ((:file "package")
+               (:file "tao-q")
                (:file "auxfns")
                (:file "patmatch")
                (:file "unify")
@@ -44,12 +35,13 @@
 	       (:file "tao-m")
 	       (:file "tao-n")
 	       (:file "tao-t")
-	       (:file "tao-p" :depends-on ("tao-t"))
-               (:file "tao-q")
+	       (:file "tao-p" :depends-on ("tao-t")) 
 	       (:file "tao-r")
 	       (:file "tao-u")
 	       (:file "tao-v")
 	       (:file "tao-x")
 	       (:file "tao-z"))
-  :depends-on (#:cl-ppcre #:named-readtables #:babel))
+  :depends-on (#:cl-ppcre #:babel))
 
+
+;;; *EOF*

@@ -1,5 +1,5 @@
+(tao:tao)
 (in-package #:tao-internal)
-(in-readtable :tao)
 
 (defmacro tao:exit-progi (&optional val progi-id)
   "exit-progi                             関数[#!subr]

@@ -1,5 +1,6 @@
+(tao:tao)
+
 (in-package #:tao-internal)
-(in-readtable :tao)
 
 ;;; ;;; ＠
 ;;; ;;; random                                 関数[#!expr]

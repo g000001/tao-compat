@@ -1,5 +1,5 @@
+(tao:tao)
 (in-package #:tao-internal)
-(in-readtable :tao)
 
 (defmacro defsynonym (new-name old-name &optional docstring)
   "New-name is a subst for old-name.  Uses rest arg so be careful."

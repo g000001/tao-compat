@@ -1,5 +1,6 @@
+(tao:tao)
 (in-package #:tao-internal)
-(in-readtable :tao)
+
 ;;; ＠
 ;;; gc                                     関数[#!subr]
 ;;;

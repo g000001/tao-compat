@@ -1,5 +1,5 @@
+(tao:tao)
 (in-package #:tao-internal)
-(in-readtable :tao)
 
 (defun tao:sass (pred item a-list func)
   "sass     未インプリメント              関数[#!subr]

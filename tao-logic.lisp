@@ -1,8 +1,6 @@
 ;;; -*- mode: Lisp; coding: utf-8  -*-
-
+(tao:tao)
 (cl:in-package tao-user)
-(named-readtables:in-readtable :tao)
-
 
 (let (_a _b)
   (== _a 3)

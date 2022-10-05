@@ -1,5 +1,8 @@
 ;;; -*- mode: Lisp; coding: utf-8  -*-
 
+(tao:tao)
+
+
 (cl:in-package tao-internal)
 
 
@@ -63,6 +66,7 @@
                  (qq-expand-list (car x) depth)
                  (qq-expand (cdr x) depth) )))
         (list (quote quote) x) )))
+
 
 (defmacro tao::quasiquote (&whole form expr)
   (if (eq (quote tao::quasiquote) (car form))
