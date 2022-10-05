@@ -262,8 +262,16 @@ nil を返す。
         (lessp #c(2 3) #c(4 5)) -> エラー"
   (every #'< numbers (cdr numbers)))
 
+(eval-when (:compile-toplevel :load-toplevel :execute)
+(defun canonicalize-bvl (bvl)
+  (mapcar (lambda (v)
+            (etypecase v
+              (symbol `(,v (tao:undef)))
+              (cons v)))
+          bvl)))
+
 (defmacro tao:let ((&rest bindings) &body body)
-    "let                                    関数[#!subr]
+  "let                                    関数[#!subr]
 
 <説明>
   形式 : let ((var1 val-form1)
@@ -279,7 +287,8 @@ nil を返す。
         (!x 2) -> 2
         (let ((x 3) (y (* x x)))
               (* x y y)) -> 48"
-    `(cl:let (,@bindings) ,@body))
+  `(cl:let (,@(canonicalize-bvl bindings))
+     ,@body))
 
 
 (defmacro tao:let* ((&rest bindings) &body body)
@@ -302,7 +311,7 @@ val-formI は省略可能で、その場合、varI は nil となる。
 <例>
         (let* ((x 3) (y (* x x)))
               (* x y y)) -> 243"
-    `(cl:let* (,@bindings) ,@body))
+    `(cl:let* (,@(canonicalize-bvl bindings)) ,@body))
 
 (defun tao:lins (vector key)
   "lins                                   関数[#!subr]

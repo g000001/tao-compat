@@ -4,20 +4,20 @@
 (named-readtables:in-readtable :tao)
 
 
-(&progn (&aux _a _b)
+(let (_a _b)
   (== _a 3)
   (== _b _a)
   (list _a _b))
-;(3 3)
+;→ (3 3)
 
 (let ((x '(0 1 2 (:kmacrou (@) nil)))
-      (j (list '!)))
-  (&progn (&aux _f)
-    (!(cdr j)
-      (if (== (_ _ _ (:kmacrou _f nil)) ,x)
-          _f
-          (cdr x)))
-    j))
+      (j (list '!))
+      _f)
+  (!(cdr j)
+    (if (== (_ _ _ (:kmacrou _f nil)) ,x)
+        _f
+        (cdr x)))
+  j)
 ;(! . (@)) 
 
 
@@ -27,32 +27,22 @@
     (&+ ((_a . _x) _y (_a . _z))
         (&conc _x _y _z))))
 
-(&progn (&aux _x _y _z)
+(let (_x _y _z)
   (== _x (0 1 2))
   (== _y (3 4 5))
   (&conc _x _y _z)
   (list _x _y _z))
-;((0 1 2) (3 4 5) (0 1 2 3 4 5)) 
+;→ ((0 1 2) (3 4 5) (0 1 2 3 4 5))
 
 
-(&progn (&aux _x _y _z)
-  (== _x '(0 1 2))
-  (== _y '(3 4 5))
-  (funcall (tao.logic::compile-anonymous-predicate 3
-                                                   '(((&+ ( ) _y _y))
-                                                     ((&+ (_a . _x) _y (_a . _z))
-                                                      (append _x _y _z) )))
-           _x _y _z
-           #'tao.logic::logvar-setter)
-  _z)
-;(0 1 2 3 4 5) 
+(let (_z)
+  (&conc (a b c) (d e f) (a b c d e f)))
 
-
-(define append
+(define append/
   (Hclauses
     (&+ (( ) _y _y))
     (&+ ((_a . _x) _y (_a . _z))
-        (append _x _y _z))))
+        (append/ _x _y _z))))
 
 (&progn (&aux _x _y _z)
   (== _x (0 1 2))
@@ -60,7 +50,7 @@
   (query (Hclauses
            (&+ (( ) _y _y))
            (&+ ((_a . _x) _y (_a . _z))
-               (append _x _y _z)))
+               (append/ _x _y _z)))
          _x _y _z)
   _z)
 ;(0 1 2 3 4 5) 
@@ -85,7 +75,7 @@
         (&append _l1 (_x) _l))
     (&+ (() ()))))
 
-(&progn (&aux _x _y _z _r)
+(let (_x _y _z _r)
   (== _x (0 1 3))
   (== _y (0 1 3))
   (&append _x _y _z)
@@ -117,14 +107,14 @@
 ;→ (KK K)
 
 
-(&progn (&aux _ans _u)
+(let (_ans _u)
   (== _u (1 2 3 4))
   (== _ans _u)
   (&reverse _u _ans)
   _ans)
 ;→ (1 2 3 4)
 
-(&progn (&aux _ans _u)
+(let (_ans _u)
   (== _u (1 2 3 4))
   (== _ans _u)
   (setq _ans (undef))
@@ -139,21 +129,40 @@
   (list _a _z))
 ;→ (KK (KK))
 
-(assert (append ( ) _y _y))
-(assert (append (_a . _x) _y (_a . _z))
-        (append _x _y _z) )
+(assert (append// ( ) _y _y))
+(assert (append// (_a . _x) _y (_a . _z))
+        (append// _x _y _z) )
 
 
-(&progn (&aux _x _y _z _r)
+(tao.logic::define-logic append//
+                         (Hclauses 
+                           (&+ (LISP:NIL _Y _Y))
+                           (&+ ((_A . _X) _Y (_A . _Z)) (APPEND// _X _Y _Z))) )
+
+(let (_x _y _z _r)
   (== _x (0 1 2))
   (== _y (3 4 5))
-  (append _x _y _z)
+  (append// _x _y _z)
   _z)
 ;→ (0 1 2 3 4 5)
 
 (setf (tao.logic::get-clauses 'lisp) T)
 (defmacro lisp (&rest args)
-  `(tao.logic::lisp/2 ,@(mapcar #'tao-internal::unquotify args) (constantly T)))
+  `(flet ((logvar-setter ()
+            ,@(mapcar (lambda (v) `(when (and (tao.logic::var-p ,v)
+                                              (tao.logic::bound-p ,v))
+                                     (setq ,v (tao.logic::deref-exp ,v))))
+                      (tao.logic::variables-in args))
+            (throw 'functor T)
+            ))
+     (catch 'functor
+       (tao.logic::lisp/2 ,@(mapcar #'tao-internal::unquotify args) #'logvar-setter))))
+
+
+(&progn (&aux _y)
+  (lisp _y 1)
+  _y)
+
 
 (let ((a 42))
   (&progn (&aux _x _y)
@@ -162,13 +171,25 @@
     _y))
 ;→ 45
 
+
+
 (&progn (&aux _x _y)
   (== _x 3)
   (== _y ,[_x + 10])
   (list _x _y))
 ;→ (3 13)
 
+(define generate
+  (hclauses 
+    (&+ (0 ()))
+    (&+ (_n (_n . _l))
+        (> _n 0)             ; この > は lisp 関数
+        (== _n1 ,(1- _n))
+        (generate _n1 _l) )))
 
+(let (_ans)
+  (generate 10 _ans)
+  _ans)
 
 
 (progn
@@ -227,16 +248,19 @@
         (notmem _a _l) ))
 
 
-(&progn (&aux _x _y _z _r)
+(let (_x _y _z _r)
   (== _x ())
   (== _y (3 4 5))
-  (append _x _y _z)
+  (append// _x _y _z)
   _z)
-;→ (3 4 5)
+→ (3 4 5)
 
 
 (goal
   (== _x ())
   (== _y (3 4 5))
-  (append _x _y _z))
+  (append// _x _y _z))
+
+
+
 

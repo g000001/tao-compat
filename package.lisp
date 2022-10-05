@@ -569,6 +569,8 @@
            :apply
            :arrayp
            :nreverse
+           :prog
+           :prog*
            ))
 
 

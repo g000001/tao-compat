@@ -7,10 +7,12 @@
 
 (in-package :tao.logic)
 
+
 #-ABCL
 (defconstant unbound (if (boundp 'unbound)
 			 (symbol-value 'unbound)
 			 "Unbound"))
+
 
 #+ABCL
 (defvar unbound (if (boundp 'unbound)
@@ -19,18 +21,22 @@
 
 (defvar *var-counter* 0)
 
+
 (defstruct (var (:constructor _ ())
                 (:print-function print-var))
   (name (incf *var-counter*))
   (binding unbound))
 
+
 (defun bound-p (var) (not (eq (var-binding var) unbound)))
+
 
 (defmacro deref (exp)
   "Follow pointers for bound variables."
   `(progn (loop while (and (var-p ,exp) (bound-p ,exp))
              do (setf ,exp (var-binding ,exp)))
           ,exp))
+
 
 (defun unify! (x y)
   "Destructively unify two expressions"
@@ -41,6 +47,7 @@
          (and (unify! (first x) (first y))
               (unify! (rest x) (rest y))))
         (t nil)))
+
 
 #+nil
 (defun set-binding! (var value)
@@ -55,7 +62,9 @@
       (format stream "{undef}_~A" (var-name var))
       (write var :stream stream)))
 
+
 (defvar *trail* (make-array 200 :fill-pointer 0 :adjustable t))
+
 
 (defun set-binding! (var value)
   "Set var's binding to value, after saving the variable
@@ -65,10 +74,12 @@
     (setf (var-binding var) value))
   t)
 
+
 (defun undo-bindings! (old-trail)
   "Undo all bindings back to a given point in the trail."
   (loop until (= (fill-pointer *trail*) old-trail)
      do (setf (var-binding (vector-pop *trail*)) unbound)))
+
 
 (defun prolog-compile (symbol &optional
                        (clauses (get-clauses symbol)))
@@ -82,6 +93,7 @@
       (prolog-compile
         symbol (clauses-with-arity clauses #'/= arity)))))
 
+
 (defun clauses-with-arity (clauses test arity)
   "Return all clauses whose head has given arity."
   (find-all arity clauses
@@ -89,10 +101,12 @@
                      (relation-arity (clause-head clause)))
             :test test))
 
+
 (defun relation-arity (relation)
   "The number of arguments to a relation.
   Example: (relation-arity '(p a b c)) => 3"
   (length (args relation)))
+
 
 (defun args (x)
   "The arguments of a relation"
@@ -100,30 +114,37 @@
       nil
       (rest x)))
 
+
 (defun make-parameters (arity)
   "Return the list (_arg1 _arg2 ... _arg-arity)"
   (loop for i from 1 to arity
         collect (new-symbol '_arg i)))
 
+
 (defun make-predicate (symbol arity)
   "Return the symbol: symbol/arity"
   (symbol+ symbol '/ arity))
 
+
 (defun make-= (x y) `(= ,x ,y))
+
 
 (defun compile-call (predicate args cont)
   "Compile a call to a prolog predicate."
   `(,predicate ,@args ,cont))
+
 
 (defun prolog-compiler-macro (name)
   "Fetch the compiler macro for a Prolog predicate."
   ;; Note NAME is the raw name, not the name/arity
   (get name 'prolog-compiler-macro))
 
+
 (defmacro def-prolog-compiler-macro (name arglist &body body)
   "Define a compiler macro for Prolog."
   `(setf (get ',name 'prolog-compiler-macro)
          #'(lambda ,arglist .,body)))
+
 
 #+nil
 (defun compile-arg (arg)
@@ -139,10 +160,12 @@
   "Is there a variable anywhere in the expression x?"
   (find-if-anywhere #'variable-p x))
 
+
 (defun proper-listp (x)
   "Is x a proper (non-dotted) list?"
   (or (null x)
       (and (consp x) (proper-listp (rest x)))))
+
 
 (defun maybe-add-undo-bindings (compiled-exps)
   "Undo any bindings that need undoing.
@@ -155,6 +178,7 @@
                   collect '(undo-bindings! old-trail)
                   collect exp)))))
 
+
 (defun bind-unbound-vars (parameters exp)
   "If there are any variables in exp (besides the parameters)
   then bind them to new vars."
@@ -166,9 +190,11 @@
            ,exp)
         exp)))
 
+
 (defmacro <- (&rest clause)
   "Add a clause to the data base."
   `(add-clause ',(make-anonymous clause)))
+
 
 (defun make-anonymous (exp &optional
                        (anon-vars (anonymous-variables-in exp)))
@@ -180,10 +206,12 @@
         ((member exp anon-vars) '_)
         (t exp)))
 
+
 (defun anonymous-variables-in (tree)
   "Return a list of all variables that occur only once in tree."
   (values (anon-vars-in tree nil nil)))
- 
+
+
 (defun anon-vars-in (tree seen-once seen-more)
   "Walk the data structure TREE, returning a list of variabless
    seen once, and a list of variables seen more than once."
@@ -198,6 +226,7 @@
     ((member tree seen-more)
      (values seen-once seen-more))
     (t (values (cons tree seen-once) seen-more))))
+
 
 (defun compile-unify (x y bindings)
   "Return 2 values: code to test if x and y unify,
@@ -216,12 +245,14 @@
     ((variable-p x) (compile-unify-variable x y bindings))
     (t              (compile-unify-variable y x bindings))))
 
+
 (defun compile-if (pred then-part)
   "Compile a Lisp IF form. No else-part allowed."
   (case pred
     ((t) then-part)
     ((nil) nil)
     (otherwise `(if ,pred ,then-part))))
+
 
 (defun compile-unify-variable (x y bindings)
   "X is a variable, and Y may be."
@@ -245,7 +276,10 @@
                    (extend-bindings x1 y1 bindings))))    ; 5,6
       ((not (null yb))
        (compile-unify-variable y1 x1 bindings))
-      (t (values 't (extend-bindings x1 y1 bindings)))))) ; 8,9
+      (t (values 't (extend-bindings x1 y1 bindings))))))
+
+
+; 8,9
 
 (defun bind-variables-in (exp bindings)
   "Bind all variables in exp to themselves, and add that to
@@ -255,6 +289,7 @@
       (setf bindings (extend-bindings var var bindings))))
   bindings)
 
+
 (defun follow-binding (var bindings)
   "Get the ultimate binding of var according to bindings."
   (let ((b (get-binding var bindings)))
@@ -262,6 +297,7 @@
         b
         (or (follow-binding (cdr b) bindings)
             b))))
+
 
 (defun compile-arg (arg bindings)
   "Generate code for an argument to a goal in the body."
@@ -279,13 +315,16 @@
         (t `(cons ,(compile-arg (first arg) bindings)
                   ,(compile-arg (rest arg) bindings)))))
 
+
 (defun bind-new-variables (bindings goal)
   "Extend bindings to include any unbound variables in goal."
   (let ((variables (remove-if #'(lambda (v) (assoc v bindings))
                               (variables-in goal))))
     (nconc (mapcar #'self-cons variables) bindings)))
 
+
 (defun self-cons (x) (cons x x))
+
 
 (def-prolog-compiler-macro = (goal body cont bindings)
   "Compile a goal which is a call to =."
@@ -298,25 +337,26 @@
             code1
             (compile-body body cont bindings1))))))
 
+
 (defun compile-clause (parms clause cont)
   "Transform away the head, and compile the resulting body."
-  (bind-unbound-vars       
-    parms                  
-    ;; fix broken compilation of (setof _x (or clause clause ..) _answer)
-    (if (member (car clause) '(if or and))
-	(compile-body
-	 (list clause)
-	 cont
-	 (mapcar #'self-cons parms))
-    (compile-body
-      (nconc
-        (mapcar #'make-= parms (args (clause-head clause)))
-        (clause-body clause))
-      cont
-      (mapcar #'self-cons parms)))))                    ;***
+  (bind-unbound-vars parms                  
+                     ;; fix broken compilation of (setof _x (or clause clause ..) _answer)
+                     (if (member (car clause) '(if or and))
+                         (compile-body (list clause)
+                                       cont
+                                       (mapcar #'self-cons parms))
+                         (compile-body (nconc (mapcar #'make-= parms (args (clause-head clause)))
+                                              (clause-body clause))
+                                       cont
+                                       (mapcar #'self-cons parms)))))
+
+
+;***
 
 (defvar *uncompiled* nil 
   "Prolog symbols that have not been compiled.")
+
 
 (defun add-clause (clause &key asserta)
   "Add a clause to the data base, indexed by head's predicate."
@@ -331,6 +371,7 @@
 	      (nconc (get-clauses pred) (list clause))))
     pred))
 
+
 (defun retract-clause (clause)
   "Retract a clause from the data base"
   (let ((pred (predicate (clause-head clause))))
@@ -339,6 +380,7 @@
     (setf (get pred 'clauses)
 	  (delete clause (get-clauses pred) :test #'equal))
     pred))
+
 
 (defun top-level-prove (goals)
   "Prove the list of goals by compiling and calling it."
@@ -354,6 +396,7 @@
   (format t "~&No.")
   (values))
 
+
 (defun run-prolog (procedure cont)
   "Run a 0-ary prolog procedure with a given continuation."
   ;; First compile anything else that needs it
@@ -364,6 +407,7 @@
   ;; Finally, call the query
   (catch 'top-level-prove
     (funcall procedure cont)))
+
 
 (defun prolog-compile-symbols (&optional (symbols *uncompiled*))
   "Compile a list of Prolog symbols.
@@ -386,6 +430,7 @@
       (funcall cont)
       (throw 'top-level-prove nil)))
 
+
 (defun deref-exp (exp)
   "Build something equivalent to EXP with variables dereferenced."
   (if (atom (deref exp))
@@ -395,8 +440,10 @@
         (deref-exp (rest exp))
         exp)))
 
+
 (defvar *predicate* nil
   "The Prolog predicate currently being compiled")
+
 
 (defun compile-predicate (symbol arity clauses)
   "Compile all the clauses for a given symbol/arity
@@ -411,25 +458,40 @@
 		       (compile-clause parameters clause 'cont))
 	    clauses)))))))
 
+
 (defun goal-cut-p (goal)
   (eq goal '!))
+
+
 (defun goal-conjunction-p (goal)
   (goal-and-p goal))
+
+
 (defun goal-and-p (goal)
   (and (consp goal)
        (eq (car goal) 'and)))
+
+
 (defun goal-disjunction-p (goal)
   (and (goal-or-p goal)
        (not (goal-if-then-p (cadr goal)))))
+
+
 (defun goal-or-p (goal)
   (and (consp goal)
        (eq (car goal) 'or)))
+
+
 (defun goal-if-p (goal)
   (and (consp goal)
        (eq (car goal) 'if)))
+
+
 (defun goal-if-then-p (goal)
   (and (goal-if-p goal)
        (null (cdddr goal))))
+
+
 (defun goal-if-then-else-p (goal)
   (or
    ;; (OR (IF A B) C)
@@ -439,6 +501,7 @@
    (and (goal-if-p goal)
         (not (null (cdddr goal)))
         (null (cddddr goal)))))
+
 
 (defun destructure-if-then-else (goal)
   (cond
@@ -452,65 +515,91 @@
        (values if then else)))
     (t (error "Goal not an IF-THEN-ELSE: ~S" goal))))
 
+
+(defun goal-has-unquote-p (goal)
+  (find 'tao:unquote
+        goal
+        :key (lambda (x) (and (consp x) (car x)))))
+
+
+(defun replace-unquote (expr)
+  (if (and (consp expr) (eq 'tao:unquote (car expr)))
+      (let ((vars (tao.logic::variables-in expr)))
+        `(progn
+           ,@(mapcar (lambda (v) `(deref ,v)) vars)
+           ,(cadr expr)))
+      expr))
+
+
 (defun compile-body (body cont bindings)
   "Compile the body of a clause."
   (if (null body)
       `(funcall ,cont)
       (let ((goal (first body)))
-	(cond
-	  ((goal-cut-p goal)
-	   `(progn
-	     ,(compile-body (rest body) cont bindings)
-             (return-from ,*predicate* nil)))
-	  ((goal-conjunction-p goal)
-	   (compile-body (append (cdr goal) (rest body)) cont bindings))
-	  ((goal-disjunction-p goal)
-	   (let ((bindings (bind-new-variables bindings goal)))
-	     `(let ((old-trail (fill-pointer *trail*))
-		    (cont #'(lambda () ,(compile-body
-					 (rest body)
-					 cont bindings))))
-	       ,(compile-body (list (cadr goal)) 'cont bindings)
-	       (undo-bindings! old-trail)
-	       ,(compile-body (list (caddr goal)) 'cont bindings))))
-	  ((goal-if-then-p goal)
-	   (let ((bindings (bind-new-variables bindings goal)))
-	     `(let ((cont #'(lambda () ,(compile-body
-					 (cons (caddr goal) (rest body))
-					 cont bindings))))
-	       (block nil
-		 ,(compile-body (list (cadr goal)) '#'(lambda () (funcall cont) (return nil)) bindings)))))
-	  ((goal-if-then-else-p goal)
-	   (let ((bindings (bind-new-variables bindings goal)))
-	     (multiple-value-bind (if then else)
-                 (destructure-if-then-else goal)
-	       `(let ((old-trail (fill-pointer *trail*))
-		      (cont #'(lambda ()
-				,(compile-body
-				  (rest body)
-				  cont bindings))))
-		 (block nil
-		   ,(compile-body (list if) `#'(lambda () ,(compile-body (list then) cont bindings) (return nil)) bindings)
-		   (undo-bindings! old-trail)
-		   ,(compile-body (list else) 'cont bindings))))))
-	  (t
-	   (let* ((macro (prolog-compiler-macro (predicate goal)))
-		  (macro-val (if macro 
-				 (funcall macro goal (rest body) 
-					  cont bindings))))
-	     (if (and macro (not (eq macro-val :pass)))
-		 macro-val
-		 `(,(make-predicate (predicate goal)
-				    (relation-arity goal))
-		   ,@(mapcar #'(lambda (arg)
-				 (compile-arg arg bindings))
-			     (args goal))
-		   ,(if (null (rest body))
-			cont
-			`#'(lambda ()
-			     ,(compile-body 
-			       (rest body) cont
-			       (bind-new-variables bindings goal))))))))))))
+	(cond #|((goal-has-unquote-p goal)
+               '(print `(progn
+                         ,(compile-body (list (mapcar #'replace-unquote goal))
+                                        cont
+                                        bindings)
+                         ,(compile-body (rest body)
+                                        cont
+                                        bindings)))
+               (print (compile-body (subst 'kwote 'tao:unquote body)
+                             cont
+                             bindings)))|#
+              ((goal-cut-p goal)
+               `(progn
+                  ,(compile-body (rest body) cont bindings)
+                  (return-from ,*predicate* nil)))
+              ((goal-conjunction-p goal)
+               (compile-body (append (cdr goal) (rest body)) cont bindings))
+              ((goal-disjunction-p goal)
+               (let ((bindings (bind-new-variables bindings goal)))
+                 `(let ((old-trail (fill-pointer *trail*))
+                        (cont #'(lambda () ,(compile-body
+                                             (rest body)
+                                             cont bindings))))
+                    ,(compile-body (list (cadr goal)) 'cont bindings)
+                    (undo-bindings! old-trail)
+                    ,(compile-body (list (caddr goal)) 'cont bindings))))
+              ((goal-if-then-p goal)
+               (let ((bindings (bind-new-variables bindings goal)))
+                 `(let ((cont #'(lambda () ,(compile-body
+                                             (cons (caddr goal) (rest body))
+                                             cont bindings))))
+                    (block nil
+                      ,(compile-body (list (cadr goal)) '#'(lambda () (funcall cont) (return nil)) bindings)))))
+              ((goal-if-then-else-p goal)
+               (let ((bindings (bind-new-variables bindings goal)))
+                 (multiple-value-bind (if then else)
+                                      (destructure-if-then-else goal)
+                   `(let ((old-trail (fill-pointer *trail*))
+                          (cont #'(lambda ()
+                                    ,(compile-body
+                                      (rest body)
+                                      cont bindings))))
+                      (block nil
+                        ,(compile-body (list if) `#'(lambda () ,(compile-body (list then) cont bindings) (return nil)) bindings)
+                        (undo-bindings! old-trail)
+                        ,(compile-body (list else) 'cont bindings))))))
+              (t
+               (let* ((macro (prolog-compiler-macro (predicate goal)))
+                      (macro-val (if macro 
+                                     (funcall macro goal (rest body) 
+                                              cont bindings))))
+                 (if (and macro (not (eq macro-val :pass)))
+                     macro-val
+                     `(,(make-predicate (predicate goal)
+                                        (relation-arity goal))
+                       ,@(mapcar #'(lambda (arg)
+                                     (compile-arg arg bindings))
+                                 (args goal))
+                       ,(if (null (rest body))
+                            cont
+                            `#'(lambda ()
+                                 ,(compile-body 
+                                   (rest body) cont
+                                   (bind-new-variables bindings goal))))))))))))
 
 
 (defun translate-&+ (expr)
@@ -539,6 +628,7 @@
                                (T (compile-clause parameters clause 'cont))))
                            clauses))))))
 
+
 (defun Hclauses->prolog-clauses (name clauses)
   (destructuring-bind (Hclauses &rest clauses)
                       clauses
@@ -549,6 +639,7 @@
                       (cdr c)))
             clauses)))
 
+
 (defmacro define-logic (name form)
   (let* ((clauses (Hclauses->prolog-clauses name form))
          (functor/arity (make-predicate name (1- (length (caar clauses))))))
@@ -556,4 +647,17 @@
        (declaim (ftype function ,functor/arity))
        (setf (symbol-function ',functor/arity)
              ,form)
-       (setf (get-clauses ',name) ',clauses))))
+       (setf (get-clauses ',name) ',clauses)
+       (defmacro ,name (&rest args)
+         `(flet ((logvar-setter ()
+                   ,@(mapcar (lambda (v) `(when (and (tao.logic::var-p ,v)
+                                                     (tao.logic::bound-p ,v))
+                                            (setq ,v (tao.logic::deref-exp ,v))))
+                             (variables-in args))
+                   (throw 'functor T)
+                   ))
+            (catch 'functor
+              (,',functor/arity ,@args #'logvar-setter)))))))
+
+
+;;; *EOF*

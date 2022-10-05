@@ -910,23 +910,26 @@ object が文字列なら、ダブルクォートなしに、プリントする�
 ;;;               ... )
 ;;;         (return var outer-loop) が実行されると、評価の制御は
 ;;;         (prog outer-loop ...) の外に出る。
-;;; ＠
-;;; common:prog                            関数[#!macro]
-;;;
-;;; <説明>
-;;;   形式 : common:prog ((var1 val-form1) (var2 val-form2) ...)
-;;;                        form1 form2 ...
-;;; フォーム val-form1 val-form2 ... を順に評価する。
-;;; 次に、変数 var1 var2 ... を各々、val-form1 val-form2 ... の評価結果
-;;; に同時に束縛する。そして、フォーム form1 form2 ... を順に評価し、nil
-;;; を返す。val-formi は省略可能で、その場合は vari は nil となる。
-;;;
-;;; <例>
-;;;         (common:prog (x) (return x)) -> nil
-;;;         (common:prog (n) (!x 1) (+ x 3) x) -> nil
-;;;         (common:prog (x y z) (!x 1) (!y (x + 1))
-;;;                       (!z (y + 1)) (list x y z)) -> nil
-;;; ＠
+
+(defclsynonym common:prog
+              "common:prog                            関数[#!macro]
+
+<説明>
+  形式 : common:prog ((var1 val-form1) (var2 val-form2) ...)
+                       form1 form2 ...
+フォーム val-form1 val-form2 ... を順に評価する。
+次に、変数 var1 var2 ... を各々、val-form1 val-form2 ... の評価結果
+に同時に束縛する。そして、フォーム form1 form2 ... を順に評価し、nil
+を返す。val-formi は省略可能で、その場合は vari は nil となる。
+
+<例>
+        (common:prog (x) (return x)) -> nil
+        (common:prog (n) (!x 1) (+ x 3) x) -> nil
+        (common:prog (x y z) (!x 1) (!y (x + 1))
+                      (!z (y + 1)) (list x y z)) -> nil")
+
+
+
 ;;; common:prog*                           関数[#!macro]
 ;;;
 ;;; <説明>
