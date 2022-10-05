@@ -1,4 +1,4 @@
-(in-package :tao)
+(cl:in-package :tao-internal)
 
 
 (tao-internal::defreadtable :tao
