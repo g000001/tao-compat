@@ -306,14 +306,48 @@
          (let ((binding (get-binding arg bindings)))
            (if (and (not (null binding))
                     (not (eq arg (binding-val binding))))
-             (compile-arg (binding-val binding) bindings)
-             arg)))
+               (compile-arg (binding-val binding) bindings)
+               arg)))
         ((not (find-if-anywhere #'variable-p arg)) `',arg)
         ((proper-listp arg)
          `(list .,(mapcar #'(lambda (a) (compile-arg a bindings))
                           arg)))
         (t `(cons ,(compile-arg (first arg) bindings)
                   ,(compile-arg (rest arg) bindings)))))
+
+
+(defmacro deref (exp)
+  "Follow pointers for bound variables."
+  `(progn (loop while (and (var-p ,exp) (bound-p ,exp))
+             do (setf ,exp (var-binding ,exp)))
+          ,exp))
+
+(defun compile-unquote-arg (arg bindings)
+  "Generate code for an argument to a goal in the body."
+  (let ((deref-vars '()))
+    (labels ((compile-unquote-arg (arg bindings)
+               "Generate code for an argument to a goal in the body."
+               (cond ((typep arg '(cons (eql tao:unquote) *))
+                      (compile-unquote-arg (cadr arg) bindings))
+                     ((eq arg '_) '(_))
+                     ((variable-p arg)
+                      (cl:push arg deref-vars)
+                      (let ((binding (get-binding arg bindings)))
+                        (if (and (not (null binding))
+                                 (not (eq arg (binding-val binding))))
+                            (compile-unquote-arg (binding-val binding) bindings)
+                            arg)))
+                     ((not (find-if-anywhere #'variable-p arg)) arg)
+                     ((proper-listp arg)
+                      (mapcar (lambda (a) (compile-unquote-arg a bindings))
+                              arg))
+                     (t `(cons ,(compile-unquote-arg (first arg) bindings)
+                               ,(compile-unquote-arg (rest arg) bindings))))))
+      (let* ((xpr (compile-unquote-arg arg bindings))
+             (vars (remove-duplicates deref-vars :from-end T)))
+        `(let (,@(mapcar (lambda (v) `(,v ,v)) vars))
+           ,@(mapcar (lambda (v) `(deref ,v)) vars)
+           ,xpr)))))
 
 
 (defun bind-new-variables (bindings goal)
@@ -452,11 +486,11 @@
         (parameters (make-parameters arity)))
     (compile
      (eval
-      `(defun ,*predicate* (,@parameters cont)
+      (progn 'print `(defun ,*predicate* (,@parameters cont)
 	.,(maybe-add-undo-bindings
 	   (mapcar #'(lambda (clause)
 		       (compile-clause parameters clause 'cont))
-	    clauses)))))))
+	    clauses))))))))
 
 
 (defun goal-cut-p (goal)
@@ -522,32 +556,12 @@
         :key (lambda (x) (and (consp x) (car x)))))
 
 
-(defun replace-unquote (expr)
-  (if (and (consp expr) (eq 'tao:unquote (car expr)))
-      (let ((vars (tao.logic::variables-in expr)))
-        `(progn
-           ,@(mapcar (lambda (v) `(deref ,v)) vars)
-           ,(cadr expr)))
-      expr))
-
-
 (defun compile-body (body cont bindings)
   "Compile the body of a clause."
   (if (null body)
       `(funcall ,cont)
       (let ((goal (first body)))
-	(cond #|((goal-has-unquote-p goal)
-               '(print `(progn
-                         ,(compile-body (list (mapcar #'replace-unquote goal))
-                                        cont
-                                        bindings)
-                         ,(compile-body (rest body)
-                                        cont
-                                        bindings)))
-               (print (compile-body (subst 'kwote 'tao:unquote body)
-                             cont
-                             bindings)))|#
-              ((goal-cut-p goal)
+	(cond ((goal-cut-p goal)
                `(progn
                   ,(compile-body (rest body) cont bindings)
                   (return-from ,*predicate* nil)))
@@ -589,17 +603,43 @@
                                               cont bindings))))
                  (if (and macro (not (eq macro-val :pass)))
                      macro-val
-                     `(,(make-predicate (predicate goal)
-                                        (relation-arity goal))
-                       ,@(mapcar #'(lambda (arg)
-                                     (compile-arg arg bindings))
-                                 (args goal))
-                       ,(if (null (rest body))
-                            cont
-                            `#'(lambda ()
-                                 ,(compile-body 
-                                   (rest body) cont
-                                   (bind-new-variables bindings goal))))))))))))
+                     (cond ((goal-has-unquote-p goal)
+                            `(,(make-predicate (predicate goal)
+                                               (relation-arity goal))
+                              ,@(mapcar (lambda (x)
+                                          (if (and (consp x)
+                                                   (eq 'tao:unquote (car x)))
+                                              (compile-unquote-arg x bindings)
+                                              (compile-arg x bindings)))
+                                        (args goal))
+                              ,(if (null (rest body))
+                                   cont
+                                   `#'(lambda ()
+                                        ,(compile-body 
+                                          (rest body) cont
+                                          (bind-new-variables bindings goal))))))
+                           ((and (symbolp (car goal))
+                                 (fboundp (car goal))
+                                 (eq (symbol-package (car goal))
+                                     (find-package "CL")))
+                            #+debug (print (list :=========> (car goal)))
+                            `(lispp-uq/1
+                              ,(compile-unquote-arg goal bindings)
+                              (lambda ()
+                                ,(compile-body 
+                                  (rest body) cont
+                                  (bind-new-variables bindings goal)))))
+                           (T `(,(make-predicate (predicate goal)
+                                                 (relation-arity goal))
+                                ,@(mapcar #'(lambda (arg)
+                                              (compile-arg arg bindings))
+                                          (args goal))
+                                ,(if (null (rest body))
+                                     cont
+                                     `#'(lambda ()
+                                          ,(compile-body 
+                                            (rest body) cont
+                                            (bind-new-variables bindings goal))))))))))))))
 
 
 (defun translate-&+ (expr)

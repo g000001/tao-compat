@@ -170,7 +170,6 @@
 ;→ 45
 
 
-
 (&progn (&aux _x _y)
   (== _x 3)
   (== _y ,[_x + 10])
@@ -185,87 +184,51 @@
         (== _n1 ,(1- _n))
         (generate _n1 _l) )))
 
-(let (_ans)
+
+(seq
+ (dolist (p '(generate notmem choose try queen))
+   (setf (tao.logic::get-clauses p) '()))
+ 
+  (assert (generate 0 ()))
+  (assert (generate _n (_n . _l))
+          (> _n 0)     
+          (== _n1 ,(1- _n))
+          (generate _n1 _l) )
+
+  (assert (notmem _ ()))
+  (assert (notmem _a (_b . _l))
+          (not (== _a _b))        ; not は lisp 関数
+          (notmem _a _l) )
+
+  (assert (choose (_a . _l) _a _l))
+  (assert (choose (_a . _l) _x (_a . _l1))
+          (choose _l _x _l1) )
+  
+  (assert (try _ () _l _l _ _))
+  (assert (try _m _s _l1 _l _c _d)
+          (choose _s _a _s1)
+          (== _c1 ,[_m + _a])
+          (notmem _c1 _c)
+          (== _d1 ,[_m - _a])
+          (notmem _d1 _d)
+          (try ,[_m - 1] _s1 (_a . _l1)
+               _l (_c1 . _c) (_d1 . _d) ))
+  
+  (assert (queen _n _l)
+          (generate _n _l1)
+          (try _n _l1 () _l () ()) )
+  (tao.logic::prolog-compile-symbols))
+
+
+(&progn (&aux _answer)
+  (queen 8 _answer)
+  _answer )
+;→ (5 7 2 6 3 1 4 8)
+
+(&progn (&aux _ans)
   (generate 10 _ans)
   _ans)
-
-
-(progn
-;;; original
-(assert (queen _n _l)
-        (generate _n _l1)
-        (try _n _l1 () _l () ()) )
-(assert (generate 0 ()))
-(assert (generate _n (_n . _l))
-        (> _n 0)             ; この > は lisp 関数
-        (== _n1 ,(1- _n))
-        (generate _n1 _l) )
-(assert (try _ () _l _l _ _))
-(assert (try _m _s _l1 _l _c _d)
-        (choose _s _a _s1)
-        (== _c1 ,(_m + _a))
-        (notmem _c1 _c)
-        (== _d1 ,(_m - _a))
-        (notmem _d1 _d)
-        (try ,(_m - 1) _s1 (_a . _l1)
-             _l (_c1 . _c) (_d1 . _d) ) )
-(assert (choose (_a . _l) _a _l))
-(assert (choose (_a . _l) _x (_a . _l1))
-        (choose _l _x _l1) )
-(assert (notmem _ ()))
-(assert (notmem _a (_b . _l))
-        (not (== _a _b))        ; not は lisp 関数
-        (notmem _a _l) ))
-
-
-(progn
-;;; WIP
-(assert (queen _n _l)
-        (generate _n _l1)
-        (try _n _l1 () _l () ()) )
-(assert (generate 0 ()))
-(assert (generate _n (_n . _l))
-        (> _n 0)             ; この > は lisp 関数
-        (== _n1 ,(1- _n))
-        (generate _n1 _l) )
-(assert (try _ () _l _l _ _))
-(assert (try _m _s _l1 _l _c _d)
-        (choose _s _a _s1)
-        (== _c1 ,(_m + _a))
-        (notmem _c1 _c)
-        (== _d1 ,(_m - _a))
-        (notmem _d1 _d)
-        (try ,(_m - 1) _s1 (_a . _l1)
-             _l (_c1 . _c) (_d1 . _d) ) )
-(assert (choose (_a . _l) _a _l))
-(assert (choose (_a . _l) _x (_a . _l1))
-        (choose _l _x _l1) )
-(assert (notmem _ ()))
-(assert (notmem _a (_b . _l))
-        (not (== _a _b))        ; not は lisp 関数
-        (notmem _a _l) ))
-
-
-(let (_x _y _z _r)
-  (== _x ())
-  (== _y (3 4 5))
-  (append// _x _y _z)
-  _z)
-→ (3 4 5)
-
-
-(goal
-  (== _x ())
-  (== _y (3 4 5))
-  (append// _x _y _z))
-
-(let (_a _b)
-  (== (_a (b c) d)
-      (_a (_b c) d))
-  (!!ifundef !_a '?)
-  (list _a _b))
-;→ (? B)
-
+;→ (10 9 8 7 6 5 4 3 2 1)
 
 (let (_a _b)
   (query (&+ (_x _x))
@@ -273,8 +236,6 @@
          (_a (_b c) d))
   (!!ifundef !_a '?)
   (list _a _b))
-→ (? B)
-
-
+;→ (? B)
 
 

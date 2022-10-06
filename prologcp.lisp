@@ -314,6 +314,11 @@
     (funcall cont)))
 
 
+(defun lispp-uq/1 (unquoted-exp cont)
+  (when (not (null unquoted-exp))
+    (funcall cont)))
+
+
 ;;; 8.7 arithmetic comparison
 
 (macrolet ((define-arithmetic-comparison-predicate (name op)
