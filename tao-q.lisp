@@ -6,10 +6,18 @@
 (cl:in-package tao-internal)
 
 
-(defmacro tao::query (log &rest args)
+(defun logvar-setter-exist-p (env)
+  (multiple-value-bind (ftype localp)
+                       #+lispworks (hcl:function-information 'tao.logic::logvar-setter env)
+    (and ftype localp)))
+
+
+(defmacro tao::query (log &rest args &environment env)
   `(funcall ,log
             ,@(mapcar #'unquotify args)
-            #'tao.logic::logvar-setter))
+            ,(if (logvar-setter-exist-p env)
+                 '(function tao.logic::logvar-setter)
+                 '(constantly T))))
 
 
 (eval-when (:compile-toplevel :load-toplevel :execute)
