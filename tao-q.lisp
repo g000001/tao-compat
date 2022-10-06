@@ -1,7 +1,5 @@
 ;;; -*- mode: Lisp; coding: utf-8  -*-
 
-(tao:tao)
-
 
 (cl:in-package tao-internal)
 

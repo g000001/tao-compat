@@ -284,7 +284,7 @@ form の評価により終了する。他のリストの余分な要素は無視
 ;;; <例>
 ;;;         (import edit ledit) -> nil
 
-(defclsynonym tao:in-package
+#|(defclsynonym tao:in-package
   #.(string '#:|in-package                             関数[#!macro]
 
 <説明>
@@ -295,7 +295,7 @@ form の評価により終了する。他のリストの余分な要素は無視
 <例>
         (package-name (current-package)) -> "abc"
         (in-package sys:bas-package)) -> {vector}32228(package . 12))
-        (package-name (current-package)) -> "bas"|))
+        (package-name (current-package)) -> "bas"|))|#
 
 (defmacro tao:inc (var &optional (val 1))
   "inc                                    関数[#!macro]
