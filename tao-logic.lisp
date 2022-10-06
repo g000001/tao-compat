@@ -259,5 +259,22 @@
   (== _y (3 4 5))
   (append// _x _y _z))
 
-(let (_x)
-  (ifundef _x nil))
+(let (_a _b)
+  (== (_a (b c) d)
+      (_a (_b c) d))
+  (!!ifundef !_a '?)
+  (list _a _b))
+;→ (? B)
+
+
+(let (_a _b)
+  (query (&+ (_x _x))
+         (_a (b c) d) 
+         (_a (_b c) d))
+  (!!ifundef !_a '?)
+  (list _a _b))
+→ (? B)
+
+
+
+

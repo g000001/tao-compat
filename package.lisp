@@ -83,6 +83,7 @@
    :ignore-errors :imagpart :import :incf :initialize-instance
    :inline :input-stream-p :inspect :integer :integer-decode-float
    :integer-length :integerp :interactive-stream-p :intern
+   :in-package
    :internal-time-units-per-second :intersection :invalid-method-error
    :invoke-debugger :invoke-restart :invoke-restart-interactively :isqrt :keyword
    :keywordp :labels :lambda :lambda-list-keywords :lambda-parameters-limit :last
@@ -455,6 +456,7 @@
    :hash :hclauses :hidar :host-fullname :host-name)
   (:export
    :i/= :i< :i<= :i= :i> :i>= :id :idp :ifundef :image :image-can
+   :in-package
    :imagen :inc :index :int-char :intern-local :intern-local*
    :interprocess-closure :intersectionq)
   (:export
