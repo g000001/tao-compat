@@ -1,12 +1,13 @@
 (tao:tao)
 (in-package #:tao-internal)
 
-;;; ＠
-;;; gc                                     関数[#!subr]
-;;;
-;;; <説明>
-;;;   ガーベジコレクタを直ちに起動する。
-;;; ＠
+(defun tao:gc ()
+  "gc                                     関数[#!subr]
+
+<説明>
+  ガーベジコレクタを直ちに起動する。"
+  #+lispworks (hcl:gc-all))
+
 ;;; gcd                                    関数[#!subr]
 ;;;
 ;;; <説明>
@@ -406,42 +407,53 @@ _x = ...  と _y = ...  のペアが出力されるとセミコロン ; は、
   `(tao.logic::?- ,@clauses))
 
 
-;;; goal-all                               関数[#!macro]
-;;;
-;;; <説明>
-;;;   形式 : goal-all &rest clause
-;;; セミコロンの入力なしにバックトラックを自動的におこすこと以外は
-;;; 関数 goal と同じ。つまり clause で指定した問題の解として満足する
-;;; 局所変数の全ての値をプリントする。返される値は、that's-all 。
-;;; TAO のトップレベルで使う。
-;;;
-;;; <例>
-;;; (assert (concatenate (_a . _x) _y (_a _z)) (concatenate _x _y _z) )
-;;; (assertz (concatenate () _x _x) )
-;;; (goal-all (concatenate _x _y (1 2 3))) ->
-;;; _y = nil
-;;; _x = (1 2 3)
-;;; _y = (3)
-;;; _x = (1 2)
-;;; _y = (2 3)
-;;; _x = (1)
-;;; _y = (1 2 3)
-;;; _x = ()
-;;;         that's-all
-;;; ＠
-;;; goal-all-list                          関数[#macro]
-;;;
-;;; <説明>
-;;;   形式 : goal-all-list arg &rest x
-;;; goal-all と同じように働くが、 x 節内にある論理変数 arg に対する結合され
-;;; た値のリストを返す。
-;;;
-;;; <例>
-;;;         (asserta (concat () _x _x)) -> concat
-;;;         (asserta (concat (_a . _x) _y (_a . _z)) (concat _x _y _z))
-;;;         						-> concat
-;;;         (goal-all-list _x (concat _x _y (1 2))) -> (() (1) (1 2))
-;;; ＠
+(defmacro tao:goal-all (&rest clauses)
+  "goal-all                               関数[#!macro]
+
+<説明>
+  形式 : goal-all &rest clauses
+セミコロンの入力なしにバックトラックを自動的におこすこと以外は
+関数 goal と同じ。つまり clause で指定した問題の解として満足する
+局所変数の全ての値をプリントする。返される値は、that's-all 。
+TAO のトップレベルで使う。
+
+<例>
+\(assert (concatenate (_a . _x) _y (_a _z)) (concatenate _x _y _z) )
+\(assertz (concatenate () _x _x) )
+\(goal-all (concatenate _x _y (1 2 3))) ->
+_y = nil
+_x = (1 2 3)
+_y = (3)
+_x = (1 2)
+_y = (2 3)
+_x = (1)
+_y = (1 2 3)
+_x = ()
+        that's-all"
+  `(tao.logic::?-all ,@clauses))
+
+
+(defmacro tao:goal-all-list (arg &rest x)
+  "goal-all-list                          関数[#macro]
+
+<説明>
+  形式 : goal-all-list arg &rest x
+goal-all と同じように働くが、 x 節内にある論理変数 arg に対する結合され
+た値のリストを返す。
+
+<例>
+        (asserta (concat () _x _x)) -> concat
+        (asserta (concat (_a . _x) _y (_a . _z)) (concat _x _y _z))
+        						-> concat
+        (goal-all-list _x (concat _x _y (1 2))) -> (() (1) (1 2))"
+  (let ((_all (gensym "_all")))
+    `(tao:let (,_all ,@(tao.logic::variables-in x))
+       (tao.logic::findall/3 ,arg
+                             ,(unquotify `(and ,@x))
+                             ,_all
+                             (lambda () ,_all)))))
+
+
 ;;; graphic-char-p                         関数[#!subr]
 ;;;
 ;;; <説明>
@@ -530,75 +542,68 @@ _x = ...  と _y = ...  のペアが出力されるとセミコロン ; は、
                    ('T (p line out)))
 	     (setq find? t))))))
 
-(defstruct (gl (:print-function print-gl))
-  data next last)
+(defstruct (gl (:print-function print-gl)
+               (:constructor make-gl (cons))
+               (:conc-name gl.))
+  cons)
+
+(defun gl->list (gl)
+  (car (gl.cons gl)))
+
+(defun list->gl (list)
+  (make-gl (cons list (last list))))
 
 (defun print-gl (gl stream depth)
   (declare (ignore depth))
-  (format stream "#<GL ~A>" (gl->list gl)))
+  (format stream "~S" (car (gl.cons gl))))
 
-(defun gl->list (lst)
-  (if (gl-p lst)
-      (cons (gl-data lst) (gl->list (gl-next lst)))
-      lst))
+(defun gl-nil ()
+  (list->gl nil))
 
-(defun gl-cons (x lst)
-  (let ((elt (make-gl :data x :next lst)))
-    (if (gl-p lst)
-	(setf (gl-last elt) (gl-last lst))
-	(setf (gl-last elt) (car (last lst))))
-    elt))
-
-#|(defun gl-put-last (x lst)
-  (let ((elt (make-gl :data (car lst) :next (cdr lst) :last x)))
-    (if (gl-p lst)
-	(setf (gl-last lst) (gl-last elt))
-	(setf (gl-next elt) (append (cdr lst) (list x))))
-    elt))|#
+(defun gl-cons (x gl)
+  (setf (car (gl.cons gl))
+        (cons x (car (gl.cons gl))))
+  (when (null (cdr (gl.cons gl)))
+    (setf (cdr (gl.cons gl))
+          (car (gl.cons gl))))
+  gl)
 
 
-;(gl-put-last 'x '(foo bar baz))
+(defun gl-snoc (x gl)
+  (if (null (car (gl.cons gl)))
+      (let ((x (list x)))
+        (setf (car (gl.cons gl)) x
+              (cdr (gl.cons gl)) x))
+      (progn
+        (setf (cdr (cdr (gl.cons gl)))
+              (list x))
+        (setf (cdr (gl.cons gl))
+              (last (cdr (gl.cons gl))))))
+  gl)
 
 (defun gl-list (&rest args)
-  (reduce #'gl-cons args
-	  :from-end t :initial-value nil))
-
-;(gl-list 'x 'y 'z 'a 'b 'c)
-
-;(gl-cons 'y (gl-cons 'x '(foo bar baz)))
-
-#|(let ((l '(foo bar baz)))
-  (make-gl :data 1 :next l :last (car (last l))))|#
-
-#|(gl-cons 1 ())|#
+  (list->gl args))
 
 
-#|(values
- (time (do ((i 0 (1+ i))
-	    (result () (gl-put-last (random 10) result)))
-	   ((= 10000 i) )))
- (time (do ((i 0 (1+ i))
-	    (result () (gl-cons result (random 10))))
-	   ((= 10000 i) ))))|#
+#||#
 
-#|(gl-cons (random 10) ())|#
+(defun tao:growlistp (list)
+  "growlistp                              関数[#!subr]
 
-#|(gl-put-last 1 ())|#
+<説明>
+  形式 : growlistp list
+list が成長リストなら t を返し、それ以外なら nil を返す。
+成長リストは、その最初の要素 (リストの car 部) と同様に最後の要素にも
+ポインタを持つ。それゆえ、最後の要素として新しい値がリストに付け加え
+られた時、成長リストでは、普通のリストより速く実行される。
+普通のリストは、最初の要素にだけポインタを持つ。
 
-;;; growlistp                              関数[#!subr]
-;;;
-;;; <説明>
-;;;   形式 : growlistp list
-;;; list が成長リストなら t を返し、それ以外なら nil を返す。
-;;; 成長リストは、その最初の要素 (リストの car 部) と同様に最後の要素にも
-;;; ポインタを持つ。それゆえ、最後の要素として新しい値がリストに付け加え
-;;; られた時、成長リストでは、普通のリストより速く実行される。
-;;; 普通のリストは、最初の要素にだけポインタを持つ。
-;;;
-;;; <例>
-;;;         (!aa (tcons nil '(1 2 3))) -> ((1 2 3))
-;;;         (growlistp aa) -> t
-;;; ＠
+<例>
+        (!aa (tcons nil '(1 2 3))) -> ((1 2 3))
+        (growlistp aa) -> t
+"
+  (gl-p list))
+
 ;;; sys:gt                                 関数[#!subr]
 ;;;
 ;;; <説明>

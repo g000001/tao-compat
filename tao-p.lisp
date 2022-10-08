@@ -334,17 +334,22 @@ package のパッケージ名を文字列として返す。
 ;;;         (read-char aa) -> "a"
 ;;;         (peek-char t aa) -> "N"
 ;;;         (read-char aa) -> "N"
-;;; ＠
-;;; peelinv                                関数[#!subr]
-;;;
-;;; <説明>
-;;;   形式 : peelinv object
-;;; object の潜在ポインタを順に取り去っていき、最初の顕在ポインタ、
-;;; つまり通常のポインタに行き当たったらそこで止まる。
-;;;
-;;; <例>
-;;;         (peelinv '(a b c)) ->(a b c)
-;;;         (peelinv 'd) -> d
+
+(defun tao:peelinv (object)
+  "peelinv                                関数[#!subr]
+
+<説明>
+  形式 : peelinv object
+object の潜在ポインタを順に取り去っていき、最初の顕在ポインタ、
+つまり通常のポインタに行き当たったらそこで止まる。
+
+<例>
+        (peelinv '(a b c)) ->(a b c)
+        (peelinv 'd) -> d"
+  (typecase object
+    (GL (car (gl.cons object)))
+    (T object)))
+
 ;;; ＠
 ;;; phase                                  関数[#!subr]
 ;;;

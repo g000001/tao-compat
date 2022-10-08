@@ -57,10 +57,10 @@
                                   (return-from or/2 nil)))
           (undo-bindings! old-trail)
           (call/1 or cont))
-      (let ((old-trail (fill-pointer *trail*)))
-	(call/1 either cont)
-	(undo-bindings! old-trail)
-	(call/1 or cont))))
+        (let ((old-trail (fill-pointer *trail*)))
+          (call/1 either cont)
+          (undo-bindings! old-trail)
+          (call/1 or cont))))
   
   (defun if/2 (if then cont)
     "7.8.7"
@@ -415,6 +415,7 @@
   ;; Ex: Assume (p 1) (p 2) (p 3).  Then:
   ;;     (bagof _x (p _x) _l) ==> _l = (1 2 3)
   (let ((answers nil))
+    (print answers)
     (call/1 goal #'(lambda ()
 		     ;; Bug fix by mdf0%shemesh@gte.com (Mark Feblowitz)
 		     ;; on 25 Jan 1996; was deref-COPY

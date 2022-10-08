@@ -113,8 +113,7 @@
 (defun top-level-prove-all (goals)
   (prove-all `(,@goals (show-all-prolog-vars ,@(variables-in goals)))
              no-bindings)
-  (format t "~&No.")
-  (values))
+  'tao::that\'s-all)
 
 
 (defun show-prolog-vars (vars bindings other-goals)
@@ -132,16 +131,13 @@
 
 
 (defun show-all-prolog-vars (vars bindings other-goals)
-  "Print each variable with its binding.
-  Then ask the user if more solutions are desired."
+  (declare (ignore other-goals))
   (if (null vars)
       (format t "~&Yes")
       (dolist (var vars)
         (format t "~&~a = ~a" var
                 (subst-bindings bindings var))))
-  (if (continue-p)
-      fail
-      (prove-all other-goals bindings)))
+  fail)
 
 (setf (get 'show-prolog-vars 'clauses) 'show-prolog-vars)
 (setf (get 'show-all-prolog-vars 'clauses) 'show-all-prolog-vars)
