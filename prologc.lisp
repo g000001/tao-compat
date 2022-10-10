@@ -8,16 +8,10 @@
 (in-package :tao.logic)
 
 
-#-ABCL
-(defconstant unbound (if (boundp 'unbound)
-			 (symbol-value 'unbound)
-			 "Unbound"))
+(eval-when (:COMPILE-TOPLEVEL :LOAD-TOPLEVEL :EXECUTE)
+(defvar .unbound. "Unbound")
+(defconstant unbound .unbound.))
 
-
-#+ABCL
-(defvar unbound (if (boundp 'unbound)
-                    (symbol-value 'unbound)
-                    "Unbound"))
 
 (defvar *var-counter* 0)
 
@@ -29,13 +23,6 @@
 
 
 (defun bound-p (var) (not (eq (var-binding var) unbound)))
-
-
-(defmacro deref (exp)
-  "Follow pointers for bound variables."
-  `(progn (loop while (and (var-p ,exp) (bound-p ,exp))
-             do (setf ,exp (var-binding ,exp)))
-          ,exp))
 
 
 (defun unify! (x y)
@@ -59,8 +46,8 @@
   (if (or (and *print-level*
                (>= depth *print-level*))
           (var-p (deref var)))
-      (format stream "{undef}_~A" (var-name var))
-      (write var :stream stream)))
+      (format stream "{undef}~A" (var-name var))
+      (format stream "#<logvar: ~S>" var)))
 
 
 (defvar *trail* (make-array 200 :fill-pointer 0 :adjustable t))
@@ -560,6 +547,10 @@
                 :key (lambda (x) (and (consp x) (car x)))))))
 
 
+(deftype tao-package ()
+  `(member ,(find-package "CL")
+           ,(find-package "TAO")))
+
 (defun compile-body (body cont bindings)
   "Compile the body of a clause."
   (if (null body)
@@ -624,8 +615,7 @@
                                           (bind-new-variables bindings goal))))))
                            ((and (symbolp (car goal))
                                  (fboundp (car goal))
-                                 (eq (symbol-package (car goal))
-                                     (find-package "CL")))
+                                 (typep (symbol-package (car goal)) 'tao-package))
                             #+debug (print (list :=========> (car goal)))
                             `(lispp-uq/1
                               ,(compile-unquote-arg goal bindings)

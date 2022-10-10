@@ -100,7 +100,7 @@ B1, B2, ... または、Bn で使われる局所変数、特に論理変数は�
            ,(tao.logic::compile-body
              forms
              `(lambda () (return-from ,exit T))
-             tao.logic::no-bindings)))))))
+             tao.logic::no-bindings))))))
 
 ;;; ＠
 ;;; &                                      メッセージ

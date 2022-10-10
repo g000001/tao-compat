@@ -351,16 +351,21 @@ list の car部を返す。
 ;;;         	 a
 ;;;         (untrace fact) -> (fact)  (fact のみトレースの中止)
 ;;;         (fact 3) -> 6
-;;; ＠
-;;; untrail                                関数[#!subr]
-;;;
-;;; <説明>
-;;;   形式 : untrail _x1 _x2 ...  _xn
-;;; 24 ビットの世代番号で _x1 _x2 ... _xn を "undefind" 状態に戻す。異なる
-;;; 名前を持つ変数は、"undefinded" 状態に関する異なる世代番号と関連付けられ
-;;; る。ただし (!_X undef) は tagundef をセットするが、世代番号のフィールド
-;;; はゼロにセットされる 。
-;;; ＠
+
+
+(defun tao:untrail (&rest vars)
+  "untrail                                関数[#!subr]
+
+ <説明>
+   形式 : untrail _x1 _x2 ...  _xn
+ 24 ビットの世代番号で _x1 _x2 ... _xn を \"undefind\" 状態に戻す。異なる
+ 名前を持つ変数は、\"undefinded\" 状態に関する異なる世代番号と関連付けられ
+ る。ただし (!_X undef) は tagundef をセットするが、世代番号のフィールド
+ はゼロにセットされる 。"
+  (dolist (v vars)
+    (setf (tao.logic::var-binding v)
+          tao.logic::unbound)))
+
 ;;; untyi                                  関数[#!subr]
 ;;;
 ;;; <説明>

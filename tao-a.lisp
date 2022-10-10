@@ -724,7 +724,8 @@ pred を満足する要素を見つけたらその要素を返し、後はもう
        (define-predicate-in-lisp-world ,pred)
        (tao.logic::prolog-compile 
         (tao.logic::add-clause ',(tao.logic::make-anonymous clauses)
-                               :asserta nil)))))
+                               :asserta nil))
+       ',pred)))
 
 
 (defmacro tao:asserta (&rest clauses)
@@ -746,7 +747,8 @@ pred を満足する要素を見つけたらその要素を返し、後はもう
        (define-predicate-in-lisp-world ,pred)
        (tao.logic::prolog-compile 
         (tao.logic::add-clause ',(tao.logic::make-anonymous clauses)
-                               :asserta T)))))
+                               :asserta T))
+       ',pred)))
 
 
 (defmacro tao:assertz (&rest clauses)
@@ -769,7 +771,8 @@ pred を満足する要素を見つけたらその要素を返し、後はもう
        (define-predicate-in-lisp-world ,pred)
        (tao.logic::prolog-compile 
         (tao.logic::add-clause ',(tao.logic::make-anonymous clauses)
-                               :asserta nil)))))
+                               :asserta nil))
+       ',pred)))
 
 
 (defmacro tao:assign-cons (object list)

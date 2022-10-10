@@ -137,6 +137,7 @@
       (dolist (var vars)
         (format t "~&~a = ~a" var
                 (subst-bindings bindings var))))
+  (force-output)
   fail)
 
 (setf (get 'show-prolog-vars 'clauses) 'show-prolog-vars)
