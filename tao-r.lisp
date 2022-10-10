@@ -1036,20 +1036,42 @@ n が省略された時、または n が負もしくは item と equal な要�
 ;;;            	    .2 <OUT> (fact 2)
 ;;;         	    1 <OUT> (fact 6)
 ;;;         	    6
-;;; ＠
-;;; retract 未インプリメント               関数[#!exprdyn]
-;;;
-;;; <説明>
-;;;   形式 : retract 'id
-;;; id を主ファンクタとして、関数 assert, 関数 asserta, 関数 assertz で定義
-;;; した定理を除去する。id に関する全定理の除去だけが現在サポートされている。
-;;;
-;;; <例>
-;;;         (retract concatenate)
-;;;         主ファンクタが concatenate の定理を全て除去する。
-;;;         (retract (concatenate () _x _x))
-;;;  	(concatenate () _x _x) に関する定理を除去する。
-;;; ＠
+
+(defun *retract (clause)
+  (etypecase clause
+    (SYMBOL
+     (mapc (lambda (c)
+             (tao.logic::retract-clause c)
+             (let ((head (car c)))
+               (fmakunbound (print (tao.logic::make-predicate (car head) (length (cdr head)))))))
+           (tao.logic::get-clauses clause))
+     (tao.logic::prolog-compile clause)
+     (fmakunbound clause)
+     T)
+    (CONS
+     (let ((pred (car clause)))
+       (dolist (c (tao.logic::get-clauses (car clause)))
+         (when (or (equal (car c) clause)
+                   (null clause))
+           (tao.logic::retract-clause c)))
+       (tao.logic::prolog-compile pred)
+       T))))
+
+(defmacro tao:retract (&optional clause)
+  "retract 未インプリメント               関数[#!exprdyn]
+
+ <説明>
+   形式 : retract 'id
+ id を主ファンクタとして、関数 assert, 関数 asserta, 関数 assertz で定義
+ した定理を除去する。id に関する全定理の除去だけが現在サポートされている。
+
+ <例>
+         (retract concatenate)
+         主ファンクタが concatenate の定理を全て除去する。
+         (retract (concatenate () _x _x))
+  	(concatenate () _x _x) に関する定理を除去する。"
+  `(*retract ',clause))
+
 ;;; return                                 関数[#!subr]
 ;;;
 ;;; <説明>

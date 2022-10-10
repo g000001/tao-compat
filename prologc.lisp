@@ -486,15 +486,17 @@
         (parameters (make-parameters arity)))
     (compile
      (eval
-      (progn 'print `(defun ,*predicate* (,@parameters cont)
-	.,(maybe-add-undo-bindings
-	   (mapcar #'(lambda (clause)
-		       (compile-clause parameters clause 'cont))
-	    clauses))))))))
+      (print `(defun ,*predicate* (,@parameters cont)
+         .,(maybe-add-undo-bindings
+            (mapcar #'(lambda (clause)
+                        (compile-clause parameters clause 'cont))
+                    clauses))))))))
 
 
 (defun goal-cut-p (goal)
-  (eq goal '!))
+  (or (eq goal 'tao:!)
+      (and (consp goal)
+           (eq 'tao::&cut (car goal)))))
 
 
 (defun goal-conjunction-p (goal)
@@ -551,9 +553,11 @@
 
 
 (defun goal-has-unquote-p (goal)
-  (find 'tao:unquote
-        goal
-        :key (lambda (x) (and (consp x) (car x)))))
+  (etypecase goal
+    (symbol nil)
+    (cons (find 'tao:unquote
+                goal
+                :key (lambda (x) (and (consp x) (car x)))))))
 
 
 (defun compile-body (body cont bindings)
@@ -654,19 +658,20 @@
 (defun compile-anonymous-predicate (arity clauses)
   (let ((parameters (make-parameters arity)))
     (compile nil
-             `(lambda (,@parameters cont)
-                ,@(maybe-add-undo-bindings
-                   (mapcar (lambda (clause)
-                             (typecase clause
-                               ((cons (eql tao:&+) (cons * (cons (cons (eql tao:&aux)))))
-                                (destructuring-bind (tao:&+ pat aux &body body)
-                                                    clause
-                                  `(tao:&progn (&aux ,@(cdr aux))
-                                     ,(compile-clause parameters `(,(cons tao:&+ pat) ,@body) 'cont))))
-                               ((cons (eql tao:&+) *)
-                                (compile-clause parameters (translate-&+ clause) 'cont))
-                               (T (compile-clause parameters clause 'cont))))
-                           clauses))))))
+             (print 
+              `(lambda (,@parameters cont)
+                 ,@(maybe-add-undo-bindings
+                    (mapcar (lambda (clause)
+                              (typecase clause
+                                ((cons (eql tao:&+) (cons * (cons (cons (eql tao:&aux)))))
+                                 (destructuring-bind (tao:&+ pat aux &body body)
+                                                     clause
+                                   `(tao:&progn (&aux ,@(cdr aux))
+                                      ,(compile-clause parameters `(,(cons tao:&+ pat) ,@body) 'cont))))
+                                ((cons (eql tao:&+) *)
+                                 (compile-clause parameters (translate-&+ clause) 'cont))
+                                (T (compile-clause parameters clause 'cont))))
+                            clauses)))))))
 
 
 (defun Hclauses->prolog-clauses (name clauses)

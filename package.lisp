@@ -384,7 +384,7 @@
   (:export :&optional :&optn :&opt :&rest :&key :&allow-other-keys 
            :&aux :&whole :&body :&environment)
   (:export
-   :! :! :! :!! :& :& :&+ :&+dyn :&and :&assert :&cond :&repeat :&opt
+   :! :! :! :!! :& :& :&+ :&+dyn :&and :&assert :&cond :&cut :&repeat :&opt
    :&retract :*applyhook* :*break-on-warnings* :*catch :*evalhook*
    :*file-search-path* :*fn-notation* :*logical-name-alist*
    :*print-bigfloat-digit* :*print-float-digit* :*print-internal*

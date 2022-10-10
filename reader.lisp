@@ -95,17 +95,6 @@
      (read-list stream ignore) )))
 
 
-(defun read-|.| (stream char)
-  (declare (ignore char))
-  (case (peek-char nil stream 'T nil 'T)
-    ((#\. )
-       (read-char stream) 'T nil 'T
-       '|..|)
-    ((#\Space #\Tab #\Return #\Newline)
-       '|.|)
-    (otherwise (values))))
-
-
 (defun method.chain-to-prefix (symbol &rest args)
   (let* ((form (ppcre:split "\\." (string symbol)))
          (form (mapcar #'intern form)))
@@ -136,11 +125,11 @@
          `(,mesg ,obj ,@args))
         ('T `(,mesg ,obj ,(apply #'infix-to-prefix args)))))
 
-
 (defun read-|[| (stream char)
   (declare (ignore char))
-  (let ((expr (read-delimited-list #\] stream 'T)))
-    (apply #'infix-to-prefix expr)))
+  (let ((*readtable* tao-no-dots-readtable))
+    (let ((expr (read-delimited-list #\] stream 'T)))
+      (apply #'infix-to-prefix expr))))
 
 
 (declaim (inline codnums))

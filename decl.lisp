@@ -1,5 +1,53 @@
 (cl:in-package :cl-user)
 
+(deftype tao::special-symbol ()
+  "!                                      スペシャルシンボル
+
+ <説明>
+   カット記号と呼ばれ、バックトラックを制御する。1 つの ! が定理の宣言
+ または U-resolver の本体 (関数 &+ 参照) にある場合、局所スコープで
+ カット記号を含む残る選択肢としての定理があるならば、それらは無視される。
+ つまりバックトラック中に、制御が、逆向きである右から左に、! を通って
+ 移ることはできない。
+
+ <例>
+ (assertz (p a1..) ... B2 ! B3 ...)
+ (assertz (p a2..) ...)
+ (assertz (p a3..) ...)
+ とすると、B2 の評価に成功したあと ! を通って B3 の評価に制御が移ると、
+ たとえ B3 の評価に失敗しても B3 から B2 へのバックトラックは起こらず、
+ 残る P 言明、(assertz (p a2..) ...) と (assertz (p a3..) ...) は、無視
+ される。次の 2 つの言明は 「もし a > 10 が t なら B2 を実行し、そうでな
+ ければ B3 を評価する」 ということを意味する。
+ (assertz (p a) (a > 10) ! B2 )
+ (assertz (p a) B3 )"
+  `(member tao:!))
+
+(deftype tao::cut-operator ()
+  `(member tao:! (cons (eql tao:&cut) null)))
+
+
+(defmacro tao-internal::defsynonym (new-name old-name &optional docstring)
+  "New-name is a subst for old-name.  Uses rest arg so be careful."
+  `(progn
+     ,(if (and (every #'symbolp (list new-name old-name))
+               (macro-function old-name) )
+
+          `(setf (macro-function ',new-name)
+                 (macro-function ',old-name) )
+
+          `(setf (fdefinition ',new-name)
+                 (fdefinition ',old-name) ) )
+
+     ,(when docstring
+        `(setf (documentation ',new-name 'function)
+               ,docstring ))
+     ',new-name ))
+
+(defmacro tao-internal::defclsynonym (new-name &optional docstring)
+  (let ((clsym (intern (string new-name) :cl)))
+    `(tao-internal::defsynonym ,new-name ,clsym ,docstring) ))
+
 ;;; ------------------
 ;;; *
 ;;; ------------------
@@ -1014,7 +1062,7 @@
 ;;; ------------------
 ;;; concatenate
 ;;; ------------------
-;;; (declaim (ftype (function ((or cons symbol sb-kernel:instance) &rest sequence) (values (or (simple-array * (*)) cons null sb-kernel:extended-sequence) &optional)) concatenate))
+;;; (declaim (ftype (function ((or cons symbol sb-kernel:instance) &rest sequence) (values (or (simple-array * (*)) cons null sequence) &optional)) concatenate))
 ;;; ------------------
 
 ;;; ------------------
@@ -1092,7 +1140,7 @@
 ;;; ------------------
 ;;; copy-seq
 ;;; ------------------
-;;; (declaim (ftype (function (sequence) (values (or (simple-array * (*)) cons null sb-kernel:extended-sequence) &optional)) copy-seq))
+;;; (declaim (ftype (function (sequence) (values (or (simple-array * (*)) cons null sequence) &optional)) copy-seq))
 ;;; ------------------
 
 ;;; ------------------
@@ -2370,7 +2418,7 @@
 ;;; ------------------
 ;;; make-sequence
 ;;; ------------------
-;;; (declaim (ftype (function ((or cons symbol sb-kernel:instance) (mod 4611686018427387901) &key (:initial-element t)) (values (or (simple-array * (*)) cons null sb-kernel:extended-sequence) &optional)) make-sequence))
+;;; (declaim (ftype (function ((or cons symbol sb-kernel:instance) (mod 4611686018427387901) &key (:initial-element t)) (values (or (simple-array * (*)) cons null sequence) &optional)) make-sequence))
 ;;; ------------------
 
 ;;; ------------------
@@ -2424,7 +2472,7 @@
 ;;; ------------------
 ;;; map
 ;;; ------------------
-;;; (declaim (ftype (function ((or cons symbol sb-kernel:instance) (or function symbol) sequence &rest sequence) (values (or (simple-array * (*)) cons null sb-kernel:extended-sequence) &optional)) map))
+;;; (declaim (ftype (function ((or cons symbol sb-kernel:instance) (or function symbol) sequence &rest sequence) (values (or (simple-array * (*)) cons null sequence) &optional)) map))
 ;;; ------------------
 
 ;;; ------------------
@@ -3348,19 +3396,19 @@
 ;;; ------------------
 ;;; rem
 ;;; ------------------
-(declaim (ftype (function (t t t &optional t) (values (or (simple-array * (*)) cons null sb-kernel:extended-sequence) &optional)) tao:rem))
+(declaim (ftype (function (t t t &optional t) (values (or (simple-array * (*)) cons null sequence) &optional)) tao:rem))
 ;;; ------------------
 
 ;;; ------------------
 ;;; rem-if
 ;;; ------------------
-(declaim (ftype (function (t t) (values (or (simple-array * (*)) cons null sb-kernel:extended-sequence) &optional)) tao:rem-if))
+(declaim (ftype (function (t t) (values (or (simple-array * (*)) cons null sequence) &optional)) tao:rem-if))
 ;;; ------------------
 
 ;;; ------------------
 ;;; rem-if-not
 ;;; ------------------
-(declaim (ftype (function (t t) (values (or (simple-array * (*)) cons null sb-kernel:extended-sequence) &optional)) tao:rem-if-not))
+(declaim (ftype (function (t t) (values (or (simple-array * (*)) cons null sequence) &optional)) tao:rem-if-not))
 ;;; ------------------
 
 ;;; ------------------
@@ -3372,25 +3420,25 @@
 ;;; ------------------
 ;;; remove
 ;;; ------------------
-;;; (declaim (ftype (function (t sequence &rest t &key (:from-end t) (:test (or function symbol)) (:test-not (or function symbol)) (:start (mod 4611686018427387901)) (:end (or null (mod 4611686018427387901))) (:count (or null integer)) (:key (or function symbol))) (values (or (simple-array * (*)) cons null sb-kernel:extended-sequence) &optional)) remove))
+;;; (declaim (ftype (function (t sequence &rest t &key (:from-end t) (:test (or function symbol)) (:test-not (or function symbol)) (:start (mod 4611686018427387901)) (:end (or null (mod 4611686018427387901))) (:count (or null integer)) (:key (or function symbol))) (values (or (simple-array * (*)) cons null sequence) &optional)) remove))
 ;;; ------------------
 
 ;;; ------------------
 ;;; remove-duplicates
 ;;; ------------------
-;;; (declaim (ftype (function (sequence &rest t &key (:test (or function symbol)) (:test-not (or function symbol)) (:start (mod 4611686018427387901)) (:from-end t) (:end (or null (mod 4611686018427387901))) (:key (or function symbol))) (values (or (simple-array * (*)) cons null sb-kernel:extended-sequence) &optional)) remove-duplicates))
+;;; (declaim (ftype (function (sequence &rest t &key (:test (or function symbol)) (:test-not (or function symbol)) (:start (mod 4611686018427387901)) (:from-end t) (:end (or null (mod 4611686018427387901))) (:key (or function symbol))) (values (or (simple-array * (*)) cons null sequence) &optional)) remove-duplicates))
 ;;; ------------------
 
 ;;; ------------------
 ;;; remove-if
 ;;; ------------------
-;;; (declaim (ftype (function ((or function symbol) sequence &rest t &key (:from-end t) (:start (mod 4611686018427387901)) (:end (or null (mod 4611686018427387901))) (:count (or null integer)) (:key (or function symbol))) (values (or (simple-array * (*)) cons null sb-kernel:extended-sequence) &optional)) remove-if))
+;;; (declaim (ftype (function ((or function symbol) sequence &rest t &key (:from-end t) (:start (mod 4611686018427387901)) (:end (or null (mod 4611686018427387901))) (:count (or null integer)) (:key (or function symbol))) (values (or (simple-array * (*)) cons null sequence) &optional)) remove-if))
 ;;; ------------------
 
 ;;; ------------------
 ;;; remove-if-not
 ;;; ------------------
-;;; (declaim (ftype (function ((or function symbol) sequence &rest t &key (:from-end t) (:start (mod 4611686018427387901)) (:end (or null (mod 4611686018427387901))) (:count (or null integer)) (:key (or function symbol))) (values (or (simple-array * (*)) cons null sb-kernel:extended-sequence) &optional)) remove-if-not))
+;;; (declaim (ftype (function ((or function symbol) sequence &rest t &key (:from-end t) (:start (mod 4611686018427387901)) (:end (or null (mod 4611686018427387901))) (:count (or null integer)) (:key (or function symbol))) (values (or (simple-array * (*)) cons null sequence) &optional)) remove-if-not))
 ;;; ------------------
 
 ;;; ------------------
@@ -3408,19 +3456,19 @@
 ;;; ------------------
 ;;; remq
 ;;; ------------------
-(declaim (ftype (function (t t &optional t) (values (or (simple-array * (*)) cons null sb-kernel:extended-sequence) &optional)) tao:remq))
+(declaim (ftype (function (t t &optional t) (values (or (simple-array * (*)) cons null sequence) &optional)) tao:remq))
 ;;; ------------------
 
 ;;; ------------------
 ;;; remql
 ;;; ------------------
-(declaim (ftype (function (t t &optional t) (values (or (simple-array * (*)) cons null sb-kernel:extended-sequence) &optional)) tao:remql))
+(declaim (ftype (function (t t &optional t) (values (or (simple-array * (*)) cons null sequence) &optional)) tao:remql))
 ;;; ------------------
 
 ;;; ------------------
 ;;; remqu
 ;;; ------------------
-(declaim (ftype (function (t t &optional t) (values (or (simple-array * (*)) cons null sb-kernel:extended-sequence) &optional)) tao:remqu))
+(declaim (ftype (function (t t &optional t) (values (or (simple-array * (*)) cons null sequence) &optional)) tao:remqu))
 ;;; ------------------
 
 ;;; ------------------
@@ -3468,7 +3516,7 @@
 ;;; ------------------
 ;;; reverse
 ;;; ------------------
-;;; (declaim (ftype (function (sequence) (values (or (simple-array * (*)) cons null sb-kernel:extended-sequence) &optional)) reverse))
+;;; (declaim (ftype (function (sequence) (values (or (simple-array * (*)) cons null sequence) &optional)) reverse))
 ;;; ------------------
 
 ;;; ------------------
@@ -3672,7 +3720,7 @@
 ;;; ------------------
 ;;; shead
 ;;; ------------------
-(declaim (ftype (function (t &optional t) (values (or (simple-array * (*)) cons null sb-kernel:extended-sequence) &optional)) tao:shead))
+(declaim (ftype (function (t &optional t) (values (or (simple-array * (*)) cons null sequence) &optional)) tao:shead))
 ;;; ------------------
 
 ;;; ------------------
@@ -3930,7 +3978,7 @@
 ;;; ------------------
 ;;; string-append
 ;;; ------------------
-(declaim (ftype (function * (values (or (simple-array * (*)) cons null sb-kernel:extended-sequence) &optional)) tao:string-append))
+(declaim (ftype (function * (values (or (simple-array * (*)) cons null sequence) &optional)) tao:string-append))
 ;;; ------------------
 
 ;;; ------------------
@@ -4170,19 +4218,19 @@
 ;;; ------------------
 ;;; subseq
 ;;; ------------------
-;;; (declaim (ftype (function (sequence (mod 4611686018427387901) &optional (or null (mod 4611686018427387901))) (values (or (simple-array * (*)) cons null sb-kernel:extended-sequence) &optional)) subseq))
+;;; (declaim (ftype (function (sequence (mod 4611686018427387901) &optional (or null (mod 4611686018427387901))) (values (or (simple-array * (*)) cons null sequence) &optional)) subseq))
 ;;; ------------------
 
 ;;; ------------------
 ;;; subset
 ;;; ------------------
-(declaim (ftype (function (t t) (values (or (simple-array * (*)) cons null sb-kernel:extended-sequence) &optional)) tao:subset))
+(declaim (ftype (function (t t) (values (or (simple-array * (*)) cons null sequence) &optional)) tao:subset))
 ;;; ------------------
 
 ;;; ------------------
 ;;; subset-not
 ;;; ------------------
-(declaim (ftype (function (t t) (values (or (simple-array * (*)) cons null sb-kernel:extended-sequence) &optional)) tao:subset-not))
+(declaim (ftype (function (t t) (values (or (simple-array * (*)) cons null sequence) &optional)) tao:subset-not))
 ;;; ------------------
 
 ;;; ------------------
@@ -4212,19 +4260,19 @@
 ;;; ------------------
 ;;; substitute
 ;;; ------------------
-;;; (declaim (ftype (function (t t sequence &rest t &key (:from-end t) (:test (or function symbol)) (:test-not (or function symbol)) (:start (mod 4611686018427387901)) (:end (or null (mod 4611686018427387901))) (:count (or null integer)) (:key (or function symbol))) (values (or (simple-array * (*)) cons null sb-kernel:extended-sequence) &optional)) substitute))
+;;; (declaim (ftype (function (t t sequence &rest t &key (:from-end t) (:test (or function symbol)) (:test-not (or function symbol)) (:start (mod 4611686018427387901)) (:end (or null (mod 4611686018427387901))) (:count (or null integer)) (:key (or function symbol))) (values (or (simple-array * (*)) cons null sequence) &optional)) substitute))
 ;;; ------------------
 
 ;;; ------------------
 ;;; substitute-if
 ;;; ------------------
-;;; (declaim (ftype (function (t (or function symbol) sequence &rest t &key (:from-end t) (:start (mod 4611686018427387901)) (:end (or null (mod 4611686018427387901))) (:count (or null integer)) (:key (or function symbol))) (values (or (simple-array * (*)) cons null sb-kernel:extended-sequence) &optional)) substitute-if))
+;;; (declaim (ftype (function (t (or function symbol) sequence &rest t &key (:from-end t) (:start (mod 4611686018427387901)) (:end (or null (mod 4611686018427387901))) (:count (or null integer)) (:key (or function symbol))) (values (or (simple-array * (*)) cons null sequence) &optional)) substitute-if))
 ;;; ------------------
 
 ;;; ------------------
 ;;; substitute-if-not
 ;;; ------------------
-;;; (declaim (ftype (function (t (or function symbol) sequence &rest t &key (:from-end t) (:start (mod 4611686018427387901)) (:end (or null (mod 4611686018427387901))) (:count (or null integer)) (:key (or function symbol))) (values (or (simple-array * (*)) cons null sb-kernel:extended-sequence) &optional)) substitute-if-not))
+;;; (declaim (ftype (function (t (or function symbol) sequence &rest t &key (:from-end t) (:start (mod 4611686018427387901)) (:end (or null (mod 4611686018427387901))) (:count (or null integer)) (:key (or function symbol))) (values (or (simple-array * (*)) cons null sequence) &optional)) substitute-if-not))
 ;;; ------------------
 
 ;;; ------------------
@@ -4242,7 +4290,7 @@
 ;;; ------------------
 ;;; substring
 ;;; ------------------
-(declaim (ftype (function (t t &optional t) (values (or cons null sb-kernel:extended-sequence (simple-array * (*))) &optional)) tao:substring))
+(declaim (ftype (function (t t &optional t) (values (or cons null sequence (simple-array * (*))) &optional)) tao:substring))
 ;;; ------------------
 
 ;;; ------------------
@@ -4446,7 +4494,7 @@
 ;;; ------------------
 ;;; unionq
 ;;; ------------------
-(declaim (ftype (function (t &rest t) (values (or (simple-array * (*)) cons null sb-kernel:extended-sequence) &optional)) tao:unionq))
+(declaim (ftype (function (t &rest t) (values (or (simple-array * (*)) cons null sequence) &optional)) tao:unionq))
 ;;; ------------------
 
 ;;; ------------------

@@ -185,43 +185,48 @@
         (generate _n1 _l) )))
 
 
+(dolist (p '(generate notmem choose try queen))
+  )
+
+
 (seq
- (dolist (p '(generate notmem choose try queen))
-   (setf (tao.logic::get-clauses p) '()))
- 
-  (assert (generate 0 ()))
-  (assert (generate _n (_n . _l))
-          (> _n 0)     
-          (== _n1 ,(1- _n))
-          (generate _n1 _l) )
+ (abolish generate 2)
+ (assert (generate 0 ()))
+ (assert (generate _n (_n . _l))
+         (> _n 0)     
+         (== _n1 ,(1- _n))
+         (generate _n1 _l) )
 
-  (assert (notmem _ ()))
-  (assert (notmem _a (_b . _l))
-          (not (== _a _b))        ; not は lisp 関数
-          (notmem _a _l) )
+ (abolish notmem 2)
+ (assert (notmem _ ()))
+ (assert (notmem _a (_b . _l))
+         (not (== _a _b))        ; not は lisp 関数
+         (notmem _a _l) )
 
-  (assert (choose (_a . _l) _a _l))
-  (assert (choose (_a . _l) _x (_a . _l1))
-          (choose _l _x _l1) )
+ (abolish choose 3)
+ (assert (choose (_a . _l) _a _l))
+ (assert (choose (_a . _l) _x (_a . _l1))
+         (choose _l _x _l1) )
   
-  (assert (try _ () _l _l _ _))
-  (assert (try _m _s _l1 _l _c _d)
-          (choose _s _a _s1)
-          (== _c1 ,[_m + _a])
-          (notmem _c1 _c)
-          (== _d1 ,[_m - _a])
-          (notmem _d1 _d)
-          (try ,[_m - 1] _s1 (_a . _l1)
-               _l (_c1 . _c) (_d1 . _d) ))
+ (abolish try 6)
+ (assert (try _ () _l _l _ _))
+ (assert (try _m _s _l1 _l _c _d)
+         (choose _s _a _s1)
+         (== _c1 ,[_m + _a])
+         (notmem _c1 _c)
+         (== _d1 ,[_m - _a])
+         (notmem _d1 _d)
+         (try ,[_m - 1] _s1 (_a . _l1)
+              _l (_c1 . _c) (_d1 . _d) ))
   
-  (assert (queen _n _l)
-          (generate _n _l1)
-          (try _n _l1 () _l () ()) )
-  (tao.logic::prolog-compile-symbols))
+ (abolish queen 2)
+ (assert (queen _n _l)
+         (generate _n _l1)
+         (try _n _l1 () _l () ()) ))
 
 
-(&progn (&aux _answer)
-  (queen 8 _answer)
+(& (&aux _answer)
+  
   _answer )
 ;→ (5 7 2 6 3 1 4 8)
 

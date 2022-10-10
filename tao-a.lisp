@@ -2,26 +2,40 @@
 (tao:tao)
 (in-package #:tao-internal)
 
-;;; ＠
-;;; abolish                                関数[#!&+]
-;;;
-;;; <説明>
-;;;   形式 : abolish funct arity
-;;; 次の 2 つの条件を満足する全ての宣言を削除する。
-;;; 宣言の先頭の主ファンクタが funct の値と等しいこと。
-;;; 宣言の先頭の引数の数が arity の値と等しいこと。
-;;; retract 参照。
-;;;
-;;; <例>
-;;;         (assert (himitsu)) -> himitsu
-;;;         (assert (himitsu _x)) -> himitsu
-;;;         (assert (himitsu _x _y)) -> himitsu
-;;;         #|#|#|(assert (himitsu 2 3) -> himitsu
-;;;         (assert (himitsu _x _y _z)) -> himitsu
-;;;         (abolish himitsu 3) -> t
-;;;         (himitsu _x _y _z) は削除
-;;;         (abolish himitsu 2) -> t
-;;;         (himitsu _x _y) と (himitsu 2 3) は削除
+
+(defun *abolish (funct arity)
+  (mapc #'tao.logic::retract-clause
+        (remove-if-not (lambda (x)
+                         (and (= arity (length (cdr (car x))))
+                              (eq funct (car (car x)))))
+                       (tao.logic::get-clauses funct)))
+  (fmakunbound funct)
+  (fmakunbound (tao.logic::make-predicate funct arity))
+  T)
+
+
+(defmacro tao:abolish (funct arity)
+  "abolish                                関数[#!&+]
+
+ <説明>
+   形式 : abolish funct arity
+ 次の 2 つの条件を満足する全ての宣言を削除する。
+ 宣言の先頭の主ファンクタが funct の値と等しいこと。
+ 宣言の先頭の引数の数が arity の値と等しいこと。
+ retract 参照。
+
+ <例>
+         (assert (himitsu)) -> himitsu
+         (assert (himitsu _x)) -> himitsu
+         (assert (himitsu _x _y)) -> himitsu
+         (assert (himitsu 2 3) -> himitsu
+         (assert (himitsu _x _y _z)) -> himitsu
+         (abolish himitsu 3) -> t
+         (himitsu _x _y _z) は削除
+         (abolish himitsu 2) -> t
+         (himitsu _x _y) と (himitsu 2 3) は削除"
+  `(*abolish ',funct ',arity))
+
 
 ;;; abort                                  関数[#!expr]
 ;;;
@@ -679,6 +693,18 @@ pred を満足する要素を見つけたらその要素を返し、後はもう
   (assoc data a-list :test pred))
 
 
+(defmacro define-predicate-in-lisp-world (name)
+  `(defmacro ,name (&rest args)
+     (let ((exit (gensym "exit-")))
+       `(block ,exit
+          ,(tao.logic::compile-body
+            `((,',name ,@args))
+            `(lambda () (return-from ,exit T))
+            tao.logic::no-bindings)))))
+
+(defun ensure-predicate-in-lisp-world (name)
+  (eval `(define-predicate-in-lisp-world ,name)))
+
 (defmacro tao:assert (&rest clauses)
   "assert                                 関数[#!macro]
 
@@ -687,42 +713,64 @@ pred を満足する要素を見つけたらその要素を返し、後はもう
 ホーン節を定義する。この定理宣言と関連した関数の名前は、主ファンクタと
 呼ばれる。同じ主ファンクタにおいて、複数の節を定義するために assert を
 複数回使う時は、順番は保証されない。
-"
-  `(tao.logic::<- ,@clauses))
 
-;;; <例>
-;;; (assert (concatenate (_a . _x) _y (_a . _z)) (concatenate _x _y _z) )
-;;; (assert (concatenate ()  _x _x) )
-;;; concatenate は、主ファンクタ。最初に定理宣言された節が最初に適用され、
-;;; 2 番目に定理宣言された節が 2 番目に実行されるということは、保証されない。
-;;; ＠
-;;; asserta                                関数[#!macro]
-;;;
-;;; <説明>
-;;;   形式 : asserta &rest clause
-;;; 節の実行の順序が指定されるということ以外は、関数 assert と同じ。
-;;; 後に言明された節ほど先に適用される。
-;;;
-;;; <例>
-;;; (asserta (concatenate (_a . _x) _y (_a . _z)) (concatenate _x _y _z) )
-;;; (asserta (concatenate ()  _x _x) )
-;;; 2 番目に言明された節 (concatenate () _x _x) が最初に適用され、
-;;; 最初に言明された節 (concatenate (_a . _x) _y (_a . _z))
-;;; (concatenate _x _y _z) が 2 番目に適用される。
-;;; ＠
-;;; assertz                                関数[#!macro]
-;;;
-;;; <説明>
-;;;   形式 : assertz &rest clause
-;;; 節の実行の順序が指定される以外は、関数 assert と同じ。
-;;; 先に言明された節ほど先に適用される。
-;;;
-;;; <例>
-;;; (assertz (concatenate (_a . _x) _y (_a . _z)) (concatenate _x _y _z) )
-;;; (assertz (concatenate ()  _x _x) )
-;;; 最初に言明された節 (concatenate (_a . _x) _y (_a . _z))
-;;; (concatenate _x _y _z) が最初に適用され、2 番目に言明された節
-;;; (concatenate () _x _x) が 2 番目に適用される。
+<例>
+\(assert (concatenate (_a . _x) _y (_a . _z)) (concatenate _x _y _z) )
+\(assert (concatenate ()  _x _x) )
+\concatenate は、主ファンクタ。最初に定理宣言された節が最初に適用され、
+2 番目に定理宣言された節が 2 番目に実行されるということは、保証されない。"
+  (let ((pred (caar clauses)))
+    `(progn
+       (define-predicate-in-lisp-world ,pred)
+       (tao.logic::prolog-compile 
+        (tao.logic::add-clause ',(tao.logic::make-anonymous clauses)
+                               :asserta nil)))))
+
+
+(defmacro tao:asserta (&rest clauses)
+  " asserta                                関数[#!macro]
+
+ <説明>
+   形式 : asserta &rest clause
+ 節の実行の順序が指定されるということ以外は、関数 assert と同じ。
+ 後に言明された節ほど先に適用される。
+
+ <例>
+ (asserta (concatenate (_a . _x) _y (_a . _z)) (concatenate _x _y _z) )
+ (asserta (concatenate ()  _x _x) )
+ 2 番目に言明された節 (concatenate () _x _x) が最初に適用され、
+ 最初に言明された節 (concatenate (_a . _x) _y (_a . _z))
+ (concatenate _x _y _z) が 2 番目に適用される。"
+  (let ((pred (caar clauses)))
+    `(progn
+       (define-predicate-in-lisp-world ,pred)
+       (tao.logic::prolog-compile 
+        (tao.logic::add-clause ',(tao.logic::make-anonymous clauses)
+                               :asserta T)))))
+
+
+(defmacro tao:assertz (&rest clauses)
+  " assertz                                関数[#!macro]
+
+ <説明>
+   形式 : assertz &rest clause
+ 節の実行の順序が指定される以外は、関数 assert と同じ。
+ 先に言明された節ほど先に適用される。
+
+ <例>
+ (assertz (concatenate (_a . _x) _y (_a . _z)) (concatenate _x _y _z) )
+ (assertz (concatenate ()  _x _x) )
+ 最初に言明された節 (concatenate (_a . _x) _y (_a . _z))
+ (concatenate _x _y _z) が最初に適用され、2 番目に言明された節
+ (concatenate () _x _x) が 2 番目に適用される。
+"
+  (let ((pred (caar clauses)))
+    `(progn
+       (define-predicate-in-lisp-world ,pred)
+       (tao.logic::prolog-compile 
+        (tao.logic::add-clause ',(tao.logic::make-anonymous clauses)
+                               :asserta nil)))))
+
 
 (defmacro tao:assign-cons (object list)
   "assign-cons                            関数[#!expr]

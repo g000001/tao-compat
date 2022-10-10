@@ -1,63 +1,6 @@
 (tao:tao)
 (in-package #:tao-internal)
 
-(defmacro defsynonym (new-name old-name &optional docstring)
-  "New-name is a subst for old-name.  Uses rest arg so be careful."
-  `(progn
-     ,(if (and (every #'symbolp (list new-name old-name))
-               (macro-function old-name) )
-
-          `(!(macro-function ',new-name)
-             (macro-function ',old-name) )
-
-          `(!(fdefinition ',new-name)
-             (fdefinition ',old-name) ) )
-
-     ,(when docstring
-        `(!(documentation ',new-name 'function)
-               ,docstring ))
-     ',new-name ))
-
-(defmacro defclsynonym (new-name &optional docstring)
-  (let ((clsym (intern (string new-name) :cl)))
-    `(defsynonym ,new-name ,clsym ,docstring) ))
-
-;;; ＠
-;;; !                                      スペシャルシンボル
-;;;
-;;; <説明>
-;;;   カット記号と呼ばれ、バックトラックを制御する。1 つの ! が定理の宣言
-;;; または U-resolver の本体 (関数 &+ 参照) にある場合、局所スコープで
-;;; カット記号を含む残る選択肢としての定理があるならば、それらは無視される。
-;;; つまりバックトラック中に、制御が、逆向きである右から左に、! を通って
-;;; 移ることはできない。
-;;;
-;;; <例>
-;;; (assertz (p a1..) ... B2 ! B3 ...)
-;;; (assertz (p a2..) ...)
-;;; (assertz (p a3..) ...)
-;;; とすると、B2 の評価に成功したあと ! を通って B3 の評価に制御が移ると、
-;;; たとえ B3 の評価に失敗しても B3 から B2 へのバックトラックは起こらず、
-;;; 残る P 言明、(assertz (p a2..) ...) と (assertz (p a3..) ...) は、無視
-;;; される。次の 2 つの言明は 「もし a > 10 が t なら B2 を実行し、そうでな
-;;; ければ B3 を評価する」 ということを意味する。
-;;; (assertz (p a) (a > 10) ! B2 )
-;;; (assertz (p a) B3 )
-
-
-#|(& (&aux (foo 1) result)
-   (progn (incf foo)
-          (push foo result) )
-   (= foo 100)
-   result )
-
-
- (! (&aux (foo 1) result)
-   result
-   (= foo 100)
-   (progn (incf foo) (push foo result)) )
-|#
-
 ;;  8:50pm Sunday,19 August 2007
 (defmacro tao:! (&body forms)
   "<説明>
@@ -127,6 +70,7 @@ Bn では body の最後が評価される。
 ;;; readtable.lisp
 ;;; (defmacro tao:selfass (fn &rest args)
 
+
 (defmacro tao:& (&body forms)
   "&                                      関数[#!macro]
 
@@ -149,100 +93,14 @@ B1, B2, ... または、Bn で使われる局所変数、特に論理変数は�
         (prog (_x _y) (& (concatenate _x _y (1 2 3)) (== _x _y)))"
   (let ((aux-vars (and (consp (car forms))
                        (eq '&aux (caar forms))
-                       (prog1 (cdar forms) (pop forms)) ))
-        (cuts)
-        (cut-mark (gensym)) )
-    (let ((body
-           (mapcar (lambda (x)
-                     (if (eq '! x)
-                         (let ((cut (gensym "CUT")))
-                           (push cut cuts)
-                           `(,cut-mark (if ,cut (return nil) (setq ,cut t))))
-                         x))
-                   forms))
-          (result (gensym)))
-      `(prog* (,@aux-vars ,@cuts)
-          ,@(let* ((exittag (gensym "EXIT"))
-                   (pvtag exittag))
-                  `(,@(mapcan (lambda (x)
-                                (if (and (consp x) (eq cut-mark (car x)))
-                                    `(,(cadr x))
-                                    (let ((tag (gensym)))
-                                      (prog1 `(,tag (or ,x (go ,pvtag))) (setq pvtag tag)))))
-                              (butlast body))
-                      (let ((,result ,@(last body)))
-                        (if ,result
-                            (return ,result)
-                            (go ,pvtag)))
-                      ,exittag (return nil)))))))
-
-
-;;; (defmacro & (&body forms)
-;;;   (let ((result (gensym)))
-;;;     `(prog ()
-;;;     ,@(let* ((exittag (gensym "EXIT"))
-;;;              (pvtag exittag))
-;;;             (append (mapcan (lambda (x)
-;;;                               (let ((tag (gensym)))
-;;;                                 (prog1
-;;;                                     `(,tag (or ,x (go ,pvtag)))
-;;;                                   (setq pvtag tag))))
-;;;                             (butlast forms))
-;;;                     `((let ((,result ,@(last forms)))
-;;;                         (if ,result
-;;;                             (return ,result)
-;;;                             (go ,pvtag))))
-;;;                     (list exittag '(return nil)))))))
-;;;
-;;; ;; refine
-;;; (defmacro & (&body forms)
-;;;   (let ((result (gensym)))
-;;;     `(prog ()
-;;;     ,@(let* ((exittag (gensym "EXIT"))
-;;;              (pvtag exittag))
-;;;             `(,@(mapcan (lambda (x)
-;;;                               (let ((tag (gensym)))
-;;;                                 (prog1
-;;;                                     `(,tag (or ,x (go ,pvtag)))
-;;;                                   (setq pvtag tag))))
-;;;                             (butlast forms))
-;;;                 (let ((,result ,@(last forms)))
-;;;                   (if ,result
-;;;                       (return ,result)
-;;;                       (go ,pvtag)))
-;;;                 ,exittag (return nil))))))
-;;;
-;;; ;; support &aux
-;;; ;; &auxの形式が良く分からん。letなのか、let*なのか、初期化の構文は(i 0)のようになるのか。
-;;; ;; とりあえず、&auxだし、clと同じということで、let*で行く。
-;;; ;; cut !は使用できるのか否か
-;;; (defmacro & (&body forms)
-;;;   (let ((aux-vars (and (consp (car forms))
-;;;                    (eq '&aux (caar forms))
-;;;                    (cdar forms))))
-;;;     (when aux-vars
-;;;       (pop forms))
-;;;     (let ((result (gensym)))
-;;;       `(prog* (,@aux-vars)
-;;;       ,@(let* ((exittag (gensym "EXIT"))
-;;;                (pvtag exittag))
-;;;               `(,@(mapcan (lambda (x)
-;;;                             (if (eq '! x)
-;;;                                 (let ((cut (gensym "CUT")))
-;;;                                   `((if ,cut (return nil) (setq ,cut t))))
-;;;                                 (let ((tag (gensym)))
-;;;                                   (prog1
-;;;                                       `(,tag (or ,x (go ,pvtag)))
-;;;                                     (setq pvtag tag)))))
-;;;                           (butlast forms))
-;;;                   (let ((,result ,@(last forms)))
-;;;                     (if ,result
-;;;                         (return ,result)
-;;;                         (go ,pvtag)))
-;;;                   ,exittag (return nil)))))))
-;;;
-;;;
-
+                       (prog1 (cdar forms) (pop forms)) )))
+    (let ((exit (gensym "exit-")))
+      `(block ,exit
+         (tao:let (,@aux-vars)
+           ,(tao.logic::compile-body
+             forms
+             `(lambda () (return-from ,exit T))
+             tao.logic::no-bindings)))))))
 
 ;;; ＠
 ;;; &                                      メッセージ
@@ -290,7 +148,7 @@ Lisp 関数の assert は、定義のボディを調べ自動的に補助変数�
 ;;; 同じ。関数 &+dyn の使い方は、関数 lambda とほぼ同じ。
 ;;; ＠
 
-(defmacro tao:&and (&rest body)
+(defmacro tao:&and (&rest forms)
   "&and                                   関数[#!macro]
 
 <説明>
@@ -301,11 +159,14 @@ body の最後に ! がないことを除いては & と同じ。
 <例>
         (&and [(&aux var ...)] B1 B2 ... Bn) =
                               ((&+dyn () B1 B2 ... Bn))"
-  (typecase (car body)
-    ((cons (eql &aux) *)
-     `(tao:&progn (&aux ,@(cdar body)) ;TODO
-        ,@(cdr body)))
-    (T `(progn ,@body))) )
+  (let ((aux-vars (and (consp (car forms))
+                       (eq '&aux (caar forms))
+                       (prog1 (cdar forms) (pop forms)) )))
+    `(tao:let (,@aux-vars)
+       ,(tao.logic::compile-body
+         forms
+         `(constantly T)
+         tao.logic::no-bindings))) )
 
 ;;; ＠
 ;;; &assert                                メッセージ
@@ -461,24 +322,22 @@ number1 の値を number2 の値でべき乗した結果を返す。
     ((cons (eql &aux) *)
      (let ((vars (cdar body)))
        `(let (,@(mapcar (lambda (v) `(,v (tao:_))) vars))
-          (symbol-macrolet ((tao:_ (tao:_)))
-            (declare (ignorable _))
-            (flet ((tao.logic::logvar-setter ()
-                     ,@(mapcar (lambda (v) `(when (and (tao.logic::var-p ,v)
-                                                       (tao.logic::bound-p ,v))
-                                              (setq ,v (tao.logic::deref-exp ,v))))
-                               vars)
-                     T))
-              ,@(mapcar (lambda (c)
-                          (if (and (typep c '(cons symbol *))
-                                   (tao.logic::get-clauses (car c)))
-                              (if (macro-function (car c))
-                                  (append (butlast (macroexpand c env))
-                                          (list '#'tao.logic::logvar-setter))
-                                  (let ((ari (1- (length c))))
-                                    `(,(tao.logic::make-predicate (car c) ari) ,@(cdr c) #'tao.logic::logvar-setter)))
-                              c))
-                        (cdr body)))))))
+          (flet ((tao.logic::logvar-setter ()
+                   ,@(mapcar (lambda (v) `(when (and (tao.logic::var-p ,v)
+                                                     (tao.logic::bound-p ,v))
+                                            (setq ,v (tao.logic::deref-exp ,v))))
+                             vars)
+                   T))
+            ,@(mapcar (lambda (c)
+                        (if (and (typep c '(cons symbol *))
+                                 (tao.logic::get-clauses (car c)))
+                            (if (macro-function (car c))
+                                (append (butlast (macroexpand c env))
+                                        (list '#'tao.logic::logvar-setter))
+                                (let ((ari (1- (length c))))
+                                  `(,(tao.logic::make-predicate (car c) ari) ,@(cdr c) #'tao.logic::logvar-setter)))
+                            c))
+                      (cdr body))))))
     (T `(progn ,@body))))
 
 ;;; import & export
@@ -1055,7 +914,7 @@ throw のように働く。"
 ;;;         (deref bbb) -> #123
 ;;;         ここで @(-- bbb) は、(deref (-- bbb)) の省略形
 
-(defsynonym |.| cl:cons
+(defsynonym tao:|.| cl:cons
   ".                                      メッセージ
 
 <説明>
@@ -1067,7 +926,7 @@ throw のように働く。"
         ['a . '(b c)] -> (a b c)
         ['(1 2 3) . '(4 5 6)] -> ((1 2 3) 4 5 6)")
 
-(defsynonym |..| cl:append
+(defsynonym tao:|..| cl:append
   "..                                     メッセージ
 
 <説明>
@@ -2024,17 +1883,18 @@ number1 number2 ... numberN の値 (複素数も可) を左から右に順に比
         (common:>= 5 4 3 2 1 0) -> 0
         (common:>= 5 4 4 2 1 0) -> 0")
 
-;;; \                                      関数[#!macro]
-;;;
-;;; <説明>
-;;;   形式 : \ number1 number2
-;;; number1 の値を number2 の値で割り、その剰余を返す。
-;;; (\ x y) = (mod x y)
-;;; 演算符号 \ がエスケープコードとして使用されている場合は \\ を使う。
-;;; (\ 14 4) は ELIS ではエラーを起こすので注意。
 
 (defsynonym tao:\\ cl:mod
-  "\\                                     関数[#!macro]
+  "\                                      関数[#!macro]
+
+ <説明>
+   形式 : \ number1 number2
+ number1 の値を number2 の値で割り、その剰余を返す。
+ (\ x y) = (mod x y)
+ 演算符号 \ がエスケープコードとして使用されている場合は \\ を使う。
+ (\ 14 4) は ELIS ではエラーを起こすので注意。
+
+\\                                     関数[#!macro]
 
 <説明>
   形式 : \\ number1 number2
@@ -2054,9 +1914,9 @@ number1 の値を number2 の値で割り、その剰余を返す。
 <説明>
   1 つの下線 _ は、あらゆるものをユニファイする名前なしの論理変数を表す。")
 
-;;; ‾                                      関数[#!macro]
+;;; ~                                      関数[#!macro]
 ;;; <説明>
-;;;   形式 : ‾   &rest body
-;;; (‾ [(&aux var ...)] B1) は論理 "not" である。
+;;;   形式 : ~   &rest body
+;;; (~ [(&aux var ...)] B1) は論理 "not" である。
 ;;; B1 においてすべてのバックトラックが試されたあと、B1 が nil と評価される
-;;; と (‾B1) は t となる。B1 が t と評価されると (‾B1) は nil となる。
+;;; と (~B1) は t となる。B1 が t と評価されると (~B1) は nil となる。
