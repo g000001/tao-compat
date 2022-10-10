@@ -309,6 +309,7 @@
              do (setf ,exp (var-binding ,exp)))
           ,exp))
 
+
 (defun compile-unquote-arg (arg bindings)
   "Generate code for an argument to a goal in the body."
   (let ((deref-vars '()))
@@ -414,7 +415,7 @@
                                     ,vars))))
   ;; Now run it
   (run-prolog 'top-level-query/0 (constantly nil))
-  (format t "~&No.")
+  (format t "~&no")
   (values))
 
 
@@ -498,7 +499,9 @@
         (parameters (make-parameters arity)))
     (compile
      (eval
-      (print `(defun ,*predicate* (,@parameters cont)
+      (#+debug print
+       #-debug progn
+       `(defun ,*predicate* (,@parameters cont)
          .,(maybe-add-undo-bindings
             (mapcar #'(lambda (clause)
                         (compile-clause parameters clause 'cont))
@@ -575,6 +578,7 @@
 (deftype tao-package ()
   `(member ,(find-package "CL")
            ,(find-package "TAO")))
+
 
 (defun compile-body (body cont bindings)
   "Compile the body of a clause."

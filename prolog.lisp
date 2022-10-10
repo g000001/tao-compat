@@ -106,7 +106,7 @@
 (defun top-level-prove (goals)
   (prove-all `(,@goals (show-prolog-vars ,@(variables-in goals)))
              no-bindings)
-  (format t "~&No.")
+  (format t "~&no")
   (values))
 
 
