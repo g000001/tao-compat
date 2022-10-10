@@ -495,17 +495,15 @@
 (defun compile-predicate (symbol arity clauses)
   "Compile all the clauses for a given symbol/arity
   into a single LISP function."
-  (let ((*predicate* (make-predicate symbol arity))    ;***
-        (parameters (make-parameters arity)))
-    (compile
-     (eval
-      (#+debug print
-       #-debug progn
-       `(defun ,*predicate* (,@parameters cont)
-         .,(maybe-add-undo-bindings
-            (mapcar #'(lambda (clause)
-                        (compile-clause parameters clause 'cont))
-                    clauses))))))))
+  (let* ((*predicate* (make-predicate symbol arity))    ;***
+         (parameters (make-parameters arity))
+         (pred-expr `(defun ,*predicate* (,@parameters cont)
+                       .,(maybe-add-undo-bindings
+                          (mapcar #'(lambda (clause)
+                                      (compile-clause parameters clause 'cont))
+                                  clauses)))))
+    (setf (get symbol arity) pred-expr)
+    (compile (eval pred-expr))))
 
 
 (defun goal-cut-p (goal)
