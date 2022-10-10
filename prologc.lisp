@@ -418,6 +418,19 @@
   (values))
 
 
+(defun top-level-prove-all (goals)
+  "Prove the list of all goals by compiling and calling it."
+  ;; First redefine top-level-query
+  (clear-predicate 'top-level-query)
+  (let ((vars (delete '_ (variables-in goals))))
+    (add-clause `((top-level-query)
+                  ,@goals
+                  (show-all-prolog-vars ,(mapcar #'symbol-name vars) ,vars))))
+  ;; Now run it
+  (run-prolog 'top-level-query/0 (constantly T))
+  'tao::that\'s-all)
+
+
 (defun run-prolog (procedure cont)
   "Run a 0-ary prolog procedure with a given continuation."
   ;; First compile anything else that needs it
@@ -450,6 +463,18 @@
   (if (and vars (continue-p))
       (funcall cont)
       (throw 'top-level-prove nil)))
+
+
+(defun show-all-prolog-vars/2 (var-names vars cont)
+  "Display the variables, and prompt the user to see
+  if we should continue.  If not, return to the top level."
+  (if (null vars)
+      (format t "~&Yes")
+      (loop for name in var-names
+            for var in vars do
+            (format t "~&~a = ~a" name (deref-exp var))))
+  (finish-output)
+  (funcall cont))
 
 
 (defun deref-exp (exp)
