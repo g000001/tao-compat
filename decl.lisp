@@ -34,10 +34,10 @@
 
 (deftype tao-internal::symbol-list ()
   `(and list
-        (satisfies symbol-list-p)))
+        (satisfies tao-internal::symbol-list-p)))
 
 (deftype tao-internal::&aux-form ()
-  `(cons (member &aux :aux) symbol-list))
+  `(cons (member &aux :aux) tao-internal::symbol-list))
 
 
 ;;; ------------------

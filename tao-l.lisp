@@ -1138,7 +1138,7 @@ form1 form2 ... を順に評価する。そして、:until 文が成立、また
                 (tao:exit (&optional ,exit-result)
                   `(return-from ,',exit-id ,,exit-result)))
        (block ,exit-id
-         (let (,@aux)
+         (tao:let (,@aux)
            (tagbody
              (progn ,@init)
              ,loop-tag
