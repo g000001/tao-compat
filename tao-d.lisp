@@ -108,7 +108,6 @@ number に対応する曜日名を文字列で返す。number が 0～6 以外�
           tao:&body
           tao:&environment ))))
 
-
 (defun nomalize-lambda-list-keyword (arg-list)
   (mapcar (lambda (a)
             (case a
@@ -127,7 +126,6 @@ number に対応する曜日名を文字列で返す。number が 0～6 以外�
               (tao:&environment 'tao:&environment)
               (otherwise a)))
           arg-list))
-
 
 ;; deは、define exprの略
 ;; defunとの差異が不明 拡張されたlambdaリストが取れるのが、

@@ -648,6 +648,7 @@
                                           (rest body) cont
                                           (bind-new-variables bindings goal))))))
                            ((and (symbolp (car goal))
+                                 (not (get-clauses (car goal)))
                                  (fboundp (car goal))
                                  (typep (symbol-package (car goal)) 'tao-package))
                             #+debug (print (list :=========> (car goal)))
