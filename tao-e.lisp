@@ -513,7 +513,7 @@ body は定義本体。 de と expr の関係は dye と lambda の関係と同�
         (expr (x y) (+ (foo x) (bar y)))
         ((expr (x y) (+ x y)) 2 3) -> 5"
   ;; evalはnull lexical environmentにするために利用
-  (eval `(lambda ,var-list ,@body)))
+  `(load-time-value (lambda ,var-list ,@body)))
 
 ;;; expt                                   関数[#!subr]
 ;;;

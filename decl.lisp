@@ -23,30 +23,22 @@
  (assertz (p a) B3 )"
   `(member tao:!))
 
+
 (deftype tao::cut-operator ()
   `(member tao:! (cons (eql tao:&cut) null)))
 
 
-(defmacro tao-internal::defsynonym (new-name old-name &optional docstring)
-  "New-name is a subst for old-name.  Uses rest arg so be careful."
-  `(progn
-     ,(if (and (every #'symbolp (list new-name old-name))
-               (macro-function old-name) )
+(defun tao-internal::symbol-list-p (list)
+  (every #'symbolp list))
 
-          `(setf (macro-function ',new-name)
-                 (macro-function ',old-name) )
 
-          `(setf (fdefinition ',new-name)
-                 (fdefinition ',old-name) ) )
+(deftype tao-internal::symbol-list ()
+  `(and list
+        (satisfies symbol-list-p)))
 
-     ,(when docstring
-        `(setf (documentation ',new-name 'function)
-               ,docstring ))
-     ',new-name ))
+(deftype tao-internal::&aux-form ()
+  `(cons (member &aux :aux) symbol-list))
 
-(defmacro tao-internal::defclsynonym (new-name &optional docstring)
-  (let ((clsym (intern (string new-name) :cl)))
-    `(tao-internal::defsynonym ,new-name ,clsym ,docstring) ))
 
 ;;; ------------------
 ;;; *

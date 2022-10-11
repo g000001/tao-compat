@@ -6,7 +6,9 @@
 
 (defun logvar-setter-exist-p (env)
   (multiple-value-bind (ftype localp)
-                       #+lispworks (hcl:function-information 'tao.logic::logvar-setter env)
+                       (#+lispworks hcl:function-information
+                        #+sbcl sb-cltl2:function-information
+                        'tao.logic::logvar-setter env)
     (and ftype localp)))
 
 

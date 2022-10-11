@@ -62,6 +62,11 @@
   `(tao.logic::compile-anonymous-predicate ,(length (elt (elt body 0) 1))
                                            ',body))
 
+
+(defmacro tao::*Hclauses (&body body)
+  (tao.logic::make-anonymous-predicate-expr (length (elt (elt body 0) 1))
+                                            body))
+
 ;;; ＠
 ;;; hidar                                  関数[#!subr]
 ;;;

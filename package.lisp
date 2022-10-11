@@ -4,6 +4,7 @@
 (defpackage #:tao
   (:use)
   (:import-from :cl
+   :nil
    :&allow-other-keys :&aux :&body :&environment :&key :&optional :&rest :&whole
    :*
    :*** :*break-on-signals* :*compile-file-pathname*

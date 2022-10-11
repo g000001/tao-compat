@@ -269,6 +269,7 @@ object1 と object2 が以下の条件を満足すれば、nil、それ以外な
 ;;;         (nidp '_x) -> t
 ;;;         (nidp #!expr) -> t
 
+#+todo
 (defconstant tao:nil cl:nil
   "nil                                    定数
 

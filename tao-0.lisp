@@ -70,6 +70,11 @@ Bn では body の最後が評価される。
 ;;; readtable.lisp
 ;;; (defmacro tao:selfass (fn &rest args)
 
+#||
+(defmacro & (&rest body)
+  `((Hclauses (&+dyn ( ) ,@body !))) )
+||#
+
 
 (defmacro tao:& (&body forms)
   "&                                      関数[#!macro]
@@ -91,8 +96,7 @@ B1, B2, ... または、Bn で使われる局所変数、特に論理変数は�
 <例>
         (& (&aux _x _y) (concatenate _x _y (1 2 1 2)) (== _x _y))
         (prog (_x _y) (& (concatenate _x _y (1 2 3)) (== _x _y)))"
-  (let ((aux-vars (and (consp (car forms))
-                       (eq '&aux (caar forms))
+  (let ((aux-vars (and (typep (car forms) '&aux-form)
                        (prog1 (cdar forms) (pop forms)) )))
     (let ((exit (gensym "exit-")))
       `(block ,exit
@@ -102,7 +106,7 @@ B1, B2, ... または、Bn で使われる局所変数、特に論理変数は�
              `(lambda () (return-from ,exit T))
              tao.logic::no-bindings))))))
 
-;;; ＠
+
 ;;; &                                      メッセージ
 ;;;
 ;;; <説明>
@@ -111,6 +115,7 @@ B1, B2, ... または、Bn で使われる局所変数、特に論理変数は�
 ;;; タンスファクトを宣言していたら t を、そうでなければ nil を返す。
 ;;; &assert の例を参照。
 ;;; ＠
+
 
 (defmacro tao:&+ (&whole whole &rest args)
   "&+                                     関数[#!subr]
@@ -139,14 +144,24 @@ Lisp 関数の assert は、定義のボディを調べ自動的に補助変数�
   (declare (ignore args))
   `(tao:Hclauses ,whole))
 
-;;; ＠
-;;; &+dyn                                  関数[#!subr]
-;;;
-;;; <説明>
-;;;   形式 : &+dyn &rest 'x
-;;; 変数のスコープについてスコープの制限がないということ以外は、関数 &+ と
-;;; 同じ。関数 &+dyn の使い方は、関数 lambda とほぼ同じ。
-;;; ＠
+
+(defmacro tao:&+dyn (&whole whole &rest args)
+  "&+dyn                                  関数[#!subr]
+
+ <説明>
+   形式 : &+dyn &rest 'x
+ 変数のスコープについてスコープの制限がないということ以外は、関数 &+ と
+ 同じ。関数 &+dyn の使い方は、関数 lambda とほぼ同じ。"
+  (declare (ignore args))
+  `(block tao:&+dyn
+     (,(tao.logic::make-anonymous-predicate-expr (length (elt whole 1))
+                                                 (list whole))
+      (lambda () (return-from tao:&+dyn (constantly T))))))
+
+#||
+(defmacro &and (&rest body)
+  `((&+dyn ( ) ,@body)) )
+||#
 
 (defmacro tao:&and (&rest forms)
   "&and                                   関数[#!macro]

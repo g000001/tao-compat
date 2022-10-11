@@ -577,9 +577,16 @@
   `(member ,(find-package "CL")
            ,(find-package "TAO")))
 
+(defun nil->fail (body)
+  (mapcar (lambda (x)
+            (if (null x)
+                '(fail)
+                x))
+          body))
 
 (defun compile-body (body cont bindings)
   "Compile the body of a clause."
+  (setq body (nil->fail body)) ;TODO
   (if (null body)
       `(funcall ,cont)
       (let ((goal (first body)))
@@ -672,10 +679,29 @@
       (otherwise expr))))
 
 
+(defun make-anonymous-predicate-expr (arity clauses)
+  (let ((parameters (make-parameters arity)))
+    `(lambda (,@parameters cont)
+       ,@(maybe-add-undo-bindings
+          (mapcar (lambda (clause)
+                    (typecase clause
+                      ((cons (member tao:&+ tao:&+dyn) (cons * (cons (cons (eql tao:&aux)))))
+                       (destructuring-bind (tao:&+ pat aux &body body)
+                                           clause
+                         `(tao:let (,@(cdr aux))
+                            ,(compile-clause parameters `(,(cons tao:&+ pat) ,@body) 'cont))))
+                      ((cons (eql tao:&+) *)
+                       (compile-clause parameters (translate-&+ clause) 'cont))
+                      (T (compile-clause parameters clause 'cont))))
+                  clauses)))))
+
 (defun compile-anonymous-predicate (arity clauses)
+  (compile nil (make-anonymous-predicate-expr arity clauses))
+  #+old
   (let ((parameters (make-parameters arity)))
     (compile nil
-             (print 
+             (#+debug print
+              #-debug progn
               `(lambda (,@parameters cont)
                  ,@(maybe-add-undo-bindings
                     (mapcar (lambda (clause)
@@ -683,12 +709,15 @@
                                 ((cons (eql tao:&+) (cons * (cons (cons (eql tao:&aux)))))
                                  (destructuring-bind (tao:&+ pat aux &body body)
                                                      clause
-                                   `(tao:&progn (&aux ,@(cdr aux))
+                                   `(tao:let (,@(cdr aux))
                                       ,(compile-clause parameters `(,(cons tao:&+ pat) ,@body) 'cont))))
                                 ((cons (eql tao:&+) *)
                                  (compile-clause parameters (translate-&+ clause) 'cont))
                                 (T (compile-clause parameters clause 'cont))))
                             clauses)))))))
+
+
+
 
 
 (defun Hclauses->prolog-clauses (name clauses)
@@ -710,16 +739,7 @@
        (setf (symbol-function ',functor/arity)
              ,form)
        (setf (get-clauses ',name) ',clauses)
-       (defmacro ,name (&rest args)
-         `(flet ((logvar-setter ()
-                   ,@(mapcar (lambda (v) `(when (and (tao.logic::var-p ,v)
-                                                     (tao.logic::bound-p ,v))
-                                            (setq ,v (tao.logic::deref-exp ,v))))
-                             (variables-in args))
-                   (throw 'functor T)
-                   ))
-            (catch 'functor
-              (,',functor/arity ,@args #'logvar-setter)))))))
+       (tao-internal::define-predicate-in-lisp-world ,name))))
 
 
 ;;; *EOF*
