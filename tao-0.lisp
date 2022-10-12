@@ -96,6 +96,7 @@ B1, B2, ... または、Bn で使われる局所変数、特に論理変数は�
 <例>
         (& (&aux _x _y) (concatenate _x _y (1 2 1 2)) (== _x _y))
         (prog (_x _y) (& (concatenate _x _y (1 2 3)) (== _x _y)))"
+  #+old
   (let ((aux-vars (and (typep (car forms) '&aux-form)
                        (prog1 (cdar forms) (pop forms)) )))
     (let ((exit (gensym "exit-")))
@@ -104,6 +105,15 @@ B1, B2, ... または、Bn で使われる局所変数、特に論理変数は�
            ,(tao.logic::compile-body
              forms
              `(lambda () (return-from ,exit T))
+             tao.logic::no-bindings)))))
+  (let ((aux-vars (and (typep (car forms) '&aux-form)
+                       (prog1 (cdar forms) (pop forms)) )))
+    (let ((cont (gensym "cont")))
+      `(with-return-from-reval ,cont (,@aux-vars)
+         (tao:let (,@aux-vars)
+           ,(tao.logic::compile-body
+             forms
+             `#',cont
              tao.logic::no-bindings))))))
 
 
@@ -1796,9 +1806,10 @@ _arg1 _arg2 は、論理変数であれば、ユニフィケイションの前�
         (prog (_x _y) (== (_x . _y) (1 2 3)) -> t.
         現在 _x は (1 2 3) の car になり、同時に _y は (1 2 3) の cdr
         となっている。"
-  `(tao.logic::==/2 ,(unquotify arg1) ,(unquotify arg2)
-                    (constantly T)))
-
+  (let ((cont (gensym "cont")))
+    `(with-return-from-reval ,cont (,arg1 ,arg2)
+       (tao.logic::==/2 ,(unquotify arg1) ,(unquotify arg2)
+                        #',cont))))
 
 
 (defun tao:> (x y)

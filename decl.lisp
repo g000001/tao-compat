@@ -1,5 +1,10 @@
 (cl:in-package :cl-user)
 
+
+(declaim (type (member :eval :reval) tao::*eval-mode*))
+(defvar tao::*eval-mode* :eval)
+
+
 (deftype tao::special-symbol ()
   "!                                      スペシャルシンボル
 

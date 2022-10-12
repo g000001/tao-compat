@@ -692,7 +692,7 @@ pred を満足する要素を見つけたらその要素を返し、後はもう
         (ass '> 5 '((6 . six) (3 . three) (4 . four))) -> (3 . three)"
   (assoc data a-list :test pred))
 
-
+#+old
 (defmacro define-predicate-in-lisp-world (name)
   `(defmacro ,name (&rest args)
      (let ((exit (gensym "exit-")))
@@ -701,6 +701,17 @@ pred を満足する要素を見つけたらその要素を返し、後はもう
             `((,',name ,@args))
             `(lambda () (return-from ,exit T))
             tao.logic::no-bindings)))))
+
+
+(defmacro define-predicate-in-lisp-world (name)
+  `(defmacro ,name (&rest args)
+     (let ((cont (gensym "cont")))
+       `(with-return-from-reval ,cont (,args)
+          ,(tao.logic::compile-body
+            `((,',name ,@args))
+            `#',cont
+            tao.logic::no-bindings)))))
+
 
 (defun ensure-predicate-in-lisp-world (name)
   (eval `(define-predicate-in-lisp-world ,name)))
