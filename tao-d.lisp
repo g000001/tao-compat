@@ -520,28 +520,41 @@ access-fn は関数とマクロどちらの名前も必要としない。
 ;;                                  (1+ x) )
 ;;         ((definition *print-base*) -> (!*print-base* 10.)
 
-;; deflogic-method                        関数[#!macro]
-;;
-;; <説明>
-;;   形式 : deflogic-method 'method-spec 'arg-pattern-list &rest 'forms
-;; 論理メソッドを定義する。defmethod と同じように働く。defmethod を参照。
-;; method-spec = (class-name method-type selector)
-;; arg-pattern-list はヘッド部分に対応する。 forms はボディ部分に対応する。
-;; forms には (&aux x y z) のような補助変数宣言がくることがある。論理メソ
-;; ッドでは self を使用可能。
-;;
-;; <例>
-;;         (defclass aclass () ()) -> aclass
-;;         (deflogic-method (aclass amethod) (_x _y) (cons _x _y))
-;;         	-> amethod
-;;         (deflogic-method (aclass amethod) (_x _y _z) [_x + _y + _z])
-;;         	-> amethod
-;;         (deflogic-method (aclass amethod) ((_p . _)) _p) -> amethod
-;;         (!x (make-instance 'aclass)) -> {udo}76445aclass
-;;         [x amethod p (q r s)] -> (p q r s)
-;;         [x amethod 1 2 3] -> 6
-;;         [x amethod (aa bb cc)] -> aa
-;;         [x amethod aa bb cc dd] -> nil
+(defmacro tao:deflogic-method ((class message) (&rest args) &body body)
+  "deflogic-method                        関数[#!macro]
+
+ <説明>
+   形式 : deflogic-method 'method-spec 'arg-pattern-list &rest 'forms
+ 論理メソッドを定義する。defmethod と同じように働く。defmethod を参照。
+ method-spec = (class-name method-type selector)
+ arg-pattern-list はヘッド部分に対応する。 forms はボディ部分に対応する。
+ forms には (&aux x y z) のような補助変数宣言がくることがある。論理メソ
+ ッドでは self を使用可能。
+
+ <例>
+         (defclass aclass () ()) -> aclass
+         (deflogic-method (aclass amethod) (_x _y) (cons _x _y))
+         	-> amethod
+         (deflogic-method (aclass amethod) (_x _y _z) [_x + _y + _z])
+         	-> amethod
+         (deflogic-method (aclass amethod) ((_p . _)) _p) -> amethod
+         (!x (make-instance 'aclass)) -> {udo}76445aclass
+         [x amethod p (q r s)] -> (p q r s)
+         [x amethod 1 2 3] -> 6
+         [x amethod (aa bb cc)] -> aa
+         [x amethod aa bb cc dd] -> nil"
+  (let ((slot-names (mapcar #'c2mop:slot-definition-name (c2mop:class-slots (find-class class)))))
+    `(progn
+       (defmethod ,(tao.logic::make-predicate message (1+ (length args)))
+                  ((tao:self ,class) ,@args cont)
+         (with-slots (,@slot-names)
+                     tao:self
+           (declare (ignorable ,@slot-names))
+           ,(tao.logic::compile-body body
+                                     'cont
+                                     '((T . T)))))
+       (define-method-predicate-in-lisp-world ,message))))
+
 
 (defclsynonym tao:defmacro
     "defmacro                               関数[#!expr]

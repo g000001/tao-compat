@@ -492,12 +492,19 @@
   "The Prolog predicate currently being compiled")
 
 
+(defmacro define-base-method (name (&rest args) &body body)
+  `(progn
+     (defgeneric ,name (,@args)
+       (:method (,@args) ,@body))
+     ',name))
+
+
 (defun compile-predicate (symbol arity clauses)
   "Compile all the clauses for a given symbol/arity
   into a single LISP function."
   (let* ((*predicate* (make-predicate symbol arity))    ;***
          (parameters (make-parameters arity))
-         (pred-expr `(defun ,*predicate* (,@parameters cont)
+         (pred-expr `(define-base-method ,*predicate* (,@parameters cont)
                        .,(maybe-add-undo-bindings
                           (mapcar #'(lambda (clause)
                                       (compile-clause parameters clause 'cont))

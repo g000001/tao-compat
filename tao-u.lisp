@@ -88,24 +88,36 @@
 ;;; <例>
 ;;;         (defclass itazra () () ()) -> itazra
 ;;;         (undefclass 'itazra) -> nil
-;;; ＠
-;;; undeflogic-method                      関数[#!macro]
-;;;
-;;; <説明>
-;;;   形式 : undeflogic-method method-spec &opt arg-pattern-list
-;;; 既に定義された論理メソッドを消去する。
-;;; method-spec = (class-name method-type selector)
-;;; arg-pattern-list はヘッド部分に対応する。これが省略されると、selector
-;;; という名前を持つすべての論理メソッドが消去される。
-;;;
-;;; <例>
-;;;         (undeflogic-method (aclass amethod) (_x _y)) -> t
-;;;         (deflogic-method (aclass amethod) (_x _y) (cons _x _y))
-;;;         が消去される。
-;;;         (undeflogic-method (aclass amethod)) -> t
-;;;         非メソッドの名前を持つ全ての論理メソッドが消去される。
-;;;         (undeflogic-method (aclass amethod) (_x _y)) -> nil
-;;; ＠
+
+(defmacro tao:undeflogic-method ((class message) (&rest args))
+  "undeflogic-method                      関数[#!macro]
+
+ <説明>
+   形式 : undeflogic-method method-spec &opt arg-pattern-list
+ 既に定義された論理メソッドを消去する。
+ method-spec = (class-name method-type selector)
+ arg-pattern-list はヘッド部分に対応する。これが省略されると、selector
+ という名前を持つすべての論理メソッドが消去される。
+
+ <例>
+         (undeflogic-method (aclass amethod) (_x _y)) -> t
+         (deflogic-method (aclass amethod) (_x _y) (cons _x _y))
+         が消去される。
+         (undeflogic-method (aclass amethod)) -> t
+         非メソッドの名前を持つ全ての論理メソッドが消去される。
+         (undeflogic-method (aclass amethod) (_x _y)) -> nil"
+  (let ((gf (gensym "gf"))
+        (md (gensym "md")))
+    `(let* ((,gf #',(tao.logic::make-predicate message (1+ (length args))))
+            (,md (find-method ,gf
+                              nil
+                              (list (find-class ',class)
+                                    ,@(mapcar (constantly `(find-class T))
+                                              (cons 'cont args)))
+                              nil)))
+       (when ,md (remove-method ,gf ,md))
+       ',message)))
+
 ;;; undefmethod                            関数[#!macro]
 ;;;
 ;;; <説明>

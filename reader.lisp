@@ -116,8 +116,15 @@
                 ,(apply #'infix-to-prefix args)))))|#
 
 
+(defun logic-method-p (mesg)
+  (and (symbolp mesg)
+       (eql 0 (position #\& (string mesg)))))
+
+
 (defun infix-to-prefix (obj mesg &rest args)
-  (cond ((null args)
+  (cond ((logic-method-p mesg)
+         `(,mesg ,obj ,@args))
+        ((null args)
          (if (typep mesg 'fixnum)
              (list 'cl:elt obj mesg)
              (list mesg obj)))

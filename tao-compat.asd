@@ -7,7 +7,7 @@
   :description "TAO Compatible package for CL"
   :author "CHIBA Masaomi <chiba.masaomi@gmail.com>"
   :maintainer "CHIBA Masaomi <chiba.masaomi@gmail.com>"
-  :version "0.22.10.10"
+  :version "0.22.10.14"
   :serial t
   :components ((:file "package")
                (:file "decl")
@@ -42,7 +42,7 @@
 	       (:file "tao-v")
 	       (:file "tao-x")
 	       (:file "tao-z"))
-  :depends-on (#:cl-ppcre #:babel))
+  :depends-on (#:cl-ppcre #:babel #:closer-mop))
 
 
 ;;; *EOF*
