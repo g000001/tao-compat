@@ -1,5 +1,8 @@
 (tao:common-lisp)
-(in-package :tao-internal)                   ;cl-user!
+
+
+(in-package :tao-internal)
+
 
 (defmacro toga (obj) obj)
 
@@ -78,23 +81,26 @@
   #+allegro (excl::read-list stream ignore )
   #+ccl (ccl::read-list stream))
 
-;(makunbound '*invisible-funcall*)
-;(makunbound '*invisible-query*)
+
 (eval-when (:compile-toplevel :load-toplevel :execute)
-  (defvar tao-internal::*invisible-funcall* '#:funcall)
-  (defvar tao-internal::*invisible-query* '#:query))
+(defvar tao-internal::*invisible-funcall* '#:funcall)
+(defvar tao-internal::*invisible-query* '#:query)
+(macrolet ((define-invisible ()
+             `(progn
+                (defmacro ,tao-internal::*invisible-funcall* (&rest args)
+                  `(cl:funcall ,@args))
+                (defmacro ,tao-internal::*invisible-query* (&rest args)
+                  `(tao:query ,@args)))))
+  (define-invisible)))
 
-(defmacro #.tao-internal::*invisible-funcall* (&rest args)
-  `(cl:funcall ,@args))
-
-(defmacro #.tao-internal::*invisible-query* (&rest args)
-  `(tao:query ,@args))
 
 (defmethod print-object ((obj (eql tao-internal::*invisible-funcall*)) stream)
   (values))
 
+
 (defmethod print-object ((obj (eql tao-internal::*invisible-query*)) stream)
   (values))
+
 
 (defun tao-read-list (stream ignore)
   (case (peek-char t stream)
@@ -167,6 +173,7 @@
          `(,mesg ,obj ,@args))
         ('T `(,mesg ,obj ,(apply #'infix-to-prefix args)))))
 
+
 (defun read-|[| (stream char)
   (declare (ignore char))
   (let ((*readtable* tao-no-dots-readtable))
@@ -175,6 +182,8 @@
 
 
 (declaim (inline codnums))
+
+
 (defun codnums ()
   '((  0 . tao:expr)
     (  1 . tao:exprdyn)
@@ -231,4 +240,4 @@
           (error "Unknown codnum: #!~A." codnum)))))
 
 
-;;; eof
+;;; *EOF*
