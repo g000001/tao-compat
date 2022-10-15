@@ -32,36 +32,26 @@
 
 
 (eval-when (:compile-toplevel :load-toplevel :execute)
-(defvar tao-internal::tao-no-dots-readtable (copy-readtable tao:tao-standard-readtable))
-(let ((*readtable* tao-internal::tao-no-dots-readtable))
-  (set-macro-character #\.
-                       (lambda (srm dot)
-                         (let ((dots (cons dot (loop :for c := (peek-char nil srm T nil T)
-                                                     :while (char= #\. c)
-                                                     :do (read-char srm T nil T)
-                                                     :collect c))))
-                           (case (peek-char nil srm T nil T)
-                             ((#\Space #\Newline #\Return #\Tab #\Page)
-                              (intern (coerce dots 'string) :tao))
-                             (otherwise
-                              (let ((*readtable* tao:tao-standard-readtable))
-                                (dolist (d dots)
-                                  (unread-char d srm))
-                                (read srm T nil T))))))
-                       :non-terminating)))
+  (defvar tao-internal::tao-no-dots-readtable (copy-readtable tao:tao-standard-readtable)))
 
 
-(defmacro tao:tao ()
-  `(eval-when (:compile-toplevel :load-toplevel :execute)
-   (cl:in-package tao-user)
-   (setq *print-case* :downcase)
-   (setq *readtable* tao:tao-standard-readtable)))
-
-
-(defmacro tao:common-lisp ()
-  `(eval-when (:compile-toplevel :load-toplevel :execute)
-     (cl:in-package cl-user)
-     (setq *readtable* (copy-readtable nil))))
+(eval-when (:compile-toplevel :load-toplevel :execute)
+  (let ((*readtable* tao-internal::tao-no-dots-readtable))
+    (set-macro-character #\.
+                         (lambda (srm dot)
+                           (let ((dots (cons dot (loop :for c := (peek-char nil srm T nil T)
+                                                    :while (char= #\. c)
+                                                    :do (read-char srm T nil T)
+                                                    :collect c))))
+                             (case (peek-char nil srm T nil T)
+                               ((#\Space #\Newline #\Return #\Tab #\Page)
+                                (intern (coerce dots 'string) :tao))
+                               (otherwise
+                                (let ((*readtable* tao:tao-standard-readtable))
+                                  (dolist (d dots)
+                                    (unread-char d srm))
+                                  (read srm T nil T))))))
+                         :non-terminating)))
 
 
 ;;; *EOF*

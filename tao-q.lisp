@@ -4,6 +4,23 @@
 (cl:in-package tao-internal)
 
 
+(defun var-name-p (expr)
+  (and (symbolp expr)
+       (eql 0 (position #\_ (string expr)))))
+
+
+(defun unquotify (expr)
+  (typecase expr
+    (null '())
+    (atom (if (var-name-p expr) ;TODO
+              expr
+              `',expr))
+    ((cons (eql tao:unquote)) (cadr expr))
+    (cons (list 'cons
+                (unquotify (car expr))
+                (unquotify (cdr expr))))))
+
+
 (defun logvar-setter-exist-p (env)
   (multiple-value-bind (ftype localp)
                        (#+lispworks hcl:function-information
@@ -12,6 +29,7 @@
     (and ftype localp)))
 
 
+#+old
 (defmacro tao::query (log &rest args &environment env)
   `(funcall ,log
             ,@(mapcar #'unquotify args)
@@ -19,6 +37,15 @@
                  '(function tao.logic::logvar-setter)
                  '(constantly T))))
 
+
+(defmacro tao::query (log &rest args)
+  (let ((cont (gensym "cont")))
+    `(with-return-from-reval ,cont (,log)
+       (funcall ,log
+                ,@(mapcar #'unquotify args)
+                ;;#',cont
+                (constantly T)
+                ))))
 
 (eval-when (:compile-toplevel :load-toplevel :execute)
   (defun qq-expand-list (x depth)

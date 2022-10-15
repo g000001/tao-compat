@@ -54,6 +54,7 @@
 
 
 (defmacro with-null-venv (&body body &environment env)
+  (declare (ignorable env))
   #+lispworks (compiler::|set COMPILER-ENVIRONMENT-VENV| env '())
   `(progn ,@body))
 

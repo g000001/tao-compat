@@ -1,3 +1,4 @@
+(tao:common-lisp)
 (in-package :tao-internal)                   ;cl-user!
 
 (defmacro toga (obj) obj)
@@ -77,6 +78,23 @@
   #+allegro (excl::read-list stream ignore )
   #+ccl (ccl::read-list stream))
 
+;(makunbound '*invisible-funcall*)
+;(makunbound '*invisible-query*)
+(eval-when (:compile-toplevel :load-toplevel :execute)
+  (defvar tao-internal::*invisible-funcall* '#:funcall)
+  (defvar tao-internal::*invisible-query* '#:query))
+
+(defmacro #.tao-internal::*invisible-funcall* (&rest args)
+  `(cl:funcall ,@args))
+
+(defmacro #.tao-internal::*invisible-query* (&rest args)
+  `(tao:query ,@args))
+
+(defmethod print-object ((obj (eql tao-internal::*invisible-funcall*)) stream)
+  (values))
+
+(defmethod print-object ((obj (eql tao-internal::*invisible-query*)) stream)
+  (values))
 
 (defun tao-read-list (stream ignore)
   (case (peek-char t stream)
@@ -91,6 +109,23 @@
           ,@(read-list stream ignore) ))
        (otherwise
         `(setf ,@(read-list stream ignore)) )))
+    ((#\()
+     (let ((xpr (read-list stream ignore)))
+       (typecase (car xpr)
+         (cons
+          (case (caar xpr)
+            ((tao:expr)
+             (destructuring-bind ((lam (&rest bvl) &body body) &rest args)
+                                 xpr
+               `(,tao-internal::*invisible-funcall* (,lam (,@bvl) ,@body) ,@args)))
+            ((tao:&+ tao:&+dyn)
+             (destructuring-bind ((lam bvl &body body) &rest args)
+                                 xpr
+               (typecase bvl
+                 (cons `(,tao-internal::*invisible-query* (,lam (,@bvl) ,@body) ,@args))
+                 (atom `(,tao-internal::*invisible-query* (,lam (&rest ,bvl) ,@body) ,@args)))))
+            (otherwise xpr)))
+         (atom xpr))))
     (otherwise
      (read-list stream ignore) )))
 

@@ -438,12 +438,3 @@
 (defun first-or-self (x)
   "The first element of x, if it is a list; else x itself."
   (if (consp x) (first x) x))
-
-
-
-
-
-
-
-
-

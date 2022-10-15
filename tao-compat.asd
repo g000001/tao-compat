@@ -7,9 +7,10 @@
   :description "TAO Compatible package for CL"
   :author "CHIBA Masaomi <chiba.masaomi@gmail.com>"
   :maintainer "CHIBA Masaomi <chiba.masaomi@gmail.com>"
-  :version "0.22.10.14"
+  :version "0.22.10.15"
   :serial t
   :components ((:file "package")
+               (:file "common-lisp-world")
                (:file "decl")
                (:file "tao-q")
                (:file "auxfns")
@@ -21,6 +22,7 @@
                (:file "util")
                (:file "reader")
                (:file "readtable" :depends-on ("package"))
+               (:file "tao-world")
 	       (:file "tao-0")
 	       (:file "tao-a")
 	       (:file "tao-b")

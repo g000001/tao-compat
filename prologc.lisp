@@ -4,7 +4,7 @@
 
 ;;;; File prologc.lisp: Final version of the compiler,
 ;;;; including all improvements from the chapter.
-
+(tao:common-lisp)
 (in-package :tao.logic)
 
 
@@ -513,6 +513,22 @@
     (compile (eval pred-expr))))
 
 
+(defun compile-local-predicate (symbol arity clauses)
+  "Compile all the clauses for a given symbol/arity
+  into a single LISP local function."
+  (let* ((*predicate* (make-predicate symbol arity))    ;***
+         (parameters (make-parameters arity))
+         (pred-expr `(flet ((,*predicate* (,@parameters cont)
+                              .,(maybe-add-undo-bindings
+                                 (mapcar #'(lambda (clause)
+                                             (compile-clause parameters clause 'cont))
+                                         clauses))))
+                       #',*predicate*)))
+    (pprint pred-expr *debug-io*)
+    (funcall (compile nil `(lambda () ,pred-expr))) ;todo
+    ))
+
+
 (defun goal-cut-p (goal)
   (or (eq goal 'tao:!)
       (and (consp goal)
@@ -679,11 +695,11 @@
 
 
 (defun translate-&+ (expr)
-  (destructuring-bind (tao:&+ clause &rest clauses)
+  (destructuring-bind (lam clause &rest clauses)
                       expr
-    (case tao:&+
+    (case lam
       ((tao:&+)
-       `(,(cons tao:&+ clause) ,@clauses))
+       `(,(cons lam clause) ,@clauses))
       (otherwise expr))))
 
 
@@ -694,10 +710,10 @@
           (mapcar (lambda (clause)
                     (typecase clause
                       ((cons (member tao:&+ tao:&+dyn) (cons * (cons (cons (eql tao:&aux)))))
-                       (destructuring-bind (tao:&+ pat aux &body body)
+                       (destructuring-bind (lam pat aux &body body)
                                            clause
                          `(tao:let (,@(cdr aux))
-                            ,(compile-clause parameters `(,(cons tao:&+ pat) ,@body) 'cont))))
+                            ,(compile-clause parameters `(,(cons lam pat) ,@body) 'cont))))
                       ((cons (eql tao:&+) *)
                        (compile-clause parameters (translate-&+ clause) 'cont))
                       (T (compile-clause parameters clause 'cont))))
@@ -723,9 +739,6 @@
                                  (compile-clause parameters (translate-&+ clause) 'cont))
                                 (T (compile-clause parameters clause 'cont))))
                             clauses)))))))
-
-
-
 
 
 (defun Hclauses->prolog-clauses (name clauses)

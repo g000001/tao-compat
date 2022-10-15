@@ -155,18 +155,27 @@ Lisp 関数の assert は、定義のボディを調べ自動的に補助変数�
   `(tao:Hclauses ,whole))
 
 
-(defmacro tao:&+dyn (&whole whole &rest args)
+(defmacro tao:&+dyn (pattern &body body)
   "&+dyn                                  関数[#!subr]
 
  <説明>
    形式 : &+dyn &rest 'x
  変数のスコープについてスコープの制限がないということ以外は、関数 &+ と
  同じ。関数 &+dyn の使い方は、関数 lambda とほぼ同じ。"
-  (declare (ignore args))
-  `(block tao:&+dyn
-     (,(tao.logic::make-anonymous-predicate-expr (length (elt whole 1))
-                                                 (list whole))
-      (lambda () (return-from tao:&+dyn (constantly T))))))
+  (typecase pattern
+    (symbol ;todo
+     `(tao.logic::compile-local-predicate 'plet
+                                          1
+                                          '(((plet _arg)
+                                             (tao:== ,pattern _arg)
+                                             ,@body))))
+    (cons
+     `(tao.logic::compile-local-predicate 'plet
+                                          ,(length pattern)
+                                          '(((plet _arg)
+                                             (tao:== ,pattern (_arg))
+                                             ,@body))))))
+
 
 #||
 (defmacro &and (&rest body)
@@ -1773,21 +1782,6 @@ number1 number2 ... numberN の値 (複素数でも可) を左から右に順に
         (!a '#c(2 3)) -> #c(2 3)
         (common:= a #c(2 3)) -> #c(2 3)
         (common:= 2 2 3) -> nil")
-
-(defun var-name-p (expr)
-  (and (symbolp expr)
-       (eql 0 (position #\_ (string expr)))))
-
-(defun unquotify (expr)
-  (typecase expr
-    (null '())
-    (atom (if (var-name-p expr) ;TODO
-              expr
-              `',expr))
-    ((cons (eql tao:unquote)) (cadr expr))
-    (cons (list 'cons
-                (unquotify (car expr))
-                (unquotify (cdr expr))))))
 
 
 (setf (tao.logic::get-clauses 'tao:==) T)
