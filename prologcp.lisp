@@ -119,6 +119,22 @@
     (funcall cont)))
 
 
+(defun &instance-fact/2 (obj _args cont)
+  (let ((ifact (make-predicate (tao.object::object-name obj) (length _args))))
+    (if (fboundp ifact)
+        (let ((args (append _args (list cont))))
+          (declare (dynamic-extent args))
+          (apply (make-predicate (tao.object::object-name obj) (length _args))
+                 args))
+        (error "Instance fact does not exist for ~S." obj))))
+
+
+(defmacro &instance-fact (obj args)
+  (let ((cont (gensym "cont")))
+    `(tao-internal::with-return-from-reval cont (,args)
+       (&instance-fact/2 ,obj ',args #'cont))))
+
+
 (defun unify-with-occurs-check/2 (_arg1 _arg2 cont)
   "8.2.2"
   (let ((*occurs-check* t))

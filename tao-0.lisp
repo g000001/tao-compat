@@ -109,8 +109,8 @@ B1, B2, ... または、Bn で使われる局所変数、特に論理変数は�
   (let ((aux-vars (and (typep (car forms) '&aux-form)
                        (prog1 (cdar forms) (pop forms)) )))
     (let ((cont (gensym "cont")))
-      `(with-return-from-reval ,cont (,@aux-vars)
-         (tao:let (,@aux-vars)
+      `(tao:let (,@aux-vars)
+         (with-return-from-reval ,cont (,@aux-vars)
            ,(tao.logic::compile-body
              forms
              `#',cont
@@ -202,31 +202,36 @@ body の最後に ! がないことを除いては & と同じ。
          `(constantly T)
          tao.logic::no-bindings))) )
 
-;;; ＠
-;;; &assert                                メッセージ
-;;;
-;;; <説明>
-;;;   形式 : &assert &rest arg-pattern
-;;; &assert は arg-pattern によって表されたインスタンスファクトを言明する。
-;;; t を返す。
-;;;
-;;; <例>
-;;;         (defclass fact-class () () () :logical-class) -> fact-class
-;;;         (!x (make-instance 'fact-class)) -> {udo}76600fact-class
-;;;         [x &assert a b c] -> t
-;;;         [x &assert (p q r)] -> t
-;;;         [x & a b c] -> t
-;;;         [x & a b d] -> nil
-;;;         [x & (p q r)] -> t
-;;;         [x & (p q 5)] -> nil
-;;;         (& (&aux _u _v _w) [x & _u _v _w] (write (list _u _v _w)))
-;;;              -> t
-;;;         これを実行すると (a b c) とプリントされる。
-;;;         (& (&aux _u) [x & . _u] (write _u)) -> t
-;;;         これを実行すると (a b c) とプリントされる。
-;;;         (& (&aux _u _v) [x & _u] (== _u (_v . _))(write _v)) -> t
-;;;         これを実行すると p とプリントされる。
-;;; ＠
+
+(defmacro tao:&assert (obj &rest args)
+  "&assert                                メッセージ
+
+ <説明>
+   形式 : &assert &rest arg-pattern
+ &assert は arg-pattern によって表されたインスタンスファクトを言明する。
+ t を返す。
+
+ <例>
+         (defclass fact-class () () () :logical-class) -> fact-class
+         (!x (make-instance 'fact-class)) -> {udo}76600fact-class
+         [x &assert a b c] -> t
+         [x &assert (p q r)] -> t
+         [x & a b c] -> t
+         [x & a b d] -> nil
+         [x & (p q r)] -> t
+         [x & (p q 5)] -> nil
+         (& (&aux _u _v _w) [x & _u _v _w] (write (list _u _v _w)))
+              -> t
+         これを実行すると (a b c) とプリントされる。
+         (& (&aux _u) [x & . _u] (write _u)) -> t
+         これを実行すると (a b c) とプリントされる。
+         (& (&aux _u _v) [x & _u] (== _u (_v . _))(write _v)) -> t
+         これを実行すると p とプリントされる。"
+  `(tao.logic::prolog-compile 
+    (tao.logic::add-clause (list (list* (tao.object::object-name ,obj)
+                                        ',(tao.logic::make-anonymous args)))
+                           :asserta nil)) )
+ 
 ;;; &cond                                  関数[#!macro]
 ;;;
 ;;; <説明>

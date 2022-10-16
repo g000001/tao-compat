@@ -12,6 +12,7 @@
   :components ((:file "package")
                (:file "common-lisp-world")
                (:file "decl")
+               (:file "object")
                (:file "tao-q")
                (:file "auxfns")
                (:file "patmatch")

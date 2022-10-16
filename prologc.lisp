@@ -124,7 +124,8 @@
 (defun prolog-compiler-macro (name)
   "Fetch the compiler macro for a Prolog predicate."
   ;; Note NAME is the raw name, not the name/arity
-  (get name 'prolog-compiler-macro))
+  (and (symbolp name)
+       (get name 'prolog-compiler-macro)))
 
 
 (defmacro def-prolog-compiler-macro (name arglist &body body)
@@ -354,10 +355,9 @@
     (if (/= (length args) 2)
         :pass ;; decline to handle this goal
         (multiple-value-bind (code1 bindings1)
-            (compile-unify (first args) (second args) bindings)
-          (compile-if
-            code1
-            (compile-body body cont bindings1))))))
+                             (compile-unify (first args) (second args) bindings)
+          (compile-if code1
+                      (compile-body body cont bindings1))))))
 
 
 (defun compile-clause (parms clause cont)
@@ -590,7 +590,7 @@
 
 (defun goal-has-unquote-p (goal)
   (etypecase goal
-    (symbol nil)
+    (atom nil)
     (cons (find 'tao:unquote
                 goal
                 :key (lambda (x) (and (consp x) (car x)))))))

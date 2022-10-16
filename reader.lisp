@@ -157,13 +157,19 @@
                 ,(apply #'infix-to-prefix args)))))|#
 
 
+(defun &-p (mesg)
+  (eq mesg 'tao:&))
+
+
 (defun logic-method-p (mesg)
   (and (symbolp mesg)
        (eql 0 (position #\& (string mesg)))))
 
 
 (defun infix-to-prefix (obj mesg &rest args)
-  (cond ((logic-method-p mesg)
+  (cond ((&-p mesg)
+         `(tao.logic::&instance-fact ,obj ,args))
+        ((logic-method-p mesg)
          `(,mesg ,obj ,@args))
         ((null args)
          (if (typep mesg 'fixnum)

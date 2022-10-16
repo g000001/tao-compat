@@ -1042,10 +1042,14 @@ n が省略された時、または n が負もしくは item と equal な要�
     (SYMBOL
      (mapc (lambda (c)
              (tao.logic::retract-clause c)
-             (let ((head (car c)))
-               (fmakunbound (print (tao.logic::make-predicate (car head) (length (cdr head)))))))
+             (let* ((head (car c))
+                    (arity (length (cdr head))))
+               (print (list clause (get clause arity)))
+               (setf (get clause arity) '())
+               (fmakunbound (tao.logic::make-predicate (car head) arity))))
            (tao.logic::get-clauses clause))
      (tao.logic::prolog-compile clause)
+     (setf (tao.logic::get-clauses clause) '())
      (fmakunbound clause)
      T)
     (CONS
