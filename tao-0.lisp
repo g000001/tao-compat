@@ -108,9 +108,10 @@ B1, B2, ... または、Bn で使われる局所変数、特に論理変数は�
              tao.logic::no-bindings)))))
   (let ((aux-vars (and (typep (car forms) '&aux-form)
                        (prog1 (cdar forms) (pop forms)) )))
-    (let ((cont (gensym "cont")))
+    (let ((cont (gensym "cont"))
+          (tao.logic::*predicate* (gensym "anonymous-pred-")))
       `(tao:let (,@aux-vars)
-         (with-return-from-reval ,cont (,@aux-vars)
+         (with-return-from-pred ,tao.logic::*predicate* ,cont (nil ,@aux-vars)
            ,(tao.logic::compile-body
              forms
              `#',cont
@@ -162,26 +163,51 @@ Lisp 関数の assert は、定義のボディを調べ自動的に補助変数�
    形式 : &+dyn &rest 'x
  変数のスコープについてスコープの制限がないということ以外は、関数 &+ と
  同じ。関数 &+dyn の使い方は、関数 lambda とほぼ同じ。"
-  (typecase pattern
-    (symbol ;todo
-     `(tao.logic::compile-local-predicate 'plet
-                                          1
-                                          '(((plet _arg)
-                                             (tao:== ,pattern _arg)
-                                             ,@body))))
-    (cons
-     `(tao.logic::compile-local-predicate 'plet
-                                          ,(length pattern)
-                                          '(((plet _arg)
-                                             (tao:== ,pattern (_arg))
-                                             ,@body))))))
+  (let ((auxvars nil)
+        (body body))
+    (typecase body
+      ((cons &aux-form *)
+       (setq auxvars (cdr (car body)))
+       (setq body (cdr body))))
+    (etypecase pattern
+      (null
+       `(tao.logic::compile-local-predicate 'plet
+                                            0
+                                            '(((plet _arg)
+                                               ,@body))
+                                            ',auxvars))
+      (cons
+       `(tao.logic::compile-local-predicate 'plet
+                                            ,(length pattern)
+                                            '(((plet _arg)
+                                               (tao:== ,pattern (_arg))
+                                               ,@body))
+                                            ',auxvars))
+      (symbol ;todo
+       `(tao.logic::compile-local-predicate 'plet
+                                            1
+                                            '(((plet _arg)
+                                               (tao:== ,pattern _arg)
+                                               ,@body))
+                                            ',auxvars)))))
 
 
-#||
-(defmacro &and (&rest body)
-  `((&+dyn ( ) ,@body)) )
-||#
 
+(defmacro tao:&and (&rest body)
+  "&and                                   関数[#!macro]
+
+<説明>
+  形式 : &and &rest body
+body の最後に ! がないことを除いては & と同じ。
+バックトラックでは その制御は body の最後から入って行くことができる。
+
+<例>
+        (&and [(&aux var ...)] B1 B2 ... Bn) =
+                              ((&+dyn () B1 B2 ... Bn))"
+  `(tao:query (tao:&+dyn ( ) ,@body)) )
+
+
+#+old
 (defmacro tao:&and (&rest forms)
   "&and                                   関数[#!macro]
 
@@ -195,12 +221,12 @@ body の最後に ! がないことを除いては & と同じ。
                               ((&+dyn () B1 B2 ... Bn))"
   (let ((aux-vars (and (consp (car forms))
                        (eq '&aux (caar forms))
-                       (prog1 (cdar forms) (pop forms)) )))
-    `(tao:let (,@aux-vars)
-       ,(tao.logic::compile-body
-         forms
-         `(constantly T)
-         tao.logic::no-bindings))) )
+                       (prog1 (cdar forms) (pop forms)) ))
+        (cont (gensym "cont")))
+    `(with-return-from-reval ,cont (,aux-vars)
+       ,(tao.logic::compile-body forms
+                                 `(function ,cont)
+                                 tao.logic::no-bindings))) )
 
 
 (defmacro tao:&assert (obj &rest args)
@@ -1806,7 +1832,7 @@ _arg1 _arg2 は、論理変数であれば、ユニフィケイションの前�
         現在 _x は (1 2 3) の car になり、同時に _y は (1 2 3) の cdr
         となっている。"
   (let ((cont (gensym "cont")))
-    `(with-return-from-reval ,cont (,arg1 ,arg2)
+    `(with-return-from-reval ,cont (nil ,arg1 ,arg2)
        (tao.logic::==/2 ,(unquotify arg1) ,(unquotify arg2)
                         #',cont))))
 

@@ -67,16 +67,28 @@
     (cons `(progn ,@body))))
 
 
-(defmacro with-return-from-reval (cont-name (&rest vars) &body body)
+(defmacro with-return-from-reval (cont-name (&optional bvl &rest vars) &body body)
   (let ((reval (gensym "Reval")))
     `(block ,reval
+       (tao:let (,@(tao.logic::variables-in bvl))
+         (flet ((,cont-name ()
+                  ,@(mapcar (lambda (v) `(when (and (tao.logic::var-p ,v)
+                                                    (tao.logic::bound-p ,v))
+                                           (setq ,v (tao.logic::deref-exp ,v))))
+                            (tao.logic::variables-in (cons bvl vars)))
+                  (return-from ,reval T)))
+           ,@body)))))
+
+
+(defmacro with-return-from-pred (pred-name cont-name (&optional bvl &rest vars) &body body)
+  `(block ,pred-name
+     (tao:let (,@(tao.logic::variables-in bvl))
        (flet ((,cont-name ()
                 ,@(mapcar (lambda (v) `(when (and (tao.logic::var-p ,v)
                                                   (tao.logic::bound-p ,v))
                                          (setq ,v (tao.logic::deref-exp ,v))))
-                          (tao.logic::variables-in vars))
-                (return-from ,reval T)))
+                          (tao.logic::variables-in (cons bvl vars)))
+                (return-from ,pred-name T)))
          ,@body))))
-
 
 ;;; *EOF*

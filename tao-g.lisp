@@ -451,7 +451,7 @@ goal-all と同じように働くが、 x 節内にある論理変数 arg に対
        (tao.logic::findall/3 ,arg
                              ,(unquotify `(and ,@x))
                              ,_all
-                             (lambda () ,_all)))))
+                             (lambda () (tao.logic::deref-exp ,_all))))))
 
 
 ;;; graphic-char-p                         関数[#!subr]

@@ -37,15 +37,12 @@
                  '(function tao.logic::logvar-setter)
                  '(constantly T))))
 
-
 (defmacro tao::query (log &rest args)
   (let ((cont (gensym "cont")))
-    `(with-return-from-reval ,cont (,log)
+    `(with-return-from-reval ,cont (,log ,args)
        (funcall ,log
                 ,@(mapcar #'unquotify args)
-                ;;#',cont
-                (constantly T)
-                ))))
+                #',cont))))
 
 (eval-when (:compile-toplevel :load-toplevel :execute)
   (defun qq-expand-list (x depth)

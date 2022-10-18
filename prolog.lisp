@@ -6,6 +6,13 @@
 
 (in-package :tao.logic)
 
+(defvar *negation-as-failure* nil)
+
+(defun tao:negation-as-failure (&optional (negation-as-failure? nil negation-as-failure?-sup?))
+  (if negation-as-failure?-sup?
+      (setq *negation-as-failure* negation-as-failure?)
+      *negation-as-failure*))
+
 ;;;; does not include destructive unification (11.6); see prologc.lisp
 
 ;; clauses are represented as (head . body) cons cells

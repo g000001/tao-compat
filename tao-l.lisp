@@ -66,19 +66,25 @@
 ;;;
 ;;; <説明>
 ;;;   lambda-parameters-limit = 128
-;;; ＠
-;;; lappend                                関数[#!subr]
-;;;
-;;; <説明>
-;;;   形式 : lappend x y z
-;;; ロジカルな (prolog 型) append 関数。
-;;; 下式と同じ。
-;;; (assertz (lappend (_a . _x) _y (_a . _z)) (lappend _x _y _z))
-;;; (assertz (lappend () _x _x))
-;;;
-;;; <例>
-;;;         (lappend (1) (2) (1 2)) -> t
-;;; ＠
+
+(setf (documentation 'tao:lappend 'function)
+      "lappend                                関数[#!subr]
+
+ <説明>
+   形式 : lappend x y z
+ ロジカルな (prolog 型) append 関数。
+ 下式と同じ。
+ (assertz (lappend (_a . _x) _y (_a . _z)) (lappend _x _y _z))
+ (assertz (lappend () _x _x))
+
+ <例>
+         (lappend (1) (2) (1 2)) -> t
+")
+
+(progn
+  (when (fboundp 'tao:lappend) (tao:retract tao:lappend))
+  (tao:assertz (tao:lappend (_a . _x) _y (_a . _z)) (tao:lappend _x _y _z))
+  (tao:assertz (tao:lappend () _x _x)))
 
 
 ;;; #### CL ####

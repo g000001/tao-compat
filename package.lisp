@@ -188,7 +188,7 @@
    :with-condition-restarts :with-hash-table-iterator :with-input-from-string
    :with-open-file :with-open-stream :with-output-to-string
    :with-package-iterator :with-simple-restart :with-slots
-   :with-standard-io-syntax :write :write-byte :write-char :write-line
+   :with-standard-io-syntax :write-byte :write-char :write-line
    :write-sequence :write-string :write-to-string :y-or-n-p :yes-or-no-p)
   (:export :tao :common-lisp)
   ;; Common Lisp
@@ -309,7 +309,7 @@
    :most-positive-short-float :most-positive-single-float :muffle-warning
    :multiple-value-bind :multiple-value-call :multiple-value-list
    :multiple-value-prog1 :multiple-value-setq :multiple-values-limit :name-char
-   :namestring :nbutlast :nconc :next-method-p :nil :nintersection :ninth
+   :namestring :nbutlast :nconc :negation-as-failure :next-method-p :nil :nintersection :ninth
    :no-applicable-method :no-next-method :not :notany :notevery :notinline
    :nreconc :nreverse :nset-difference :nset-exclusive-or :nstring-capitalize
    :nstring-downcase :nstring-upcase :nsublis :nsubst :nsubst-if :nsubst-if-not

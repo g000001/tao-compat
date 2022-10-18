@@ -127,9 +127,7 @@
             ((tao:&+ tao:&+dyn)
              (destructuring-bind ((lam bvl &body body) &rest args)
                                  xpr
-               (typecase bvl
-                 (cons `(,tao-internal::*invisible-query* (,lam (,@bvl) ,@body) ,@args))
-                 (atom `(,tao-internal::*invisible-query* (,lam (&rest ,bvl) ,@body) ,@args)))))
+               `(,tao-internal::*invisible-query* (,lam ,bvl ,@body) ,@args)))
             (otherwise xpr)))
          (atom xpr))))
     (otherwise

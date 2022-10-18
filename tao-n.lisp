@@ -229,6 +229,7 @@ number の負数を返す。
         (neg -100) -> 100"
   (- number))
 
+
 (defun tao:neq (object1 object2)
   "neq                                    関数[#!subr]
 

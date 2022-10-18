@@ -35,4 +35,45 @@ forms は (assert ...) または (retract ...) から構成される。
      ,@body))
 
 
+(defun tao:write (object &optional (stream *standard-output*) (crlf T))
+  "write                                  関数[#!exprdyn]
+
+<説明>
+  形式 : write object &opt stream crlf
+stream に object 及び改行文字をプリントした後、object を返す。stream が
+省略されると *standard-output* の値が使われる。crlf の指定がないと、
+改行を行なう。
+
+<例>
+        (write 'abc) -> abc
+                        abc
+        (write 'abc *standard-output* 'xyz) -> abcabc
+        (write 'abc *standard-output* nil) -> abcabc"
+  (cl:write object :stream stream)
+  (when crlf (cl:write-char #\Newline stream)))
+
+
+
+"common:write                           関数[#!macro]
+
+<説明>
+  形式 : common:write object &key :stream :escape :radix :base :circle
+        	 :pretty :level :length :case :gensym :array
+object を、指定されたモードで出力し、object の値を返す。
+キーワード引数を以下に示す。
+:stream  (出力用のストリーム)    既定値は変数 *standard-output* の値
+:escape  (再入力可能か)              〃       *print-escape*     〃
+:radix   (基数を出力するか)          〃       *print-radix*      〃
+:base    (出力用の基数)              〃       *print-base*       〃
+:circle  (循環リストを考慮するか)    〃       *print-circle*     〃
+:pretty  (プリティプリントするか)    〃       *print-pretty*     〃
+:level   (深さの制限)                〃       *print-level*      〃
+:length  (長さの制限)                〃       *print-length*     〃
+:gensym  (#: を出力するか)           〃       *print-gensym*     〃
+:array   (配列を出力するか)          〃       *print-array*      〃
+
+<例>
+        (common:write \"asdf\") -> \"asdf\"
+        			 \"asdf\""
+
 ;;; *EOF*

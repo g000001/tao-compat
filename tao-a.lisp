@@ -706,7 +706,7 @@ pred を満足する要素を見つけたらその要素を返し、後はもう
 (defmacro define-predicate-in-lisp-world (name)
   `(defmacro ,name (&rest args)
      (let ((cont (gensym "cont")))
-       `(with-return-from-reval ,cont (,args)
+       `(with-return-from-reval ,cont (nil ,args)
           ,(tao.logic::compile-body
             `((,',name ,@args))
             `#',cont
@@ -715,7 +715,7 @@ pred を満足する要素を見つけたらその要素を返し、後はもう
 (defmacro define-method-predicate-in-lisp-world (name)
   `(defmacro ,name (obj &rest args)
      (let ((cont (gensym "cont")))
-       `(with-return-from-reval ,cont (,obj ,args)
+       `(with-return-from-reval ,cont (nil ,obj ,args)
           ,(tao.logic::compile-body
             `((,',name (tao:unquote ,obj) ,@args))
             `#',cont

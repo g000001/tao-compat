@@ -335,7 +335,7 @@
       (let* ((xpr (compile-unquote-arg arg bindings))
              (vars (remove-duplicates deref-vars :from-end T)))
         `(let (,@(mapcar (lambda (v) `(,v ,v)) vars))
-           ,@(mapcar (lambda (v) `(deref ,v)) vars)
+           ,@(mapcar (lambda (v) `(setq ,v (deref-exp ,v))) vars)
            ,xpr)))))
 
 
@@ -513,18 +513,19 @@
     (compile (eval pred-expr))))
 
 
-(defun compile-local-predicate (symbol arity clauses)
+(defun compile-local-predicate (symbol arity clauses aux-vars)
   "Compile all the clauses for a given symbol/arity
   into a single LISP local function."
+  (declare (ignore aux-vars)) ;todo
   (let* ((*predicate* (make-predicate symbol arity))    ;***
          (parameters (make-parameters arity))
          (pred-expr `(flet ((,*predicate* (,@parameters cont)
                               .,(maybe-add-undo-bindings
-                                 (mapcar #'(lambda (clause)
-                                             (compile-clause parameters clause 'cont))
+                                 (mapcar (lambda (clause)
+                                           (compile-clause parameters clause 'cont))
                                          clauses))))
                        #',*predicate*)))
-    (pprint pred-expr *debug-io*)
+    #+debug (pprint pred-expr *debug-io*)
     (funcall (compile nil `(lambda () ,pred-expr))) ;todo
     ))
 
@@ -533,6 +534,12 @@
   (or (eq goal 'tao:!)
       (and (consp goal)
            (eq 'tao::&cut (car goal)))))
+
+
+(defun goal-var-p (goal)
+  (or (var-p goal)
+      (and (symbolp goal)
+           (eql 0 (position #\_ (string goal))))))
 
 
 (defun goal-conjunction-p (goal)
@@ -607,6 +614,9 @@
                 x))
           body))
 
+(defun goal-tail-p (body)
+  (null (cdr body)))
+
 (defun compile-body (body cont bindings)
   "Compile the body of a clause."
   (setq body (nil->fail body)) ;TODO
@@ -617,35 +627,38 @@
                `(progn
                   ,(compile-body (rest body) cont bindings)
                   (return-from ,*predicate* nil)))
+              ((and (goal-tail-p body)
+                    (goal-var-p goal))
+               `(return-from ,*predicate* (deref-exp ,goal)))
               ((goal-conjunction-p goal)
                (compile-body (append (cdr goal) (rest body)) cont bindings))
               ((goal-disjunction-p goal)
                (let ((bindings (bind-new-variables bindings goal)))
                  `(let ((old-trail (fill-pointer *trail*))
-                        (cont #'(lambda () ,(compile-body
-                                             (rest body)
-                                             cont bindings))))
+                        (cont (lambda () ,(compile-body
+                                           (rest body)
+                                           cont bindings))))
                     ,(compile-body (list (cadr goal)) 'cont bindings)
                     (undo-bindings! old-trail)
                     ,(compile-body (list (caddr goal)) 'cont bindings))))
               ((goal-if-then-p goal)
                (let ((bindings (bind-new-variables bindings goal)))
-                 `(let ((cont #'(lambda () ,(compile-body
-                                             (cons (caddr goal) (rest body))
-                                             cont bindings))))
+                 `(let ((cont (lambda () ,(compile-body
+                                           (cons (caddr goal) (rest body))
+                                           cont bindings))))
                     (block nil
-                      ,(compile-body (list (cadr goal)) '#'(lambda () (funcall cont) (return nil)) bindings)))))
+                      ,(compile-body (list (cadr goal)) '(lambda () (funcall cont) (return nil)) bindings)))))
               ((goal-if-then-else-p goal)
                (let ((bindings (bind-new-variables bindings goal)))
                  (multiple-value-bind (if then else)
                                       (destructure-if-then-else goal)
                    `(let ((old-trail (fill-pointer *trail*))
-                          (cont #'(lambda ()
-                                    ,(compile-body
-                                      (rest body)
-                                      cont bindings))))
+                          (cont (lambda ()
+                                  ,(compile-body
+                                    (rest body)
+                                    cont bindings))))
                       (block nil
-                        ,(compile-body (list if) `#'(lambda () ,(compile-body (list then) cont bindings) (return nil)) bindings)
+                        ,(compile-body (list if) `(lambda () ,(compile-body (list then) cont bindings) (return nil)) bindings)
                         (undo-bindings! old-trail)
                         ,(compile-body (list else) 'cont bindings))))))
               (t
@@ -666,10 +679,10 @@
                                         (args goal))
                               ,(if (null (rest body))
                                    cont
-                                   `#'(lambda ()
-                                        ,(compile-body 
-                                          (rest body) cont
-                                          (bind-new-variables bindings goal))))))
+                                   `(lambda ()
+                                      ,(compile-body 
+                                        (rest body) cont
+                                        (bind-new-variables bindings goal))))))
                            ((and (symbolp (car goal))
                                  (not (get-clauses (car goal)))
                                  (fboundp (car goal))
@@ -681,17 +694,25 @@
                                 ,(compile-body 
                                   (rest body) cont
                                   (bind-new-variables bindings goal)))))
-                           (T `(,(make-predicate (predicate goal)
-                                                 (relation-arity goal))
-                                ,@(mapcar #'(lambda (arg)
-                                              (compile-arg arg bindings))
-                                          (args goal))
-                                ,(if (null (rest body))
-                                     cont
-                                     `#'(lambda ()
-                                          ,(compile-body 
-                                            (rest body) cont
-                                            (bind-new-variables bindings goal))))))))))))))
+                           (T (if (and (tao:negation-as-failure)
+                                       (not (fboundp (make-predicate (predicate goal) (relation-arity goal)))))
+                                  `(fail/0 ,(if (null (rest body))
+                                                cont
+                                                `(lambda ()
+                                                   ,(compile-body 
+                                                     (rest body) cont
+                                                     (bind-new-variables bindings goal)))))
+                                  `(,(make-predicate (predicate goal)
+                                                     (relation-arity goal))
+                                    ,@(mapcar (lambda (arg)
+                                                (compile-arg arg bindings))
+                                              (args goal))
+                                    ,(if (null (rest body))
+                                         cont
+                                         `(lambda ()
+                                            ,(compile-body 
+                                              (rest body) cont
+                                              (bind-new-variables bindings goal)))))))))))))))
 
 
 (defun translate-&+ (expr)
