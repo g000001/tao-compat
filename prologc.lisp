@@ -113,7 +113,7 @@
   (symbol+ symbol '/ arity))
 
 
-(defun make-= (x y) `(= ,x ,y))
+(defun make-== (x y) `(tao:== ,x ,y))
 
 
 (defun compile-call (predicate args cont)
@@ -348,16 +348,28 @@
 
 (defun self-cons (x) (cons x x))
 
-
-(def-prolog-compiler-macro = (goal body cont bindings)
+;;; todo
+(def-prolog-compiler-macro tao:== (goal body cont bindings)
   "Compile a goal which is a call to =."
   (let ((args (args goal)))
     (if (/= (length args) 2)
         :pass ;; decline to handle this goal
-        (multiple-value-bind (code1 bindings1)
-                             (compile-unify (first args) (second args) bindings)
+        :pass
+        #|(multiple-value-bind (code1 bindings1)
+                             (compile-unify (first args)
+                                            (second args)
+                                            bindings)
           (compile-if code1
-                      (compile-body body cont bindings1))))))
+                      (compile-body body cont bindings1)))|#)))
+
+(def-prolog-compiler-macro tao:& (goal body cont bindings)
+  (if (null (cdr goal))
+      (compile-body body cont bindings)
+      (let* ((tail (cdr goal))
+             (tail (if (typep (car tail) 'tao-internal::&aux-form)
+                       (cdr tail)
+                       tail)))
+        (compile-body (append tail body) cont bindings))))
 
 
 (defun compile-clause (parms clause cont)
@@ -368,7 +380,7 @@
                          (compile-body (list clause)
                                        cont
                                        (mapcar #'self-cons parms))
-                         (compile-body (nconc (mapcar #'make-= parms (args (clause-head clause)))
+                         (compile-body (nconc (mapcar #'make-== parms (args (clause-head clause)))
                                               (clause-body clause))
                                        cont
                                        (mapcar #'self-cons parms)))))
@@ -617,6 +629,12 @@
 (defun goal-tail-p (body)
   (null (cdr body)))
 
+
+(defun goal-lisp-macro-p (goal)
+  (and (symbolp goal)
+       (macro-function goal)
+       (get goal :logic-macro)))
+
 (defun compile-body (body cont bindings)
   "Compile the body of a clause."
   (setq body (nil->fail body)) ;TODO
@@ -630,6 +648,10 @@
               ((and (goal-tail-p body)
                     (goal-var-p goal))
                `(return-from ,*predicate* (deref-exp ,goal)))
+              ((goal-var-p goal)
+               `(and ,goal ,(compile-body (rest body) cont bindings)))
+              ((goal-lisp-macro-p (predicate goal))
+               (compile-body (append (list (macroexpand-1 goal)) (rest body)) cont bindings))
               ((goal-conjunction-p goal)
                (compile-body (append (cdr goal) (rest body)) cont bindings))
               ((goal-disjunction-p goal)

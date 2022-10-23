@@ -1061,7 +1061,7 @@ n が省略された時、または n が負もしくは item と equal な要�
        (tao.logic::prolog-compile pred)
        T))))
 
-(defmacro tao:retract (&optional clause)
+(defmacro tao:retract (clause)
   "retract 未インプリメント               関数[#!exprdyn]
 
  <説明>
@@ -1074,7 +1074,10 @@ n が省略された時、または n が負もしくは item と equal な要�
          主ファンクタが concatenate の定理を全て除去する。
          (retract (concatenate () _x _x))
   	(concatenate () _x _x) に関する定理を除去する。"
-  `(*retract ',clause))
+  (typecase clause
+    ((CONS (EQL TAO:UNQUOTE) *)
+     `(*retract ,(second clause)))
+    (T `(*retract ',clause))))
 
 ;;; return                                 関数[#!subr]
 ;;;

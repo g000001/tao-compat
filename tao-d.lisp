@@ -566,6 +566,13 @@ fn が名前、var-list が引数リストのマクロ関数を body で定義�
 <例>
         (defmacro first (x) (list 'car x)) -> first")
 
+
+(defmacro tao:deflogic-macro (name (&rest args) &body body)
+  `(progn
+     (setf (get ',name :logic-macro) t)
+     (defmacro ,name (,@args) ,@body)))
+
+
 ;; defmethod                              関数[#!macro]
 ;;
 ;; <説明>
@@ -662,48 +669,57 @@ p-list は破壊される。
         ここで  yyy = (q 2 r 3 s 5)"
   `(tao:putprop ',p-list ',val ',ind))
 
-;; defrel                                 関数[#!expr]
-;;
-;; <説明>
-;;   形式 : defrel p ((A1") (P11 B11") (P12 B12") ... (P1m B1m"))
-;;          	  ((A2") (P21 B21") (P22 B22") ... (P2m B2m"))
-;;          	  ...
-;;          	  ((An") (Pn1 Bn1") (Pn2 Bn2") ... (Pnm Bnm"))
-;; 主ファンクタが p である n 個のホーン節を定義する。
-;; assert を n 回実行するのと同じ。
-;; Pij は主ファンクタ、Aij" と Bij" はそれぞれ Aij と Bij から得たもの。
-;; DEC10-Prolog では次のように記述される。
-;; p(A1") :- P11(B11"), P12(B12"), ... (P1m(B1m").
-;; p(A2") :- P21(B21"), P22(B22"), ... (P2m(B2m").
-;;    ....
-;; p(An") :- Pn1(B1n"), Pn2(Bn2"), ... (Pnm(Bnm").
-;;
-;; <例>
-;;          (defrel concat ((() _x _x))
-;;                        ((( _a . _x) _y ( _a . _z)) (concat _x _y _z)))
-;;           -> concat
-;;          (goal (concat _x _y (1 2))) ->
-;;          _x = ()
-;;          _y = (1 2);
-;;          _x = (1)
-;;          _y = (2);
-;;          _x = (1 2)
-;;          _y = ();
-;;          _x = ()
-;;          no
-;;
-;;          (defrel p ((A1") (P11 B11") (P12 B12")...(P1m B1m"))
-;;                    ((A2") (P21 B21") (P22 B22")...(P2m B2m"))
-;;                    ....
-;;                    ((An") (Pn1 Bn1") (Pn2 Bn2")...(Pnm Bnm")))
-;;          =
-;;          (define p (hclauses (&+ (A1") (P11 B11") (P12 B12")
-;;                                     ...(P1m B1m"))
-;;                              (&+ (A2") (P21 B21") (P22 B22")
-;;                                     ...(P2m B2m"))
-;;                       ....
-;;                              (&+ (An") (Pn1 Bn1") (Pn2 Bn2")
-;;                                     ...(Pnm Bnm")))
+(defmacro tao:defrel (name &body clauses)
+  #.(string '#:|defrel                                 関数[#!expr]
+
+ <説明>
+   形式 : defrel p ((A1") (P11 B11") (P12 B12") ... (P1m B1m"))
+          	  ((A2") (P21 B21") (P22 B22") ... (P2m B2m"))
+          	  ...
+          	  ((An") (Pn1 Bn1") (Pn2 Bn2") ... (Pnm Bnm"))
+ 主ファンクタが p である n 個のホーン節を定義する。
+ assert を n 回実行するのと同じ。
+ Pij は主ファンクタ、Aij" と Bij" はそれぞれ Aij と Bij から得たもの。
+ DEC10-Prolog では次のように記述される。
+ p(A1") :- P11(B11"), P12(B12"), ... (P1m(B1m").
+ p(A2") :- P21(B21"), P22(B22"), ... (P2m(B2m").
+    ....
+ p(An") :- Pn1(B1n"), Pn2(Bn2"), ... (Pnm(Bnm").
+
+ <例>
+          (defrel concat ((() _x _x))
+                        ((( _a . _x) _y ( _a . _z)) (concat _x _y _z)))
+           -> concat
+          (goal (concat _x _y (1 2))) ->
+          _x = ()
+          _y = (1 2);
+          _x = (1)
+          _y = (2);
+          _x = (1 2)
+          _y = ();
+          _x = ()
+          no
+
+          (defrel p ((A1") (P11 B11") (P12 B12")...(P1m B1m"))
+                    ((A2") (P21 B21") (P22 B22")...(P2m B2m"))
+                    ....
+                    ((An") (Pn1 Bn1") (Pn2 Bn2")...(Pnm Bnm")))
+          =
+          (define p (hclauses (&+ (A1") (P11 B11") (P12 B12")
+                                     ...(P1m B1m"))
+                              (&+ (A2") (P21 B21") (P22 B22")
+                                     ...(P2m B2m"))
+                       ....
+                              (&+ (An") (Pn1 Bn1") (Pn2 Bn2")
+                                     ...(Pnm Bnm")))|)
+  `(progn
+     (tao:abolish ,name ,(length (caar clauses)))
+     ,@(mapcar (lambda (cl)
+                 (cons 'tao:assert
+                       (cons
+                        (cons name (car cl))
+                        (cdr cl))))
+               clauses)))
 
 (defclsynonym tao:defsetf
     "defsetf                                関数[#!macro]

@@ -435,7 +435,7 @@
   (:export
    :dashift :day-of-week-string :dbit-off :dbit-on :dbp :dcu-terminal
    :de :dec :decnum :defclass-method :defglobal :define :define-setf-method
-   :definition :deflogic-method :defprop :defrel :del :del-alist :del-if
+   :definition :deflogic-macro :deflogic-method :defprop :defrel :del :del-alist :del-if
    :del-if-not :delete-dir :delq :delql :delqu :deref :describe-operations
    :dev-dir-namestring :diff :dired :dlogand :dlogior :dlognot :dlogxor :dlsh
    :dnil :do*-named :do-forever :do-named :dsys :dumb :dumb-terminal
