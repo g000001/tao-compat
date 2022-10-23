@@ -573,59 +573,87 @@ fn が名前、var-list が引数リストのマクロ関数を body で定義�
      (defmacro ,name (,@args) ,@body)))
 
 
-;; defmethod                              関数[#!macro]
-;;
-;; <説明>
-;;   形式 : defmethod 'method-spec 'arg-list &rest 'forms
-;; method-spec は (class-name message-pattern) または、
-;;                (class-name method-type message-patern) という形式。
-;; method-type は :before, :primary, :after, :or, :and, :list,
-;; :inverse-list, :nconc, :progn のいずれかで、メソッド結合の時に使われる。
-;;
-;; クラス class-name に、メッセージ名 message-pattern で呼び出される
-;; メソッドを定義し、そのメッセージ名を返す。 message-pattern は、
-;; メッセージを送るときに使われ、メソッド名とも呼ばれる。
-;;
-;; メソッドには id-method と list-method の 2 種類がある。
-;; id-method を定義するとき、この id-method で使われる引数は、 arg-list の
-;; 部分にリストにして書く。このリスト中にはキーワード &aux を書ける。
-;;
-;; forms でメソッドのボディが指定される。
-;; メソッドが呼び出されると、このボディ中の式が一つずつ評価される。
-;; list-method が定義されると、arg-list は、forms の一部分とみなされる。
-;;
-;; list-massage は id-message と同じ役割を果たすことができる。
-;; しかし list-message は id-message と違って message-pattern をユニフィケ
-;; ーションのパターンとして使うことができる。しかし list-message では送ら
-;; れるメッセージ名と一致するメソッド名をもつメソッドが起動されるが、
-;; list-method では送られるメッセージ名とユニファイできるメソッド名をもつ
-;; メソッドが起動される。それゆえ list-message の message-pattern は論理
-;; 変数をその一部分として含むこともある。
-;;
-;; メソッドのボディ (forms) の中では、クラス変数は関数 cvar を使うことによ
-;; りアクセスされる。
-;; スーパクラスのメソッドは、関数 super によって実行される。
-;; クラスはメソッド結合で指定された方法で、全てのスーパクラスの、全ての
-;; メソッドを継承する。
-;;
-;; <例>
-;;         (defclass a1 () (b1) () :gettable :settable) -> a1
-;;         (defclass a2 () (b2) (a1) :gettable :settable) -> a2
-;;         (defclass a3 () (b3) (a2) :gettable :settable) -> a3
-;;         (defmethod (a1 mult) () (!!* !b1 b2)) -> mult
-;;         (defmethod (a3 (which is larger))
-;;            (cond ([b1 > b2] 'b1) (t 'b2)) ) -> (which is larger)
-;;         (!cc (make-instance 'a3 b1 10 b2 20)) -> {udo}44994a3
-;;         [cc b1] -> 10
-;;         [cc b2] -> 20
-;;         [cc mult] -> 200
-;;         [cc b1] -> 200
-;;         [cc b2] -> 20
-;;         [cc (which is larger)] -> b1
-;;         (goal (== _x ,(cc (which is _y))))
-;;       	_y = larger
-;;    	     _x = b1 ;
-;;       	no
+(defmacro tao:defmethod (method-spec (&rest arglist) &body body)
+  "defmethod                              関数[#!macro]
+
+ <説明>
+   形式 : defmethod 'method-spec 'arg-list &rest 'forms
+ method-spec は (class-name message-pattern) または、
+                (class-name method-type message-patern) という形式。
+ method-type は :before, :primary, :after, :or, :and, :list,
+ :inverse-list, :nconc, :progn のいずれかで、メソッド結合の時に使われる。
+
+ クラス class-name に、メッセージ名 message-pattern で呼び出される
+ メソッドを定義し、そのメッセージ名を返す。 message-pattern は、
+ メッセージを送るときに使われ、メソッド名とも呼ばれる。
+
+ メソッドには id-method と list-method の 2 種類がある。
+ id-method を定義するとき、この id-method で使われる引数は、 arg-list の
+ 部分にリストにして書く。このリスト中にはキーワード &aux を書ける。
+
+ forms でメソッドのボディが指定される。
+ メソッドが呼び出されると、このボディ中の式が一つずつ評価される。
+ list-method が定義されると、arg-list は、forms の一部分とみなされる。
+
+ list-massage は id-message と同じ役割を果たすことができる。
+ しかし list-message は id-message と違って message-pattern をユニフィケ
+ ーションのパターンとして使うことができる。しかし list-message では送ら
+ れるメッセージ名と一致するメソッド名をもつメソッドが起動されるが、
+ list-method では送られるメッセージ名とユニファイできるメソッド名をもつ
+ メソッドが起動される。それゆえ list-message の message-pattern は論理
+ 変数をその一部分として含むこともある。
+
+ メソッドのボディ (forms) の中では、クラス変数は関数 cvar を使うことによ
+ りアクセスされる。
+ スーパクラスのメソッドは、関数 super によって実行される。
+ クラスはメソッド結合で指定された方法で、全てのスーパクラスの、全ての
+ メソッドを継承する。
+
+ <例>
+         (defclass a1 () (b1) () :gettable :settable) -> a1
+         (defclass a2 () (b2) (a1) :gettable :settable) -> a2
+         (defclass a3 () (b3) (a2) :gettable :settable) -> a3
+         (defmethod (a1 mult) () (!!* !b1 b2)) -> mult
+         (defmethod (a3 (which is larger))
+            (cond ([b1 > b2] 'b1) (t 'b2)) ) -> (which is larger)
+         (!cc (make-instance 'a3 b1 10 b2 20)) -> {udo}44994a3
+         [cc b1] -> 10
+         [cc b2] -> 20
+         [cc mult] -> 200
+         [cc b1] -> 200
+         [cc b2] -> 20
+         [cc (which is larger)] -> b1
+         (goal (== _x ,(cc (which is _y))))
+       	_y = larger
+    	     _x = b1 ;
+       	no"
+  (let (class-name method-type message-patern)
+    (ecase (length method-spec)
+      (2 (setf (values class-name message-patern)
+               (values-list method-spec)))
+      (3 (setf (values class-name method-type message-patern)
+               (values-list method-spec))))
+    (let ((slot-names (mapcar #'c2mop:slot-definition-name (c2mop:class-slots (find-class class-name)))))
+      (etypecase message-patern
+        (symbol
+         `(progn
+            (defmethod ,message-patern ,@(and method-type (list method-type)) ((tao:self ,class-name) ,@arglist)
+              (with-slots (,@slot-names)
+                          tao:self
+                (declare (ignorable ,@slot-names))
+                ,@body))))
+        (cons
+         `(progn
+            (defmethod list-message ,@(and method-type (list method-type))
+                       ((tao:self ,class-name)
+                        (_ (eql ,(sxhash message-patern)))
+                        ,@arglist)
+              (declare (ignore _))
+              (with-slots (,@slot-names)
+                          tao:self
+                (declare (ignorable ,@slot-names))
+                ,@body))))))))
+
 
 (defclsynonym tao:defparameter
   #.(string '#:|defparameter                           関数[#!expr]

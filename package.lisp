@@ -57,7 +57,7 @@
    :debug :declaim :declaration :declare :defgeneric
    :define-compiler-macro :define-condition :define-method-combination
    :define-setf-expander :define-symbol-macro
-   :defmethod :defpackage :delete-package :deposit-field :describe-object
+   :defpackage :delete-package :deposit-field :describe-object
    :destructuring-bind :division-by-zero :double-float :dpb
    :dynamic-extent :ecase :echo-stream :echo-stream-input-stream
    :echo-stream-output-stream :ed :eighth :elt :encode-universal-time

@@ -165,7 +165,9 @@
 
 
 (defun infix-to-prefix (obj mesg &rest args)
-  (cond ((&-p mesg)
+  (cond ((consp mesg)
+         `(tao-internal::list-message ,obj (sxhash ',mesg) ,@args))
+        ((&-p mesg)
          `(tao.logic::&instance-fact ,obj ,args))
         ((logic-method-p mesg)
          `(,mesg ,obj ,@args))
