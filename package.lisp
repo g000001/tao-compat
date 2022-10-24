@@ -105,7 +105,7 @@
    :machine-instance :machine-type :machine-version :macro-function :macroexpand
    :macroexpand-1 :macrolet :make-array :make-broadcast-stream
    :make-concatenated-stream :make-condition :make-dispatch-macro-character
-   :make-echo-stream :make-hash-table :make-instance :make-instances-obsolete
+   :make-echo-stream :make-hash-table :make-instances-obsolete
    :make-list :make-load-form :make-load-form-saving-slots :make-method
    :make-package :make-pathname :make-random-state :make-sequence
    :make-string-input-stream :make-string-output-stream :make-symbol

@@ -263,27 +263,33 @@
 ;;;         (!a (make-hash-table)) -> {vector}81749(hash-table . 8)
 ;;;         (!b (make-hash-table :rehash-size 1.5 :size 10)) ->
 ;;;         	{vector}81727(hash-table . 8)
-;;; ＠
-;;; make-instance                          関数[#!macro]
-;;;
-;;; <説明>
-;;;   形式 : make-instance class-name init-iv1 value1
-;;;                                   init-iv2 value2
-;;;                                   ...
-;;;                                   init-ivN valueN
-;;; クラス class-name の udo を作成し、それを返す。
-;;; 第 2 引数以降を指定することにより、作成された udo のインスタンス変数
-;;; が初期化される。
-;;; init-iv1 init-iv2 ... init-ivN は、作成された udo のインスタンス変数
-;;; 名である。value1 は init-iv1 の初期値、value2 は init-iv2 の初期値、
-;;; ...である。
-;;;
-;;; <例>
-;;;         (defclass a () (x y) () :gettable :settable) -> a
-;;;         (!bb (make-instance 'a x 5 y 6)) -> {udo}43848a
-;;;         [bb x] -> 5
-;;;         [bb y] -> 6
-;;; ＠
+
+
+(defmacro tao:make-instance (name &rest initargs)
+  "make-instance                          関数[#!macro]
+
+<説明>
+  形式 : make-instance class-name init-iv1 value1
+                                  init-iv2 value2
+                                  ...
+                                  init-ivN valueN
+クラス class-name の udo を作成し、それを返す。
+第 2 引数以降を指定することにより、作成された udo のインスタンス変数
+が初期化される。
+init-iv1 init-iv2 ... init-ivN は、作成された udo のインスタンス変数
+名である。value1 は init-iv1 の初期値、value2 は init-iv2 の初期値、
+...である。
+
+<例>
+        (defclass a () (x y) () :gettable :settable) -> a
+        (!bb (make-instance 'a x 5 y 6)) -> {udo}43848a
+        [bb x] -> 5
+        [bb y] -> 6"
+  `(cl:make-instance ,name
+                     ,@(loop :for (k v) :on initargs :by #'cddr
+                             :append (list (list 'quote k) v))))
+
+
 ;;; make-kanji-char                        関数[#!subr]
 ;;;
 ;;; <説明>
