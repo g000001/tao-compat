@@ -57,7 +57,7 @@
                      (instantiate-abstract-class-name c)))))
 
 
-(defclass tao::abstract-class (standard-class) 
+(defclass tao::abstract-class (tao::tao-class)
   ()
   (:documentation
    "This is a metaclass.  Any class that has this as its metaclass
@@ -86,6 +86,7 @@
 
 ;;; Abstract classes ends here.
 
+
 (defclass tao:vanilla-class () 
   ()
   (:metaclass tao::abstract-class))
@@ -94,13 +95,7 @@
 (defclass tao::logical-class (tao::tao-class)
   ())
 
-
-(defclass tao::tao-object (tao:vanilla-class)
-  ()
-  (:metaclass tao::tao-class))
-
-
-(defmethod print-object ((obj tao::tao-object) stream)
+(defmethod print-object ((obj tao:vanilla-class) stream)
   (let ((adr #+lispworks (sys:object-address obj)
              #-lispworks ""))
     (format stream "{udo}~(~X~)[~A]" adr (type-of obj))))
@@ -256,7 +251,7 @@ options で種々のオプションを指定する。もし、そのオプショ
         (metaclass (or (find-abstract-class-option options)
                        'tao::tao-class)))
     `(progn
-       (cl:defclass ,class-name (,@supers tao::tao-object)
+       (cl:defclass ,class-name (,@supers tao:vanilla-class)
          ,(tao-slot-form->cl-slot-from class-vars
                                        inst-vars
                                        :gettable gettable
