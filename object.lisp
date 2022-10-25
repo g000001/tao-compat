@@ -13,7 +13,89 @@
 (defclass tao::tao-class (standard-class) ())
 
 
-(defclass tao::tao-object (standard-object)
+(defmethod validate-superclass ((subclass tao::tao-class) (superclass standard-class))
+  T)
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;                                                                  ;;;
+;;; Free Software under the MIT license.                             ;;;
+;;;                                                                  ;;;
+;;; Copyright (c) 2008 ITA Software, Inc.  All rights reserved.      ;;;
+;;;                                                                  ;;;
+;;; Original author: Dan Weinreb                                     ;;;
+;;;                                                                  ;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+
+;;; Utilities that make use of the meta-object protocol.
+
+;;; Abstract classes are classes that must never be
+;;; instantiated.  They are only used as superclasses.
+;;; In general, they perform two useful function:
+
+;;; First, they can be used to define a "protocol",
+;;; namely a set of generic functions that some
+;;; group of classes should implement.
+
+;;; Second, they can provide some utility methods
+;;; that any of the subclasses is free to take
+;;; advantage of, so that the subclasses can share
+;;; code in a modular way.
+
+;;; This implementation was provided to us by MOPmeister
+;;; Pascal Costanza, of the Vrije Universiteit Brussel,
+;;; Programming Technology Lab.
+
+(define-condition instantiate-abstract (error)
+  ((class-name :type symbol
+               :initarg :class-name
+               :reader instantiate-abstract-class-name))
+  (:documentation "There was an attempt to instantiate an abstract class")
+  (:report (lambda (c stream)
+             (format stream "There was an attempt to make an instance of abstract class ~S"
+                     (instantiate-abstract-class-name c)))))
+
+
+(defclass tao::abstract-class (standard-class) 
+  ()
+  (:documentation
+   "This is a metaclass.  Any class that has this as its metaclass
+    is an abstract class.  An attempt to instantiate an abstract
+    class signals a INSTANTIATE-ABSTRACT condition."))
+
+
+(defmethod validate-superclass ((class tao::abstract-class) (superclass standard-class)) t)
+
+
+(defmethod validate-superclass ((class standard-class) (superclass tao::abstract-class)) t)
+
+
+(defvar *outside-abstract-class* nil)
+
+
+(defmethod allocate-instance ((class tao::abstract-class) &key &allow-other-keys)
+  (unless *outside-abstract-class*
+    (error 'instantiate-abstract :class-name (class-name class))))
+
+
+(defmethod class-prototype :around ((class tao::abstract-class))
+  (let ((*outside-abstract-class* t))
+    (call-next-method)))
+
+
+;;; Abstract classes ends here.
+
+(defclass tao:vanilla-class () 
+  ()
+  (:metaclass tao::abstract-class))
+
+
+(defclass tao::logical-class (tao::tao-class)
+  ())
+
+
+(defclass tao::tao-object (tao:vanilla-class)
   ()
   (:metaclass tao::tao-class))
 
@@ -21,20 +103,13 @@
 (defmethod print-object ((obj tao::tao-object) stream)
   (let ((adr #+lispworks (sys:object-address obj)
              #-lispworks ""))
-    (format stream "{udo}~(~X~)" adr)))
-
-
-(defmethod validate-superclass ((subclass tao::tao-class) (superclass standard-class))
-  T)
-
-
-(defclass tao::logical-class (tao::tao-class) ())
+    (format stream "{udo}~(~X~)[~A]" adr (type-of obj))))
 
 
 (defvar *instance-facts* (make-hash-table))
 
 
-(defmethod make-instance :around ((class logical-class)
+(defmethod make-instance :around ((class tao::logical-class)
                                   &rest initargs
                                   &key (name (gentemp (string (class-name class)))))
   (let ((ins (call-next-method)))
@@ -116,6 +191,15 @@
         options))
 
 
+(defun find-abstract-class-option (options)
+  (some (lambda (x)
+          (typecase x
+            ((eql :abstract-class) 'tao::abstract-class)
+            ((eql :logical-class) 'tao::logical-class)
+            (T nil)))
+        options))
+
+
 (defmethod ensure-class-using-class :after ((class tao::tao-class) name &rest initargs)
   (dolist (slotd (class-direct-slots class))
     (eval (make-setter-definition slotd))))
@@ -168,14 +252,16 @@ options で種々のオプションを指定する。もし、そのオプショ
         [aa b11] -> 1
         [aa b22] -> 4"
   (let ((gettable (find-gettable-option options))
-        (settable (find-settable-option options)))
+        (settable (find-settable-option options))
+        (metaclass (or (find-abstract-class-option options)
+                       'tao::tao-class)))
     `(progn
        (cl:defclass ,class-name (,@supers tao::tao-object)
          ,(tao-slot-form->cl-slot-from class-vars
                                        inst-vars
                                        :gettable gettable
                                        :settable settable)
-         (:metaclass tao::tao-class))
+         (:metaclass ,metaclass))
        ',class-name)))
 
 
