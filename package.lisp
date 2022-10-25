@@ -140,7 +140,7 @@
    :quote :random :random-state :random-state-p
    :rassoc :rassoc-if :rassoc-if-not :ratio :rational :rationalize :rationalp
    :read-byte :read-char :read-char-no-hang :read-delimited-list
-   :read-from-string :read-line :read-preserving-whitespace :read-sequence
+   :read-from-string :read-preserving-whitespace :read-sequence
    :reader-error :readtable :readtable-case :readtablep :real :realp :realpart
    :reduce :reinitialize-instance :remf :remhash :remove :remove-duplicates
    :remove-if :remove-if-not :remove-method :remprop :rename-file :rename-package
@@ -575,6 +575,7 @@
            :nreverse
            :prog
            :prog*
+           :read-line
            ))
 
 

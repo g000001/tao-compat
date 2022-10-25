@@ -861,26 +861,36 @@ list は破壊される。reverse の破壊版。
 ;;;         x = (a b (foo . c) foo . foo)
 ;;;         (nsubstqu 'bar 'foo x) -> (a b (bar . c) bar . bar)
 ;;;         x -> (a b (bar . c) bar . bar)
-;;; ＠
-;;; nsubstring                             関数[#!subr]
-;;;
-;;; <説明>
-;;;   形式 : nsubstring string start &opt end
-;;; string の start から end までの文字からなる部分ストリングを作り、
-;;; その結果を返す。end がない場合は、string の長さを用いる。
-;;; start と end は 0 から始まる数字で指定し、負の数の場合、逆インデックス
-;;; となる。例えば、"abcd" の中の a, b, c, d の位置を示す逆インデックスは
-;;; 各々 -4, -3, -2, -1 。引数はストリングかアトムでなければならない。
-;;; nsubstring は substring と同じだが、リターン値は、string を使っており、
-;;; substring のようにコピーされたものではない。
-;;;
-;;; <例>
-;;;         (nsubstring "abcd" 2 3) -> "c"
-;;;         (nsubstring "abcd" 2) -> "cd"
-;;;         (nsubstring 'abcdefg 3 0) -> ""
-;;;         (nsubstring "あいうえお" 1 3) -> "いう"
-;;;         (nsubstring "さしすせそ" 2 3) -> "す"
-;;; ＠
+
+(defun tao:nsubstring (string start &optional end)
+  #.(string '#:|nsubstring                             関数[#!subr]
+
+<説明>
+  形式 : nsubstring string start &opt end
+string の start から end までの文字からなる部分ストリングを作り、
+その結果を返す。end がない場合は、string の長さを用いる。
+start と end は 0 から始まる数字で指定し、負の数の場合、逆インデックス
+となる。例えば、"abcd" の中の a, b, c, d の位置を示す逆インデックスは
+各々 -4, -3, -2, -1 。引数はストリングかアトムでなければならない。
+nsubstring は substring と同じだが、リターン値は、string を使っており、
+substring のようにコピーされたものではない。
+
+<例>
+        (nsubstring "abcd" 2 3) -> "c"
+        (nsubstring "abcd" 2) -> "cd"
+        (nsubstring 'abcdefg 3 0) -> ""
+        (nsubstring "あいうえお" 1 3) -> "いう"
+        (nsubstring "さしすせそ" 2 3) -> "す"|)
+  (multiple-value-bind (string len start end)
+                       (string*-arg-check (string string) start end)
+    (declare (ignore len))
+    (if (> start end)
+	""
+        (make-array (- end start)
+                    :element-type (array-element-type string)
+                    :displaced-to string
+                    :displaced-index-offset start))))
+
 ;;; nsymbolp                               関数[#!subr]
 ;;;
 ;;; <説明>

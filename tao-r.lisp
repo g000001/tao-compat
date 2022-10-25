@@ -342,38 +342,42 @@
 ;;;         (common:read-from-string "abcd adc" nil 'owari
 ;;;         	:start 2 :end 5) -> !(cd 4)
 ;;; ＠
-;;; read-line                              関数[#!subr]
-;;;
-;;; <説明>
-;;;   形式 : read-line &opt input-stream
-;;; input-stream から、改行によって終了された行を読み、その行を文字列として
-;;; 返す。改行文字は含まない。
-;;; input-stream が省略されると変数 *standard-input* の値が使われる。
-;;;
-;;; <例>
-;;;         (!aa (open "asd.tao")) -> {udo}80905file-stream
-;;;         (read-line aa) -> "qwwertyuiop asdfghjkl"
-;;;         (read-line aa) -> "1234567890"
-;;;         (read-line aa) -> :eof
-;;; ＠
-;;; common:read-line                       関数[#!expr]
-;;;
-;;; <説明>
-;;;   形式 : common:read-line &opt input-stream eof-error-p
-;;;                                eof-value recursive-p
-;;; input-stream から、改行によって終了された行を読み、その行を文字列として
-;;; 返す。改行文字は含まない。
-;;; input-stream が省略されると変数 *standard-input* の値が使われる。
-;;; eof-error-p が真 (既定値) であればファイルの終わりではエラーが警告
-;;; される。偽であればエラーは警告されないで、eof-valu の値が返される。
-;;;
-;;; <例>
-;;;         (!aa (open "asd.tao")) -> {udo}1211244file-stream
-;;;         (common:read-line aa nil 'owari) -> "qwwertyuiop asdfghjkl"
-;;;         (common:read-line aa nil 'owari) -> owari
-;;;         (common:read-line aa nil) -> :eof
-;;;         (common:read-line aa) -> eof-encountered
-;;; ＠
+
+(defun tao:read-line (&optional input-stream)
+  "read-line                              関数[#!subr]
+
+<説明>
+  形式 : read-line &opt input-stream
+input-stream から、改行によって終了された行を読み、その行を文字列として
+返す。改行文字は含まない。
+input-stream が省略されると変数 *standard-input* の値が使われる。
+
+<例>
+        (!aa (open \"asd.tao\")) -> {udo}80905file-stream
+        (read-line aa) -> \"qwwertyuiop asdfghjkl\"
+        (read-line aa) -> \"1234567890\"
+        (read-line aa) -> :eof"
+  (read-line input-stream nil :eof))
+
+(defclsynonym common:read-line
+              "common:read-line                       関数[#!expr]
+
+<説明>
+  形式 : common:read-line &opt input-stream eof-error-p
+                               eof-value recursive-p
+input-stream から、改行によって終了された行を読み、その行を文字列として
+返す。改行文字は含まない。
+input-stream が省略されると変数 *standard-input* の値が使われる。
+eof-error-p が真 (既定値) であればファイルの終わりではエラーが警告
+される。偽であればエラーは警告されないで、eof-valu の値が返される。
+
+<例>
+        (!aa (open \"asd.tao\")) -> {udo}1211244file-stream
+        (common:read-line aa nil 'owari) -> \"qwwertyuiop asdfghjkl\"
+        (common:read-line aa nil 'owari) -> owari
+        (common:read-line aa nil) -> :eof
+        (common:read-line aa) -> eof-encountered ")
+
 ;;; read-preserving-whitespace             関数[#!subst]
 ;;;
 ;;; <説明>
@@ -676,18 +680,19 @@ list から、 条件 pred を満足しない要素をすべて削除し、そ�
         x = (1 a 2 b 3 c 4 d 5)"
   (remove-if-not pred list))
 
-;;; ＠
-;;; remainder                              関数[#!subr]
-;;;
-;;; <説明>
-;;;   形式 : remainder number1 number2
-;;; number1 を、number2 で割ったときの剰余を返す。
-;;; (remainder x y) = (mod x y)。
-;;;
-;;; <例>
-;;;         (remainder 5 3) -> 2
-;;;         (remainder 10 2) -> 0
-;;; ＠
+(defun tao:remainder (x y)
+  "remainder                              関数[#!subr]
+
+<説明>
+  形式 : remainder number1 number2
+number1 を、number2 で割ったときの剰余を返す。
+\(remainder x y) = (mod x y)。
+
+<例>
+        (remainder 5 3) -> 2
+        (remainder 10 2) -> 0"
+  (cl:rem x y))
+
 ;;; remf                                   関数[#!macro]
 ;;;
 ;;; <説明>
