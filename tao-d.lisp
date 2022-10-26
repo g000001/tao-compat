@@ -566,59 +566,94 @@ fn が名前、var-list が引数リストのマクロ関数を body で定義�
 <例>
         (defmacro first (x) (list 'car x)) -> first")
 
-;; defmethod                              関数[#!macro]
-;;
-;; <説明>
-;;   形式 : defmethod 'method-spec 'arg-list &rest 'forms
-;; method-spec は (class-name message-pattern) または、
-;;                (class-name method-type message-patern) という形式。
-;; method-type は :before, :primary, :after, :or, :and, :list,
-;; :inverse-list, :nconc, :progn のいずれかで、メソッド結合の時に使われる。
-;;
-;; クラス class-name に、メッセージ名 message-pattern で呼び出される
-;; メソッドを定義し、そのメッセージ名を返す。 message-pattern は、
-;; メッセージを送るときに使われ、メソッド名とも呼ばれる。
-;;
-;; メソッドには id-method と list-method の 2 種類がある。
-;; id-method を定義するとき、この id-method で使われる引数は、 arg-list の
-;; 部分にリストにして書く。このリスト中にはキーワード &aux を書ける。
-;;
-;; forms でメソッドのボディが指定される。
-;; メソッドが呼び出されると、このボディ中の式が一つずつ評価される。
-;; list-method が定義されると、arg-list は、forms の一部分とみなされる。
-;;
-;; list-massage は id-message と同じ役割を果たすことができる。
-;; しかし list-message は id-message と違って message-pattern をユニフィケ
-;; ーションのパターンとして使うことができる。しかし list-message では送ら
-;; れるメッセージ名と一致するメソッド名をもつメソッドが起動されるが、
-;; list-method では送られるメッセージ名とユニファイできるメソッド名をもつ
-;; メソッドが起動される。それゆえ list-message の message-pattern は論理
-;; 変数をその一部分として含むこともある。
-;;
-;; メソッドのボディ (forms) の中では、クラス変数は関数 cvar を使うことによ
-;; りアクセスされる。
-;; スーパクラスのメソッドは、関数 super によって実行される。
-;; クラスはメソッド結合で指定された方法で、全てのスーパクラスの、全ての
-;; メソッドを継承する。
-;;
-;; <例>
-;;         (defclass a1 () (b1) () :gettable :settable) -> a1
-;;         (defclass a2 () (b2) (a1) :gettable :settable) -> a2
-;;         (defclass a3 () (b3) (a2) :gettable :settable) -> a3
-;;         (defmethod (a1 mult) () (!!* !b1 b2)) -> mult
-;;         (defmethod (a3 (which is larger))
-;;            (cond ([b1 > b2] 'b1) (t 'b2)) ) -> (which is larger)
-;;         (!cc (make-instance 'a3 b1 10 b2 20)) -> {udo}44994a3
-;;         [cc b1] -> 10
-;;         [cc b2] -> 20
-;;         [cc mult] -> 200
-;;         [cc b1] -> 200
-;;         [cc b2] -> 20
-;;         [cc (which is larger)] -> b1
-;;         (goal (== _x ,(cc (which is _y))))
-;;       	_y = larger
-;;    	     _x = b1 ;
-;;       	no
+
+(defmacro tao:deflogic-macro (name (&rest args) &body body)
+  `(progn
+     (setf (get ',name :logic-macro) t)
+     (defmacro ,name (,@args) ,@body)))
+
+
+(defmacro tao:defmethod (method-spec (&rest arglist) &body body)
+  "defmethod                              関数[#!macro]
+
+ <説明>
+   形式 : defmethod 'method-spec 'arg-list &rest 'forms
+ method-spec は (class-name message-pattern) または、
+                (class-name method-type message-patern) という形式。
+ method-type は :before, :primary, :after, :or, :and, :list,
+ :inverse-list, :nconc, :progn のいずれかで、メソッド結合の時に使われる。
+
+ クラス class-name に、メッセージ名 message-pattern で呼び出される
+ メソッドを定義し、そのメッセージ名を返す。 message-pattern は、
+ メッセージを送るときに使われ、メソッド名とも呼ばれる。
+
+ メソッドには id-method と list-method の 2 種類がある。
+ id-method を定義するとき、この id-method で使われる引数は、 arg-list の
+ 部分にリストにして書く。このリスト中にはキーワード &aux を書ける。
+
+ forms でメソッドのボディが指定される。
+ メソッドが呼び出されると、このボディ中の式が一つずつ評価される。
+ list-method が定義されると、arg-list は、forms の一部分とみなされる。
+
+ list-massage は id-message と同じ役割を果たすことができる。
+ しかし list-message は id-message と違って message-pattern をユニフィケ
+ ーションのパターンとして使うことができる。しかし list-message では送ら
+ れるメッセージ名と一致するメソッド名をもつメソッドが起動されるが、
+ list-method では送られるメッセージ名とユニファイできるメソッド名をもつ
+ メソッドが起動される。それゆえ list-message の message-pattern は論理
+ 変数をその一部分として含むこともある。
+
+ メソッドのボディ (forms) の中では、クラス変数は関数 cvar を使うことによ
+ りアクセスされる。
+ スーパクラスのメソッドは、関数 super によって実行される。
+ クラスはメソッド結合で指定された方法で、全てのスーパクラスの、全ての
+ メソッドを継承する。
+
+ <例>
+         (defclass a1 () (b1) () :gettable :settable) -> a1
+         (defclass a2 () (b2) (a1) :gettable :settable) -> a2
+         (defclass a3 () (b3) (a2) :gettable :settable) -> a3
+         (defmethod (a1 mult) () (!!* !b1 b2)) -> mult
+         (defmethod (a3 (which is larger))
+            (cond ([b1 > b2] 'b1) (t 'b2)) ) -> (which is larger)
+         (!cc (make-instance 'a3 b1 10 b2 20)) -> {udo}44994a3
+         [cc b1] -> 10
+         [cc b2] -> 20
+         [cc mult] -> 200
+         [cc b1] -> 200
+         [cc b2] -> 20
+         [cc (which is larger)] -> b1
+         (goal (== _x ,(cc (which is _y))))
+       	_y = larger
+    	     _x = b1 ;
+       	no"
+  (let (class-name method-type message-patern)
+    (ecase (length method-spec)
+      (2 (setf (values class-name message-patern)
+               (values-list method-spec)))
+      (3 (setf (values class-name method-type message-patern)
+               (values-list method-spec))))
+    (let ((slot-names (mapcar #'c2mop:slot-definition-name (c2mop:class-slots (find-class class-name)))))
+      (etypecase message-patern
+        (symbol
+         `(progn
+            (defmethod ,message-patern ,@(and method-type (list method-type)) ((tao:self ,class-name) ,@arglist)
+              (with-slots (,@slot-names)
+                          tao:self
+                (declare (ignorable ,@slot-names))
+                ,@body))))
+        (cons
+         `(progn
+            (defmethod list-message ,@(and method-type (list method-type))
+                       ((tao:self ,class-name)
+                        (_ (eql ,(sxhash message-patern)))
+                        ,@arglist)
+              (declare (ignore _))
+              (with-slots (,@slot-names)
+                          tao:self
+                (declare (ignorable ,@slot-names))
+                ,@body))))))))
+
 
 (defclsynonym tao:defparameter
   #.(string '#:|defparameter                           関数[#!expr]
@@ -662,48 +697,57 @@ p-list は破壊される。
         ここで  yyy = (q 2 r 3 s 5)"
   `(tao:putprop ',p-list ',val ',ind))
 
-;; defrel                                 関数[#!expr]
-;;
-;; <説明>
-;;   形式 : defrel p ((A1") (P11 B11") (P12 B12") ... (P1m B1m"))
-;;          	  ((A2") (P21 B21") (P22 B22") ... (P2m B2m"))
-;;          	  ...
-;;          	  ((An") (Pn1 Bn1") (Pn2 Bn2") ... (Pnm Bnm"))
-;; 主ファンクタが p である n 個のホーン節を定義する。
-;; assert を n 回実行するのと同じ。
-;; Pij は主ファンクタ、Aij" と Bij" はそれぞれ Aij と Bij から得たもの。
-;; DEC10-Prolog では次のように記述される。
-;; p(A1") :- P11(B11"), P12(B12"), ... (P1m(B1m").
-;; p(A2") :- P21(B21"), P22(B22"), ... (P2m(B2m").
-;;    ....
-;; p(An") :- Pn1(B1n"), Pn2(Bn2"), ... (Pnm(Bnm").
-;;
-;; <例>
-;;          (defrel concat ((() _x _x))
-;;                        ((( _a . _x) _y ( _a . _z)) (concat _x _y _z)))
-;;           -> concat
-;;          (goal (concat _x _y (1 2))) ->
-;;          _x = ()
-;;          _y = (1 2);
-;;          _x = (1)
-;;          _y = (2);
-;;          _x = (1 2)
-;;          _y = ();
-;;          _x = ()
-;;          no
-;;
-;;          (defrel p ((A1") (P11 B11") (P12 B12")...(P1m B1m"))
-;;                    ((A2") (P21 B21") (P22 B22")...(P2m B2m"))
-;;                    ....
-;;                    ((An") (Pn1 Bn1") (Pn2 Bn2")...(Pnm Bnm")))
-;;          =
-;;          (define p (hclauses (&+ (A1") (P11 B11") (P12 B12")
-;;                                     ...(P1m B1m"))
-;;                              (&+ (A2") (P21 B21") (P22 B22")
-;;                                     ...(P2m B2m"))
-;;                       ....
-;;                              (&+ (An") (Pn1 Bn1") (Pn2 Bn2")
-;;                                     ...(Pnm Bnm")))
+(defmacro tao:defrel (name &body clauses)
+  #.(string '#:|defrel                                 関数[#!expr]
+
+ <説明>
+   形式 : defrel p ((A1") (P11 B11") (P12 B12") ... (P1m B1m"))
+          	  ((A2") (P21 B21") (P22 B22") ... (P2m B2m"))
+          	  ...
+          	  ((An") (Pn1 Bn1") (Pn2 Bn2") ... (Pnm Bnm"))
+ 主ファンクタが p である n 個のホーン節を定義する。
+ assert を n 回実行するのと同じ。
+ Pij は主ファンクタ、Aij" と Bij" はそれぞれ Aij と Bij から得たもの。
+ DEC10-Prolog では次のように記述される。
+ p(A1") :- P11(B11"), P12(B12"), ... (P1m(B1m").
+ p(A2") :- P21(B21"), P22(B22"), ... (P2m(B2m").
+    ....
+ p(An") :- Pn1(B1n"), Pn2(Bn2"), ... (Pnm(Bnm").
+
+ <例>
+          (defrel concat ((() _x _x))
+                        ((( _a . _x) _y ( _a . _z)) (concat _x _y _z)))
+           -> concat
+          (goal (concat _x _y (1 2))) ->
+          _x = ()
+          _y = (1 2);
+          _x = (1)
+          _y = (2);
+          _x = (1 2)
+          _y = ();
+          _x = ()
+          no
+
+          (defrel p ((A1") (P11 B11") (P12 B12")...(P1m B1m"))
+                    ((A2") (P21 B21") (P22 B22")...(P2m B2m"))
+                    ....
+                    ((An") (Pn1 Bn1") (Pn2 Bn2")...(Pnm Bnm")))
+          =
+          (define p (hclauses (&+ (A1") (P11 B11") (P12 B12")
+                                     ...(P1m B1m"))
+                              (&+ (A2") (P21 B21") (P22 B22")
+                                     ...(P2m B2m"))
+                       ....
+                              (&+ (An") (Pn1 Bn1") (Pn2 Bn2")
+                                     ...(Pnm Bnm")))|)
+  `(progn
+     (tao:abolish ,name ,(length (caar clauses)))
+     ,@(mapcar (lambda (cl)
+                 (cons 'tao:assert
+                       (cons
+                        (cons name (car cl))
+                        (cdr cl))))
+               clauses)))
 
 (defclsynonym tao:defsetf
     "defsetf                                関数[#!macro]

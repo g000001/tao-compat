@@ -57,7 +57,7 @@
    :debug :declaim :declaration :declare :defgeneric
    :define-compiler-macro :define-condition :define-method-combination
    :define-setf-expander :define-symbol-macro
-   :defmethod :defpackage :delete-package :deposit-field :describe-object
+   :defpackage :delete-package :deposit-field :describe-object
    :destructuring-bind :division-by-zero :double-float :dpb
    :dynamic-extent :ecase :echo-stream :echo-stream-input-stream
    :echo-stream-output-stream :ed :eighth :elt :encode-universal-time
@@ -105,7 +105,7 @@
    :machine-instance :machine-type :machine-version :macro-function :macroexpand
    :macroexpand-1 :macrolet :make-array :make-broadcast-stream
    :make-concatenated-stream :make-condition :make-dispatch-macro-character
-   :make-echo-stream :make-hash-table :make-instance :make-instances-obsolete
+   :make-echo-stream :make-hash-table :make-instances-obsolete
    :make-list :make-load-form :make-load-form-saving-slots :make-method
    :make-package :make-pathname :make-random-state :make-sequence
    :make-string-input-stream :make-string-output-stream :make-symbol
@@ -140,7 +140,7 @@
    :quote :random :random-state :random-state-p
    :rassoc :rassoc-if :rassoc-if-not :ratio :rational :rationalize :rationalp
    :read-byte :read-char :read-char-no-hang :read-delimited-list
-   :read-from-string :read-line :read-preserving-whitespace :read-sequence
+   :read-from-string :read-preserving-whitespace :read-sequence
    :reader-error :readtable :readtable-case :readtablep :real :realp :realpart
    :reduce :reinitialize-instance :remf :remhash :remove :remove-duplicates
    :remove-if :remove-if-not :remove-method :remprop :rename-file :rename-package
@@ -435,7 +435,7 @@
   (:export
    :dashift :day-of-week-string :dbit-off :dbit-on :dbp :dcu-terminal
    :de :dec :decnum :defclass-method :defglobal :define :define-setf-method
-   :definition :deflogic-method :defprop :defrel :del :del-alist :del-if
+   :definition :deflogic-macro :deflogic-method :defprop :defrel :del :del-alist :del-if
    :del-if-not :delete-dir :delq :delql :delqu :deref :describe-operations
    :dev-dir-namestring :diff :dired :dlogand :dlogior :dlognot :dlogxor :dlsh
    :dnil :do*-named :do-forever :do-named :dsys :dumb :dumb-terminal
@@ -575,6 +575,7 @@
            :nreverse
            :prog
            :prog*
+           :read-line
            ))
 
 

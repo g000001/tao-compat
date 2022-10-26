@@ -253,10 +253,11 @@ body の最後に ! がないことを除いては & と同じ。
          これを実行すると (a b c) とプリントされる。
          (& (&aux _u _v) [x & _u] (== _u (_v . _))(write _v)) -> t
          これを実行すると p とプリントされる。"
-  `(tao.logic::prolog-compile 
-    (tao.logic::add-clause (list (list* (tao.object::object-name ,obj)
-                                        ',(tao.logic::make-anonymous args)))
-                           :asserta nil)) )
+  `(progn
+     (tao.logic::prolog-compile 
+      (tao.logic::add-clause (list (list* (tao.object::object-name ,obj)
+                                          ',(tao.logic::make-anonymous args)))
+                             :asserta nil))))
  
 ;;; &cond                                  関数[#!macro]
 ;;;

@@ -83,6 +83,7 @@
       (undo-bindings! old-trail)
       (call/1 else cont))))
 
+
 (define-condition prolog-throw ()
   ((ball :initarg :ball :reader ball)))
 

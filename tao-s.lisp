@@ -637,26 +637,29 @@ list1 には含まれているが、list2 ... listN には含まれていない�
 ;;;   形式 : set-job-name j-name &opt process
 ;;; process に、ジョブ名 j-name を与える。process が省略されるとカレント
 ;;; プロセスが使われる。
-;;; ＠
-;;; set-keep-generation-count              関数[#!expr]
-;;;
-;;; <説明>
-;;;   形式 : set-keep-generation-count pathname &opt kgc
-;;; ファイル pathname が、ファイルシステムで何世代保存されるかを決定する。
-;;; 例えば、kgc が 3 のとき、pathname の最新バーションを含めてそれより古い
-;;;  3 世代のバージョンを保存する。kgc の既定値は 1 。
-;;;
-;;; <例>
-;;;         (set-keep-generation-count "cs:<dire>test.tao" 3) -> 3
-;;;         vdir "test.tao"
-;;;          -> test.tao.5   最新ファイルを含めて 3 世代ファイルを保存
-;;;                     .4
-;;;                     .3
-;;;         ここで test.tao を更新すると、
-;;;         vdir "test.tao"
-;;;          -> test.tao.6
-;;;                     .5
-;;;                     .4
+
+(defun tao:set-keep-generation-count (pathname &optional kgc)
+  "set-keep-generation-count              関数[#!expr]
+
+<説明>
+  形式 : set-keep-generation-count pathname &opt kgc
+ファイル pathname が、ファイルシステムで何世代保存されるかを決定する。
+例えば、kgc が 3 のとき、pathname の最新バーションを含めてそれより古い
+ 3 世代のバージョンを保存する。kgc の既定値は 1 。
+
+<例>
+        (set-keep-generation-count \"cs:<dire>test.tao\" 3) -> 3
+        vdir \"test.tao\"
+         -> test.tao.5   最新ファイルを含めて 3 世代ファイルを保存
+                    .4
+                    .3
+        ここで test.tao を更新すると、
+        vdir \"test.tao\"
+         -> test.tao.6
+                    .5
+                    .4"
+  (declare (ignore pathname kgc))
+  (values))
 
 ;;; set-loc-offset                         関数[#!subr]
 ;;;
@@ -1190,8 +1193,8 @@ string の長さを返す。
         (slength \"\") -> 0
         (slength \"a\") -> 1
         (slength \"abcdefghijkl\") -> 12"
-  (declare (string string))
-  (cl:length string))
+  (declare ((or string symbol) string))
+  (cl:length (string string)))
 
 (defun tao:slex (string1 string2)
   "slex                                   関数[#!subr]
@@ -2873,14 +2876,18 @@ tree をコピーして修正するので、この操作は非破壊的。nsubst
 (defun string*-arg-check (string start end)
   (let ((string (typecase string
 		  (string string)
-		  (atom (string-downcase (string string)))
-		  (otherwise (error "~S is not of type ATOM." string)))))
+		  (symbol (string string))
+		  (otherwise (error "~S is not of type STRING designator." string)))))
     (let ((len (cl:length string)))
-      (let ((start (if (minusp start) (+ len start) start))
-	    (end (cond ((null end) len)
-		       ((minusp end) (+ len end) end)
-		       ('T end))))
+      (let ((start (etypecase start
+                     ((integer 0 *) start)
+                     ((integer * -1) (+ len start))))
+	    (end (etypecase end
+                   (null len)
+                   ((integer 0 *) end)
+                   ((integer * -1) (+ len end)))))
 	(values string len start end)))))
+
 
 (defun tao:substring (string start &optional end)
   "substring                              関数[#!subr]
@@ -2902,7 +2909,7 @@ start で指定された文字位置をひいたもの。 end の省略時は st
         (substring \"私は女の子です。\" 4) -> \"子です。\"
         (substring \"私は女の子です。\" 3 6) -> \"の子で\""
   (multiple-value-bind (string len start end)
-      (string*-arg-check string start end)
+                       (string*-arg-check string start end)
     (declare (ignore len))
     (if (> start end)
 	""

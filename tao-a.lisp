@@ -208,27 +208,36 @@ list に、要素 item を追加する。ただし、その要素は、まだ li
 ;;;         	(("bs" . "dir1") ("bs" . "dir2") ... )
 
 
-;(defun all-files (&optional (pathname *default-pathname-defaults*)))
+(defun tao:all-files (&optional (pathname *default-pathname-defaults*) flag)
+  "all-files                              関数[#!expr]
 
-;;; all-files                              関数[#!expr]
-;;;
-;;; <説明>
-;;;   形式 : all-files &opt pathname flag
-;;; デバイスまたはディレクトリ pathname 中の、全てのファイルのリストを返す。
-;;; pathname の既定値はカレントディレクトリ。flag の値が nil (既定値) なら、
-;;; ファイル名にはバージョン番号が付けられるが、nil でなければバージョン
-;;; 番号は省略される。
-;;;
-;;; <例>
-;;;         (all-files "cs:<dir1>" t) -> ("cs:<dir1>file1.tao"
-;;;         	                      "cs:<dir1>file2.tao"
-;;;                       	              ... )
+<説明>
+  形式 : all-files &opt pathname flag
+デバイスまたはディレクトリ pathname 中の、全てのファイルのリストを返す。
+pathname の既定値はカレントディレクトリ。flag の値が nil (既定値) なら、
+ファイル名にはバージョン番号が付けられるが、nil でなければバージョン
+番号は省略される。
 
-;;; applobj                                クラス
-;;;
-;;; <説明>
-;;;   インスタンスが、他のオブジェクトに適用することのできるオブジェクト。
-;;; 関数そのものが applobj のインスタンス。
+<例>
+        (all-files \"cs:<dir1>\" t) -> (\"cs:<dir1>file1.tao\"
+        	                      \"cs:<dir1>file2.tao\"
+                      	              ... )"
+  (declare (ignore flag))
+  (directory (merge-pathnames #P"*.*" pathname)))
+
+
+(progn
+  (setf (documentation 'tao:applobj 'class)
+        "applobj                                クラス
+
+<説明>
+  インスタンスが、他のオブジェクトに適用することのできるオブジェクト。
+関数そのものが applobj のインスタンス。")
+  (deftype tao:applobj () 'function)
+  
+  (setf (find-class 'tao:applobj)
+        (find-class 'function)))
+
 
 (defun tao:applobj-of (func)
   "applobj-of                             関数[#!subr]
@@ -247,6 +256,7 @@ list に、要素 item を追加する。ただし、その要素は、まだ li
     (symbol (and (fboundp func)
                  (fdefinition func)))
     (otherwise nil)))
+
 
 (defun tao:applobjp (obj)
   "applobjp                               関数[#!subr]
@@ -272,6 +282,7 @@ list に、要素 item を追加する。ただし、その要素は、まだ li
   (typecase obj
     (function obj)
     (otherwise nil)))
+
 
 (defun tao:apply (func list)
   "apply                                  関数[#!subr]
