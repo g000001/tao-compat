@@ -520,7 +520,19 @@ access-fn は関数とマクロどちらの名前も必要としない。
 ;;                                  (1+ x) )
 ;;         ((definition *print-base*) -> (!*print-base* 10.)
 
-(defmacro tao:deflogic-method ((class message) (&rest args) &body body)
+(defun remove-logical-methods (gfname class)
+  (dolist (mc '((tao:assert :first)
+                (tao:assert :last)
+                (tao:assert :cut)))
+    (let* ((gf (fdefinition gfname))
+           (m (find-method gf mc (cons (find-class class)
+                                       (mapcar (constantly (find-class T))
+                                               (cdr (c2cl:generic-function-lambda-list gf))))
+                           nil)))
+      (when m (remove-method gf m)))))
+
+
+(defmacro tao:deflogic-method ((class &rest message) (&rest args) &body body)
   "deflogic-method                        関数[#!macro]
 
  <説明>
@@ -544,16 +556,46 @@ access-fn は関数とマクロどちらの名前も必要としない。
          [x amethod (aa bb cc)] -> aa
          [x amethod aa bb cc dd] -> nil"
   (let ((slot-names (mapcar #'c2mop:slot-definition-name (c2mop:class-slots (find-class class)))))
-    `(progn
-       (defmethod ,(tao.logic::make-predicate message (1+ (length args)))
+    (ecase (length message)
+      (1 (let* ((message (car message))
+                (pred (tao.logic::make-predicate message (1+ (length args)))))
+           `(progn
+              (unless (fboundp ',pred)
+                (defgeneric ,pred (self cont)
+                  (:method-combination tao:assert)))
+              (remove-logical-methods ',pred ',class)
+              (defmethod ,pred tao:assert :first
+                ((tao:self ,class) ,@args cont)
+                (with-slots (,@slot-names)
+                            tao:self
+                  (declare (ignorable ,@slot-names))
+                  ,(tao.logic::compile-body body
+                                            '(lambda ()
+                                               (if (next-method-p)
+                                                   (call-next-method)
+                                                   T))
+                                            tao.logic::no-bindings)))
+              (define-method-predicate-in-lisp-world ,message))))
+      (2 (destructuring-bind (qualifier message)
+                             message
+           (let ((pred (tao.logic::make-predicate message (1+ (length args)))))
+             `(progn
+                (unless (fboundp ',pred)
+                  (defgeneric ,pred (self cont)
+                    (:method-combination tao:assert)))
+                (remove-logical-methods ',pred ',class)
+                (defmethod ,pred tao:assert ,qualifier
                   ((tao:self ,class) ,@args cont)
-         (with-slots (,@slot-names)
-                     tao:self
-           (declare (ignorable ,@slot-names))
-           ,(tao.logic::compile-body body
-                                     'cont
-                                     '((T . T)))))
-       (define-method-predicate-in-lisp-world ,message))))
+                  (with-slots (,@slot-names)
+                              tao:self
+                    (declare (ignorable ,@slot-names))
+                    ,(tao.logic::compile-body body
+                                              '(lambda ()
+                                                 (if (next-method-p)
+                                                     (call-next-method)
+                                                     T))
+                                              tao.logic::no-bindings)))
+                (define-method-predicate-in-lisp-world ,message))))))))
 
 
 (defclsynonym tao:defmacro

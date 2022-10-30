@@ -719,10 +719,9 @@
     nil))
 
 
-(defun repeat/0 (cont)
+(defun &repeat/0 (cont)
   "8.15.3"
   (loop (funcall cont)))
-
 
 ;;; 8.16 constant processing
 

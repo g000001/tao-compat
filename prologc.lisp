@@ -507,7 +507,8 @@
 (defmacro define-base-method (name (&rest args) &body body)
   `(progn
      (defgeneric ,name (,@args)
-       (:method (,@args) ,@body))
+       (:method-combination tao:assert)
+       (:method tao:assert (,@args) ,@body))
      ',name))
 
 
@@ -707,9 +708,8 @@
                                         (bind-new-variables bindings goal))))))
                            ((and (symbolp (car goal))
                                  (not (get-clauses (car goal)))
-                                 (fboundp (car goal))
+                                 (or (fboundp (car goal)) (member (car goal) '(call-method call-next-method)))
                                  (typep (symbol-package (car goal)) 'tao-package))
-                            #+debug (print (list :=========> (car goal)))
                             `(lispp-uq/1
                               ,(compile-unquote-arg goal bindings)
                               (lambda ()

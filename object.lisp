@@ -95,6 +95,7 @@
 (defclass tao::logical-class (tao::tao-class)
   ())
 
+
 (defmethod print-object ((obj tao:vanilla-class) stream)
   (let ((adr #+lispworks (sys:object-address obj)
              #-lispworks ""))
@@ -106,7 +107,8 @@
 
 (defmethod make-instance :around ((class tao::logical-class)
                                   &rest initargs
-                                  &key (name (gentemp (string (class-name class)))))
+                                  &key (name (gentemp (string (class-name class))))
+                                  &allow-other-keys)
   (let ((ins (call-next-method)))
     (setf (gethash ins *instance-facts*)
           name)
@@ -146,24 +148,31 @@
 
 
 (defun tao-slot-form->cl-slot-from (cvs ivs &key gettable settable)
-  (append (mapcar (lambda (slot)
-                    (etypecase slot
-                      (symbol
-                       (append (compute-getter-setter slot gettable settable)
-                               (list :allocation :class :initarg slot)))
-                      ((cons symbol *)
-                       (append (compute-getter-setter (elt slot 0) gettable settable)
-                               (list :initform (elt slot 1) :allocation :class :initarg (elt slot 1))))))
-                  cvs)
-          (mapcar (lambda (slot)
-                    (etypecase slot
-                      (symbol
-                       (append (compute-getter-setter slot gettable settable)
-                               (list :initarg slot)))
-                      ((cons symbol *)
-                       (append (compute-getter-setter (elt slot 0) gettable settable)
-                               (list :initform (elt slot 1) :initarg (elt slot 1))))))
-                  ivs)))
+  (append 
+   ;; class vars
+   (mapcar (lambda (slot)
+             (etypecase slot
+               (symbol
+                (append (compute-getter-setter slot gettable settable)
+                        (list :allocation :class :initarg slot)))
+               ((cons symbol *)
+                (let ((var (elt slot 0))
+                      (val (elt slot 1)))
+                  (append (compute-getter-setter (elt slot 0) gettable settable)
+                          (list :initform val :allocation :class :initarg var))))))
+           cvs)
+   ;; instance vars
+   (mapcar (lambda (slot)
+             (etypecase slot
+               (symbol
+                (append (compute-getter-setter slot gettable settable)
+                        (list :initarg slot)))
+               ((cons symbol *)
+                (let ((var (elt slot 0))
+                      (val (elt slot 1)))
+                  (append (compute-getter-setter var gettable settable)
+                          (list :initform val :initarg var))))))
+           ivs)))
 
 
 (defun find-gettable-option (options)
@@ -255,9 +264,34 @@ options で種々のオプションを指定する。もし、そのオプショ
          ,(tao-slot-form->cl-slot-from class-vars
                                        inst-vars
                                        :gettable gettable
-                                       :settable settable)
+                                       :settable settable
+                                       )
          (:metaclass ,metaclass))
        ',class-name)))
+
+
+(define-method-combination tao:assert ()
+  ((assert-clauses (tao:assert . *)))
+  (let ((cont (gensym "cont"))
+        (tao.logic::*predicate* (gensym "anonymous-pred-")))
+    `(tao-internal::with-return-from-pred ,tao.logic::*predicate* ,cont ()
+       ,(tao.logic::compile-body
+         (let ((firsts '())
+               (lasts '()))
+           (dolist (m assert-clauses)
+             (case (second (method-qualifiers m))
+               ((:first nil)
+                (setq firsts `(,m ,@firsts)))
+               (:last
+                (setq lasts `(,m ,@lasts)))
+               (:cut 
+                (setq firsts `(,m ,@firsts))
+                (return))))
+           (destructuring-bind (first . tail)
+                               (append (nreverse firsts) lasts)
+             `((call-method ,first ,tail))))
+         `#',cont
+         tao.logic::no-bindings))))
 
 
 ;;; *EOF*
