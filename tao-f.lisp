@@ -502,14 +502,21 @@
 ;;; array-spec は (var dimension) の形式。 var は生成される配列の名前、
 ;;; dimensions はその配列の次元を表す整数のリスト。
 ;;; array 参照。
-;;; ＠
-;;; float-locatives       未インプリメント 関数[#!exprdyn]
-;;;
-;;; <説明>
-;;;   形式 : float-locatives &rest var1 var2 ... varN
-;;; N 個の 64 ビット浮動小数点ロカティブを生成し、それらを変数 var1 var2
-;;; ... varN に代入し、リスト (var1 var2 ... varN) を返す。
-;;; ＠
+
+#+lispworks
+(defun tao:float-locatives (&rest vars)
+  "float-locatives       未インプリメント 関数[#!exprdyn]
+
+<説明>
+  形式 : float-locatives &rest var1 var2 ... varN
+N 個の 64 ビット浮動小数点ロカティブを生成し、それらを変数 var1 var2
+... varN に代入し、リスト (var1 var2 ... varN) を返す。 "
+  `(progn
+     ,@(mapcar (lambda (v)
+                 `(setf ,v (fli:allocate-foreign-object :type :double)))
+               vars)
+     ',vars))
+
 ;;; float-precision                        関数[#!expr]
 ;;;
 ;;; <説明>

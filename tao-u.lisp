@@ -302,18 +302,26 @@ list の car部を返す。
 ;;;         (read-char aa) -> "w"
 ;;;         (read-char aa) -> "e"
 ;;; ＠
-;;; unsigned-integer-locative              関数[#!exprdyn]
-;;;
-;;; <説明>
-;;;   形式 : unsigned-integer-locatives &rest var1 var2 ... varN
-;;; N 個の 64 ビット符号なし整数ロカティブを生成し、それらを対応する各々の
-;;; 変数に代入する。リスト (var1 var2 ... varN) を返す。初期設定は行わない。
-;;;
-;;; <例>
-;;;         (unsigned-integer-locatives d e f g h) -> (d e f g h)
-;;;         d -> #162310
-;;;         e -> #162311
-;;; ＠
+
+#+lispworks
+(defun tao:unsigned-integer-locatives (&rest vars)
+  "unsigned-integer-locative              関数[#!exprdyn]
+
+<説明>
+  形式 : unsigned-integer-locatives &rest var1 var2 ... varN
+N 個の 64 ビット符号なし整数ロカティブを生成し、それらを対応する各々の
+変数に代入する。リスト (var1 var2 ... varN) を返す。初期設定は行わない。
+
+<例>
+        (unsigned-integer-locatives d e f g h) -> (d e f g h)
+        d -> #162310
+        e -> #162311"
+  `(progn
+     ,@(mapcar (lambda (v)
+                 `(setf ,v (fli:allocate-foreign-object :type :uint64)))
+               vars)
+     ',vars))
+
 ;;; unsigned-integer-locative-arrays       関数[#!macro]
 ;;;
 ;;; <説明>

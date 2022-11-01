@@ -1157,24 +1157,27 @@ number (整数又は分数) をとり、その分母を正の整数で返す。
 ;;         (deposit-field 1 (byte 1 2) 3) -> #3
 ;;         (deposit-field 2 (byte 3 5) 10) -> #12
 
-;; deref                                  関数[#!subr]
-;;
-;; <説明>
-;;   形式 : deref locbit
-;; locbit で指定された 64-bit-word にある値を 8 進数で返す。
-;;
-;; <例>
-;;         (!x (locbit (get-memblk #!8b-memblk 20))) ->
-;;                       {locbit}({memblk}480569(#!8b-memblk . {dnil}20))
-;;         (!(deref x) 768) -> 768
-;;         (deref x) -> #0
-;;         (!(deref x) 123) -> 123
-;;         (deref x) -> #173
-;;         (> 200 (deref x)) -> #173
-;;         (deref x) は、@x と略記することができるが、現在使用できない。
-;;         (!@x #123) -> #123
-;;         @x -> #123
-;;         (!aaa @x) -> #123
+#+lispworks
+(defmacro tao:deref (locbit)
+  "deref                                  関数[#!subr]
+
+<説明>
+  形式 : deref locbit
+locbit で指定された 64-bit-word にある値を 8 進数で返す。
+
+<例>
+        (!x (locbit (get-memblk #!8b-memblk 20))) ->
+                      {locbit}({memblk}480569(#!8b-memblk . {dnil}20))
+        (!(deref x) 768) -> 768
+        (deref x) -> #0
+        (!(deref x) 123) -> 123
+        (deref x) -> #173
+        (> 200 (deref x)) -> #173
+        (deref x) は、@x と略記することができるが、現在使用できない。
+        (!@x #123) -> #123
+        @x -> #123
+        (!aaa @x) -> #123"
+  `(fli:dereference ,locbit))
 
 (defclsynonym tao:describe
     "describe                               メッセージ

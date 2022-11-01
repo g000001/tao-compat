@@ -1,3 +1,4 @@
+(tao:common-lisp)
 (cl:in-package :tao-internal)
 
 
@@ -6,7 +7,7 @@
 (let ((*readtable* tao:tao-standard-readtable))
   (set-macro-character #\( #'tao-internal::tao-read-list)
   (set-macro-character #\^ #'tao-internal::tao-read-toga)
-  (set-macro-character #\^ #'tao-internal::tao-read-toga)
+  (set-macro-character #\@ #'tao-internal::read-@)
   (set-macro-character #\'
                        (get-macro-character #\' (copy-readtable nil))
                        T)

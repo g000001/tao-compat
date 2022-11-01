@@ -6,7 +6,7 @@
   (:import-from :cl
    :nil
    :&allow-other-keys :&aux :&body :&environment :&key :&optional :&rest :&whole
-   :*
+   :* :+
    :*** :*break-on-signals* :*compile-file-pathname*
    :*compile-file-truename* :*compile-print* :*compile-verbose* :*debug-io*
    :*debugger-hook* :*default-pathname-defaults* :*error-output* :*features*
@@ -17,7 +17,7 @@
    :*print-pprint-dispatch* :*print-pretty* :*print-radix* :*print-readably*
    :*print-right-margin* :*query-io* :*random-state* :*read-base*
    :*read-default-float-format* :*read-eval* :*read-suppress* :*readtable*
-   :*standard-input* :*standard-output* :*terminal-io* :*trace-output* :+ :++
+   :*standard-input* :*standard-output* :*terminal-io* :*trace-output* 
    :+++ :-
    :///
    :1+ :1-
@@ -534,7 +534,7 @@
   (:export
    :udo :udo-equal :udop :ueq :undeclare-semi-globals :undef :undefclass
    :undeflogic-method :undefmethod :undefp :undelete-file :unionq :unit-clauses
-   :unitern :unprotect-file :unquote :unsigned-integer-locative
+   :unitern :unprotect-file :unquote :unsigned-integer-locatives
    :unsigned-integer-locative-arrays :untrail :untyi :unuse :use :user)
   (:export
    :v-sem :value :vanilla-class :vcons :vdir :vector-equal

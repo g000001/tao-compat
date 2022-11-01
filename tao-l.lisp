@@ -268,13 +268,39 @@ nil を返す。
         (lessp #c(2 3) #c(4 5)) -> エラー"
   (every #'< numbers (cdr numbers)))
 
+
+
 (eval-when (:compile-toplevel :load-toplevel :execute)
 (defun canonicalize-bvl (bvl)
   (mapcar (lambda (v)
             (etypecase v
-              (symbol `(,v (tao:undef)))
+              (symbol `(,v ,(if (var-name-p v)
+                                `(tao:undef)
+                                nil)))
               (cons v)))
           bvl)))
+
+(deftype locative-declaration ()
+  `(member tao:signed-integer-locatives
+           tao:unsigned-integer-locatives
+           tao:float-locatives))
+
+(defun locative-declaration-p (form)
+  (case (and (consp form) (car form))
+    (tao:signed-integer-locatives :int64)
+    (tao:unsigned-integer-locatives :uint64)
+    (tao:float-locatives :double)
+    (otherwise nil)))
+
+
+(defmacro locally/deref (&body body)
+  `(locally
+     ,@(butlast body)
+     (values-list (mapcar (lambda (v)
+                            (if (tao:locbitp v)
+                                (tao:deref v)
+                                v))
+                          (multiple-value-list ,@(last body))))))
 
 (defmacro tao:let ((&rest bindings) &body body)
   "let                                    関数[#!subr]
@@ -293,8 +319,20 @@ nil を返す。
         (!x 2) -> 2
         (let ((x 3) (y (* x x)))
               (* x y y)) -> 48"
-  `(cl:let (,@(canonicalize-bvl bindings))
-     ,@body))
+  (if (locative-declaration-p (car body))
+      (let ((type (locative-declaration-p (car body)))
+            (locative-vars (cdr (car body))))
+        `(fli:with-dynamic-foreign-objects (,@(mapcar (lambda (b)
+                                                        (check-type b (and symbol (not null)))
+                                                        `(,b ,type))
+                                                      locative-vars))
+           (cl:let (,@(remove-if (lambda (v)
+                                   (find (car v) locative-vars))
+                                 (canonicalize-bvl bindings)))
+             (locally/deref
+              ,@body))))
+      `(cl:let (,@(canonicalize-bvl bindings))
+         ,@body)))
 
 
 (defmacro tao:let* ((&rest bindings) &body body)
@@ -705,43 +743,53 @@ arg1 arg2 ... argN を要素とするリストを作成し、返す。
 ;;; ならば評価値を返し、それ以外なら nil を返す。
 ;;; (locativep x) = (or (64b-signedp x) (64b-unsignedp x)
 ;;;                     (64b-floatp x)  (locbitp x) )
-;;; ＠
-;;; locbit                                 関数[#!subr]
-;;;
-;;; <説明>
-;;;   形式 : locbit memblk &opt offset
-;;; ロックビットを生成し返す。
-;;; 生成されたロックビットは、メモリブロック memblk と、memblk 内の offset
-;;; が指定する語をポイントする。
-;;; offset の値は 0 から始まる番号で既定値は 0 。
-;;;
-;;; <例>
-;;;         (!a (get-memblk #!8b-memblk 16))
-;;;         -> {memblk}480764(#!8b-memblk . {dnil}16)
-;;;         a は、生成された8ビットメモリブロックへのポインタ。
-;;;         (!b (locbit a 10)) ->
-;;;         {locbit}({memblk}480764(#!8b-memblk . {dnil}16) . {dnil}10)
-;;;         b は、メモリブロック a とメモリブロック a の 10 番目の語を指す。
-;;;         (loc-offset b) -> 10
-;;; ＠
-;;; locbitp                                関数[#!subr]
-;;;
-;;; <説明>
-;;;   形式 : locbitp object
-;;; object がロックビットなら評価値を返し、それ以外なら nil を返す。
-;;;
-;;; <例>
-;;;         (!a (get-memblk #!8b-memblk 16))
-;;;                            -> {memblk}480764(#!8b-memblk . {dnil}16)
-;;;         a は生成された 8-bit のメモリブロックへのポインタ。
-;;;         (!b (locbit a 10)) ->
-;;;         {locbit}({memblk}480764(#!8b-memblk . {dnil}16) . {dnil}10)
-;;;         (signed-integer-locatives c) -> (c)
-;;;         (locbitp b) ->
-;;;         {locbit}({memblk}480764(#!8b-memblk . {dnil}16) . {dnil}10)
-;;;         (locbitp 'b) -> nil
-;;;         (locbitp c) -> nil
-;;;         (locbitp 12) -> nil
+
+#+lispworks
+(defun tao:locbit (memblk &optional (offset 0))
+  "locbit                                 関数[#!subr]
+
+<説明>
+  形式 : locbit memblk &opt offset
+ロックビットを生成し返す。
+生成されたロックビットは、メモリブロック memblk と、memblk 内の offset
+が指定する語をポイントする。
+offset の値は 0 から始まる番号で既定値は 0 。
+
+<例>
+        (!a (get-memblk #!8b-memblk 16))
+        -> {memblk}480764(#!8b-memblk . {dnil}16)
+        a は、生成された8ビットメモリブロックへのポインタ。
+        (!b (locbit a 10)) ->
+        {locbit}({memblk}480764(#!8b-memblk . {dnil}16) . {dnil}10)
+        b は、メモリブロック a とメモリブロック a の 10 番目の語を指す。
+        (loc-offset b) -> 10"
+  (let ((locbit (fli:make-pointer :address (fli:pointer-address memblk)
+                                  :type (fli:pointer-element-type memblk))))
+    (fli:incf-pointer locbit offset)
+    locbit))
+
+#+lispworks
+(defun tao:locbitp (obj)
+  "locbitp                                関数[#!subr]
+
+<説明>
+  形式 : locbitp object
+object がロックビットなら評価値を返し、それ以外なら nil を返す。
+
+<例>
+        (!a (get-memblk #!8b-memblk 16))
+                           -> {memblk}480764(#!8b-memblk . {dnil}16)
+        a は生成された 8-bit のメモリブロックへのポインタ。
+        (!b (locbit a 10)) ->
+        {locbit}({memblk}480764(#!8b-memblk . {dnil}16) . {dnil}10)
+        (signed-integer-locatives c) -> (c)
+        (locbitp b) ->
+        {locbit}({memblk}480764(#!8b-memblk . {dnil}16) . {dnil}10)
+        (locbitp 'b) -> nil
+        (locbitp c) -> nil
+        (locbitp 12) -> nil"
+  (fli:pointerp obj))
+
 ;;; ＠
 ;;; log                                    関数[#!subr]
 ;;;

@@ -852,41 +852,50 @@ throw のように働く。"
 ;;;         (+ 3) -> 3
 ;;;         (+) -> 0
 
-;;; clパッケージ再定義問題
-;;; +                                      ロカティブオペレータ
-;;;
-;;; <説明>
-;;;   2 つのロカティブを加える。
-;;;
-;;; <例>
-;;;         (signed-integer-locatives p q r s) -> (p q r s)
-;;;         (p <- 10) -> 10
-;;;         (q <- 20) -> 20
-;;;         (r <- -10) -> -10
-;;;         (s <- (p + q + r)) -> 20
-;;;         s -> 20
-;;;         (p <- (p + q + 20)) -> 50
-;;;         p -> 50
+(defun locative+ (x y)
+  "+                                      ロカティブオペレータ
+
+<説明>
+  2 つのロカティブを加える。
+
+<例>
+        (signed-integer-locatives p q r s) -> (p q r s)
+        (p <- 10) -> 10
+        (q <- 20) -> 20
+        (r <- -10) -> -10
+        (s <- (p + q + r)) -> 20
+        s -> 20
+        (p <- (p + q + 20)) -> 50
+        p -> 50"
+  (+ (if (tao:locbitp x) (tao:deref x) x)
+     (if (tao:locbitp y) (tao:deref y) y)))
 
 ;;; cl:++                                     変数
 ;;;
 ;;; <説明>
 ;;;   現在のトップレベル・ループの 2 つ前のループで評価されたフォーム。
 
-;;; ++                                     メッセージ
-;;;
-;;; <説明>
-;;;   メッセージ受け渡し式 (locbit ++) は、まずロックビット locbit により
-;;; 指定された値にアクセスし、次に locbit のオフセットを 1 増やす。
-;;;
-;;; <例>
-;;;         mem を 16 ビットメモリブロック、p を mem のロックビットとする。
-;;;         (nthm mem 11) -> #30
-;;;         (loc-offset p) -> 11
-;;;         (!@(p ++) #100) -> #100
-;;;         (loc-offset p) -> 12
-;;;         (nthm mem 11) -> #100
-;;;         ここで、@(p ++) は、(deref (p ++)) の省略形。
+#+lispworks
+(defmacro tao:++ (locbit)
+  "++                                     メッセージ
+
+<説明>
+  メッセージ受け渡し式 (locbit ++) は、まずロックビット locbit により
+指定された値にアクセスし、次に locbit のオフセットを 1 増やす。
+
+<例>
+        mem を 16 ビットメモリブロック、p を mem のロックビットとする。
+        (nthm mem 11) -> #30
+        (loc-offset p) -> 11
+        (!@(p ++) #100) -> #100
+        (loc-offset p) -> 12
+        (nthm mem 11) -> #100
+        ここで、@(p ++) は、(deref (p ++)) の省略形。"
+  `(fli:incf-pointer ,locbit))
+
+
+(defmacro n++ (locbit)
+  `(prog1 (fli:copy-pointer ,locbit) (fli:incf-pointer ,locbit))) ;todo
 
 ;;; ++                                     関数[#!subr]
 ;;;
@@ -1692,32 +1701,37 @@ number1 number2 ... numberN の値 (複素数も可) を左から右に順に比
         (common:< 0 1 2 3 4 5) -> 5
         (common:< 0 1 2 4 4 5) -> nil")
 
-;;; <-                                     メッセージ
-;;;
-;;; <説明>
-;;;   形式 : <- object
-;;; メッセージ受け渡し式 (locative <- object) を記述するために使用され、
-;;; object の値を locative に代入し、代入した値を返す。
-;;; object では、Fortran 型、Lisp 型の両方の式が許される。ただし object が
-;;; ロカティブなら、指定された値が locative に代入される。
-;;;
-;;; <例>
-;;;         (signed-integer-locatives x y) -> (x y)
-;;;         (x <- ((2 + 3) * 4)) -> 20
-;;;         (y <- 30) -> 30
-;;;         x -> 20
-;;;         y -> 30
-;;;         (x <- y) -> 30
-;;;         x -> 30
-;;;         (x <- 20) -> 20
-;;;         x -> 20
-;;;         y -> 30
-;;;         (!y x) -> 20
-;;;         y -> 20
-;;;         (x <- 30) -> 30
-;;;         x -> 30
-;;;         y -> 30
-;;; ＠
+(defmacro tao:<- (loc object)
+  "<-                                     メッセージ
+
+<説明>
+  形式 : <- object
+メッセージ受け渡し式 (locative <- object) を記述するために使用され、
+object の値を locative に代入し、代入した値を返す。
+object では、Fortran 型、Lisp 型の両方の式が許される。ただし object が
+ロカティブなら、指定された値が locative に代入される。
+
+<例>
+        (signed-integer-locatives x y) -> (x y)
+        (x <- ((2 + 3) * 4)) -> 20
+        (y <- 30) -> 30
+        x -> 20
+        y -> 30
+        (x <- y) -> 30
+        x -> 30
+        (x <- 20) -> 20
+        x -> 20
+        y -> 30
+        (!y x) -> 20
+        y -> 20
+        (x <- 30) -> 30
+        x -> 30
+        y -> 30"
+  #+lispworks
+  `(if (fli:pointerp ,object)
+       (setf (fli:dereference ,loc) (fli:dereference ,object))
+       (setf (fli:dereference ,loc) ,object)))
+
 
 (defun tao:<= (x y)
   (string '#:|<=                                     関数[#!subr]

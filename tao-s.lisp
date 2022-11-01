@@ -661,23 +661,26 @@ list1 には含まれているが、list2 ... listN には含まれていない�
   (declare (ignore pathname kgc))
   (values))
 
-;;; set-loc-offset                         関数[#!subr]
-;;;
-;;; <説明>
-;;;   形式 : set-loc-offset x y
-;;; ロックビット x のオフセット を、y (メモリブロック内の語アドレスを示す
-;;; 0 から始まる数字) にセットする。ロックビットのオフセットへのアクセス
-;;; 関数は、loc-ossset 。
-;;;
-;;; <例>
-;;;         (!a (get-memblk #!8b-memblk 16)) ->
-;;;         	{memblk}489557(#!8b-memblk . {dnil}16)
-;;;         (!b (locbit a 10)) ->
-;;;             {locbit}{memblk}489557(#!8b-memblk . {dnil}16) . {dnil}10)
-;;;         (loc-offset b) -> 10
-;;;         (set-loc-offset b 1) ->
-;;;             {locbit}{memblk}489557(#!8b-memblk . {dnil}16) . {dnil}1)
-;;;         (loc-offset b) -> 1
+(defun tao:set-loc-offset (loc offset)
+  "set-loc-offset                         関数[#!subr]
+
+<説明>
+  形式 : set-loc-offset x y
+ロックビット x のオフセット を、y (メモリブロック内の語アドレスを示す
+0 から始まる数字) にセットする。ロックビットのオフセットへのアクセス
+関数は、loc-ossset 。
+
+<例>
+        (!a (get-memblk #!8b-memblk 16)) ->
+        	{memblk}489557(#!8b-memblk . {dnil}16)
+        (!b (locbit a 10)) ->
+            {locbit}{memblk}489557(#!8b-memblk . {dnil}16) . {dnil}10)
+        (loc-offset b) -> 10
+        (set-loc-offset b 1) ->
+            {locbit}{memblk}489557(#!8b-memblk . {dnil}16) . {dnil}1)
+        (loc-offset b) -> 1"
+  (setf (fli::pointer-%offset loc) 0)
+  (fli:incf-pointer loc offset))
 
 ;;; set-macro-character                    関数[#!expr]
 ;;;
@@ -1052,17 +1055,24 @@ n < 0 のときは、object の最後の n 文字から成る部分ストリン�
 ;;;         ((a2 -3 39) <- 456) -> 456
 ;;;         (a2 -3 39) -> 456
 
-;;; signed-integer-locatives               関数[#!exprdyn]
-;;;
-;;; <説明>
-;;;   形式 : signed-integer-locatives &rest var1 var2 ... varN
-;;; N 個の 64 ビット符号つき整数ロカティブを生成し、それらを対応する各々の
-;;; 変数に代入し、リスト (var1 var2 ... varN) を返す。初期設定は行わない。
-;;;
-;;; <例>
-;;;         (signed-integer-locatives d e f g h) -> (d e f g h)
-;;;         d -> 476365
-;;;         e -> 476366
+#+lispworks
+(defmacro tao:signed-integer-locatives (&rest vars)
+  "signed-integer-locatives               関数[#!exprdyn]
+
+<説明>
+  形式 : signed-integer-locatives &rest var1 var2 ... varN
+N 個の 64 ビット符号つき整数ロカティブを生成し、それらを対応する各々の
+変数に代入し、リスト (var1 var2 ... varN) を返す。初期設定は行わない。
+
+<例>
+        (signed-integer-locatives d e f g h) -> (d e f g h)
+        d -> 476365
+        e -> 476366"
+  `(progn
+     ,@(mapcar (lambda (v)
+                 `(setf ,v (fli:allocate-foreign-object :type :int64)))
+               vars)
+     ',vars))
 
 ;;; signum                                 関数[#!subr]
 ;;;

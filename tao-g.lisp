@@ -180,22 +180,32 @@
 ;;; 文字 char がマクロ文字構文を持たないときは nil を返す。
 ;;; readtable の既定値は現在の読み込み表 (変数 *readtable* の値) 。
 ;;; set-macro-charactor 参照。
-;;; ＠
-;;; get-memblk                             関数[#!subr]
-;;;
-;;; <説明>
-;;;   形式 : get-memblk memblk-type size
-;;; 型 (メモリブロックにおける 1 語のビット数) memblk-type 、及び大きさ
-;;; size のメモリブロックを確保し、それを返す。
-;;; memblk-type で指定できる型は次のうちのいずれか。
-;;;   #!1b-memblk   #!2b-memblk   #!4b-memblk   #!8b-memblk
-;;;   #!16b-memblk  #!32b-memblk  #!64b-memblk
-;;;
-;;; <例>
-;;;         (!a (get-memblk #!8b-memblk 16)) ->
-;;;                    {memblk}480764(#!8b-memblk . {dnil}16)
-;;;         a は新たに確保したメモリブロックを指すポインタ。
-;;; ＠
+
+
+#+lispworks
+(defun tao:get-memblk (memblk-type size)
+  "get-memblk                             関数[#!subr]
+
+<説明>
+  形式 : get-memblk memblk-type size
+型 (メモリブロックにおける 1 語のビット数) memblk-type 、及び大きさ
+size のメモリブロックを確保し、それを返す。
+memblk-type で指定できる型は次のうちのいずれか。
+  #!1b-memblk   #!2b-memblk   #!4b-memblk   #!8b-memblk
+  #!16b-memblk  #!32b-memblk  #!64b-memblk
+
+<例>
+        (!a (get-memblk #!8b-memblk 16)) ->
+                   {memblk}480764(#!8b-memblk . {dnil}16)
+        a は新たに確保したメモリブロックを指すポインタ。"
+  (fli:allocate-foreign-object :type (ecase memblk-type
+                                       (#!8b-memblk :uint8)
+                                       (#!16b-memblk :uint16)
+                                       (#!32b-memblk :uint32)
+                                       (#!64b-memblk :uint64))
+                               :nelems size))
+
+
 ;;; get-output-stream-string               関数[#!expr]
 ;;;
 ;;; <説明>
