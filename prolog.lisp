@@ -3,7 +3,7 @@
 ;;;; Copyright (c) 1991 Peter Norvig
 
 ;;;; File prolog.lisp: prolog from (11.3), with interactive backtracking.
-
+(tao:common-lisp)
 (in-package :tao.logic)
 
 (defvar *negation-as-failure* nil)

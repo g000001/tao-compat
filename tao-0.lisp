@@ -891,11 +891,12 @@ throw のように働く。"
         (loc-offset p) -> 12
         (nthm mem 11) -> #100
         ここで、@(p ++) は、(deref (p ++)) の省略形。"
+  `(prog1 (fli:copy-pointer ,locbit)
+     (fli:incf-pointer ,locbit)))
+
+
+(defmacro ++n (locbit)
   `(fli:incf-pointer ,locbit))
-
-
-(defmacro n++ (locbit)
-  `(prog1 (fli:copy-pointer ,locbit) (fli:incf-pointer ,locbit))) ;todo
 
 ;;; ++                                     関数[#!subr]
 ;;;
@@ -1728,9 +1729,10 @@ object では、Fortran 型、Lisp 型の両方の式が許される。ただし
         x -> 30
         y -> 30"
   #+lispworks
-  `(if (fli:pointerp ,object)
-       (setf (fli:dereference ,loc) (fli:dereference ,object))
-       (setf (fli:dereference ,loc) ,object)))
+  (lw:rebinding (object)
+    `(if (fli:pointerp ,object)
+         (setf (fli:dereference ,loc) (fli:dereference ,object))
+         (setf (fli:dereference ,loc) ,object))))
 
 
 (defun tao:<= (x y)

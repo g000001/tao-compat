@@ -166,7 +166,7 @@
 
 (defun infix-to-prefix (obj mesg &rest args)
   (cond ((eq 'tao:++ obj)
-         `(tao-internal::n++ ,mesg))
+         `(tao-internal::++n ,mesg))
         ((eq 'tao:+ mesg)
          (if (null (cdr args))
              `(locative+ ,obj ,@args)

@@ -8,7 +8,7 @@
 ;;; Bug fix by Adam Farquhar, farquhar@cs.utexas.edu.
 ;;; Trivia: Farquhar is Norvig's cousin.
 
-
+(tao:common-lisp)
 (in-package :tao.logic)
 
 
