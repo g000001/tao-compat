@@ -1636,6 +1636,7 @@ string を文字又はシンボルに変換し、その結果を返す。
         (strh-to-char \"ab\") -> \"a\""
   (cl:schar string 0))
 
+
 (defsynonym tao:string cl:string
   #.(cl:string '|string                                 関数[#!expr]
 

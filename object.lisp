@@ -17,6 +17,26 @@
   T)
 
 
+(defun mappend (function &rest lists)
+  (loop :for results :in (apply #'mapcar function lists)
+        :append results))
+
+
+(defun depth-first-preorder-superclasses* (class)
+  (if (eq class (find-class 'standard-object))
+      '()
+      (cons class (mappend (lambda (c)
+                             (depth-first-preorder-superclasses* c))
+                           (class-direct-superclasses class)))))
+
+
+(defmethod compute-class-precedence-list ((class tao::tao-class))
+  (append (remove-duplicates
+           (depth-first-preorder-superclasses* class)
+           :from-end T)
+          (list (find-class 'standard-object)
+                (find-class T))))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;                                                                  ;;;
 ;;; Free Software under the MIT license.                             ;;;
@@ -129,19 +149,27 @@
            (lambda (obj val) (funcall #',setter-fn val obj)))))
 
 
+(defun compute-accessor (slot gettable)
+  (let ((gettable (mapcar (lambda (g) 
+                            (etypecase g
+                              ((and symbol (not null)) (list g g))
+                              (cons g)))
+                          gettable)))
+    (cadr (find slot gettable :key #'car))))
+
+
 (defun compute-getter-setter (slot gettable settable)
   (let* ((getter (etypecase gettable
                    (null '())
                    (symbol slot)
-                   (cons (and (member slot gettable) slot))))
-         (setter (and (null getter)
-                      (etypecase settable
-                        (null '())
-                        (symbol slot)
-                        (cons (and (member slot settable)
-                                   (make-symbol (concatenate 'string
-                                                             (string '#:set-)
-                                                             (string slot)))))))))
+                   (cons (compute-accessor slot gettable))))
+         (setter (etypecase settable
+                   (null '())
+                   (symbol (and (not getter) slot))
+                   (cons (and (member slot settable)
+                              (make-symbol (concatenate 'string
+                                                        (string '#:set-)
+                                                        (string slot))))))))
     `(,slot
       ,@(and setter (list :writer setter))
       ,@(and getter (list :accessor getter)))))
@@ -209,6 +237,25 @@
     (eval (make-setter-definition slotd))))
 
 
+(defun parse-defclass-options (class-name options)
+  (let ((defclass-options nil)
+        (methods nil))
+    (setq defclass-options
+          (mapcan (lambda (opt)
+                    (typecase opt
+                      ((cons (eql :default-init-plist))
+                       (list `(:default-initargs ,@(cdr opt))))
+                      ((cons (eql :eval-when-instantiation))
+                       (prog1 '()
+                         (push 
+                          `(defmethod initialize-instance :after ((tao:self ,class-name) &rest initargs)
+                             ,@(cdr opt))
+                          methods)))
+                      (T '())))
+                  options))
+    (values defclass-options methods)))
+
+
 (defmacro tao:defclass (class-name (&rest class-vars) (&rest inst-vars) &optional supers &rest options)
   "defclass                               関数[#!macro]
 
@@ -259,15 +306,19 @@ options で種々のオプションを指定する。もし、そのオプショ
         (settable (find-settable-option options))
         (metaclass (or (find-abstract-class-option options)
                        'tao::tao-class)))
-    `(progn
-       (cl:defclass ,class-name (,@supers tao:vanilla-class)
-         ,(tao-slot-form->cl-slot-from class-vars
-                                       inst-vars
-                                       :gettable gettable
-                                       :settable settable
-                                       )
-         (:metaclass ,metaclass))
-       ',class-name)))
+    (multiple-value-bind (options methods)
+                         (parse-defclass-options class-name options)
+      `(progn
+         (cl:defclass ,class-name (,@supers tao:vanilla-class)
+           ,(tao-slot-form->cl-slot-from class-vars
+                                         inst-vars
+                                         :gettable gettable
+                                         :settable settable
+                                         )
+           (:metaclass ,metaclass)
+           ,@options)
+         (progn ,@methods)
+         ',class-name))))
 
 
 (define-method-combination tao:assert ()

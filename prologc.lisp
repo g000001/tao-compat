@@ -709,7 +709,8 @@
                            ((and (symbolp (car goal))
                                  (not (get-clauses (car goal)))
                                  (or (fboundp (car goal)) (member (car goal) '(call-method call-next-method)))
-                                 (typep (symbol-package (car goal)) 'tao-package))
+                                 ;;(typep (symbol-package (car goal)) 'tao-package)
+                                 )
                             `(lispp-uq/1
                               ,(compile-unquote-arg goal bindings)
                               (lambda ()

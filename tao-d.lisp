@@ -1,4 +1,4 @@
-(tao:tao)
+(tao:common-lisp)
 (in-package #:tao-internal)
 
 ;; dashift                                関数[#!subr]
@@ -615,6 +615,14 @@ fn が名前、var-list が引数リストのマクロ関数を body で定義�
      (defmacro ,name (,@args) ,@body)))
 
 
+(defmacro with-c&ivars ((&rest cvars) (&rest ivars) &body body)
+  `(macrolet ((tao:cvar (name)
+                (check-type name (member ,@cvars))
+                `(slot-value tao:self ',name)))
+     (with-slots (,@ivars) tao:self
+       ,@body)))
+
+
 (defmacro tao:defmethod (method-spec (&rest arglist) &body body)
   "defmethod                              関数[#!macro]
 
@@ -675,25 +683,31 @@ fn が名前、var-list が引数リストのマクロ関数を body で定義�
                (values-list method-spec)))
       (3 (setf (values class-name method-type message-patern)
                (values-list method-spec))))
-    (let ((slot-names (mapcar #'c2mop:slot-definition-name (c2mop:class-slots (find-class class-name)))))
+    (let* ((slots (c2mop:class-slots (find-class class-name)))
+           (cvars (mapcar #'c2mop:slot-definition-name
+                          (remove-if-not (lambda (v)
+                                           (eq :class (c2mop:slot-definition-allocation v)))
+                                         slots)))
+           (ivars (mapcar #'c2mop:slot-definition-name
+                          (remove-if-not (lambda (v)
+                                           (eq :instance (c2mop:slot-definition-allocation v)))
+                                         slots))))
       (etypecase message-patern
         (symbol
          `(progn
             (defmethod ,message-patern ,@(and method-type (list method-type)) ((tao:self ,class-name) ,@arglist)
-              (with-slots (,@slot-names)
-                          tao:self
-                (declare (ignorable ,@slot-names))
+              (with-c&ivars (,@cvars) (,@ivars)
+                (declare (ignorable ,@ivars))
                 ,@body))))
         (cons
          `(progn
             (defmethod list-message ,@(and method-type (list method-type))
-                       ((tao:self ,class-name)
-                        (_ (eql ,(sxhash message-patern)))
-                        ,@arglist)
+              ((tao:self ,class-name)
+               (_ (eql ,(sxhash message-patern)))
+               ,@arglist)
               (declare (ignore _))
-              (with-slots (,@slot-names)
-                          tao:self
-                (declare (ignorable ,@slot-names))
+              (with-c&ivars (,@cvars) (,@ivars)
+                (declare (ignorable ,@ivars))
                 ,@body))))))))
 
 

@@ -1960,15 +1960,18 @@ stream に復帰文字と改行文字を出力し、t を返す。stream が省�
 ;;; <例>
 ;;;         (sys:current-process) -> {udo}1137949process
 ;;; ＠
-;;; cvar                                   関数[#!subr]
-;;;
-;;; <説明>
-;;;   形式 : cvar var-name
-;;; クラス変数 var-name を捜し、あればその値を返す。なければエラー。
-;;; クラス変数の検索は、cvar が使われているメソッドを受け取るクラスから
-;;; 始まり、そのスーパクラスへ進む。関数 defmethod や defclass-method に
-;;; おいて指定されるメソッドボディでのみ使用可能。結果として返される値への
-;;; 代入は可能。defclass-method 参照。
+
+(setf (documentation 'cvar 'function)
+      "cvar                                   関数[#!subr]
+
+<説明>
+  形式 : cvar var-name
+クラス変数 var-name を捜し、あればその値を返す。なければエラー。
+クラス変数の検索は、cvar が使われているメソッドを受け取るクラスから
+始まり、そのスーパクラスへ進む。関数 defmethod や defclass-method に
+おいて指定されるメソッドボディでのみ使用可能。結果として返される値への
+代入は可能。defclass-method 参照。")
+
 ;;; ＠
 ;;; cycle                                  関数[#!subr]
 ;;;
