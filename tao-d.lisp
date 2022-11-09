@@ -623,6 +623,26 @@ fn が名前、var-list が引数リストのマクロ関数を body で定義�
        ,@body)))
 
 
+(defun make-super-form (msg args)
+  (let* ((pkg (symbol-package msg))
+         (msg (string msg))
+         (sep (position #\. msg))
+         (class (intern (subseq msg 0 sep) pkg))
+         (gf (intern (subseq msg (1+ sep)) pkg)))
+    #+lispworks
+    `(let ((args (list ,@args)))
+       (declare (dynamic-extent args))
+       (apply (clos:compute-effective-method-function-from-classes
+               #',gf
+               (list (find-class ',class)))
+              tao:self
+              args))))
+
+(defmacro with-super (args &body body)
+  `(macrolet ((tao:super (msg &rest args)
+                (make-super-form msg ,args)))
+     ,@body))
+
 (defmacro tao:defmethod (method-spec (&rest arglist) &body body)
   "defmethod                              関数[#!macro]
 
@@ -694,11 +714,12 @@ fn が名前、var-list が引数リストのマクロ関数を body で定義�
                                          slots))))
       (etypecase message-patern
         (symbol
-         `(progn
+         `(let (#+lispworks (lw:*handle-warn-on-redefinition* ,(not (keywordp message-patern))))
             (defmethod ,message-patern ,@(and method-type (list method-type)) ((tao:self ,class-name) ,@arglist)
               (with-c&ivars (,@cvars) (,@ivars)
                 (declare (ignorable ,@ivars))
-                ,@body))))
+                (with-super ,arglist
+                  ,@body)))))
         (cons
          `(progn
             (defmethod list-message ,@(and method-type (list method-type))
@@ -708,7 +729,8 @@ fn が名前、var-list が引数リストのマクロ関数を body で定義�
               (declare (ignore _))
               (with-c&ivars (,@cvars) (,@ivars)
                 (declare (ignorable ,@ivars))
-                ,@body))))))))
+                (with-super ,arglist
+                  ,@body)))))))))
 
 
 (defclsynonym tao:defparameter

@@ -1632,28 +1632,30 @@ number1 number2 ... numberN の値 (複素数でもよい) を比較し、等し
 ;;;         [abcabc abc2] -> 200
 ;;;         [abcabc set-abc1 100]   エラーを起こす。
 
-;;; :unify-next-element                    メッセージ
-;;;
-;;; <説明>
-;;;   形式 : :unify-next-element
-;;; ユーザは目的を満たすためにメッセージ :unify-next-elemnt を定義しなけれ
-;;; ばならない。インスタンス P があるリスト Q とユニファイされるとき、
-;;; :unify-next-element は P に送られ、返値 R は Q に再びユニファイされる。
-;;; もとのユニフィケーションの評価結果は R と Q とのユニフィケーションの結
-;;; 果。インスタンスとリストとの間でユニフィケーションが起こったとき、
-;;; :unify-next-element が定義されていないとエラーとなることに注意。また、
-;;; 2 番目の引数は関数 == を用いたインスタンスでなければならない。
-;;;
-;;; <例>
-;;;         (defclass abc () ()) -> abc
-;;;         (!x (make-instance 'abc)) -> {udo}81699abc
-;;;         (== (abc) ,x)
-;;;         (defmethod (abc :unify-next-element) () (cons 'a '(b c)))
-;;;             -> :unify-next-element  (== (a b c) ,x) -> t
-;;; 上記の例で、インスタンス x とリスト (a b c) との間にユニフィケーション
-;;; が起こると、:unify-next-element は x に送られる。メッセージ送りの結果
-;;; リスト (a b c) となり、これは == の最初の引数にユニファイされる。
 
+(setf (documentation :unify-next-element T)
+      ":unify-next-element                    メッセージ
+
+<説明>
+  形式 : :unify-next-element
+ユーザは目的を満たすためにメッセージ :unify-next-elemnt を定義しなけれ
+ばならない。インスタンス P があるリスト Q とユニファイされるとき、
+:unify-next-element は P に送られ、返値 R は Q に再びユニファイされる。
+もとのユニフィケーションの評価結果は R と Q とのユニフィケーションの結
+果。インスタンスとリストとの間でユニフィケーションが起こったとき、
+:unify-next-element が定義されていないとエラーとなることに注意。また、
+2 番目の引数は関数 == を用いたインスタンスでなければならない。
+
+<例>
+        (defclass abc () ()) -> abc
+        (!x (make-instance 'abc)) -> {udo}81699abc
+        (== (a b c) ,x)
+        (defmethod (abc :unify-next-element) () (cons 'a '(b c)))
+        -> :unify-next-element
+        (== (a b c) ,x) -> t
+上記の例で、インスタンス x とリスト (a b c) との間にユニフィケーション
+が起こると、:unify-next-element は x に送られる。メッセージ送りの結果
+リスト (a b c) となり、これは == の最初の引数にユニファイされる。")
 
 (defun tao:< (x y)
   #.(string '#:|<                                      関数[!#subr]
