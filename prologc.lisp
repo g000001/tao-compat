@@ -350,6 +350,7 @@
 
 ;;; todo
 (def-prolog-compiler-macro tao:== (goal body cont bindings)
+  (declare (ignore body cont bindings))
   "Compile a goal which is a call to =."
   (let ((args (args goal)))
     (if (/= (length args) 2)

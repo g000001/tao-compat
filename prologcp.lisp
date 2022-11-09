@@ -113,6 +113,9 @@
 
 ;;; 8.2 term unification
 
+(let (#+lispworks (lw:*handle-warn-on-redefinition* nil))
+  (defgeneric :unify-next-element (obj)))
+
 ;;tao:==
 (defun ==/2 (_arg1 _arg2 cont)
   "8.2.1"
