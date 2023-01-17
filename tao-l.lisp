@@ -81,8 +81,10 @@
          (lappend (1) (2) (1 2)) -> t
 ")
 
-(progn
-  (when (fboundp 'tao:lappend) (tao:retract tao:lappend))
+(eval-when (:compile-toplevel :load-toplevel :execute)
+  (when (and (fboundp 'tao:lappend)
+             (boundp 'tao:lappend))
+    (tao:retract tao:lappend))
   (tao:assertz (tao:lappend (_a . _x) _y (_a . _z)) (tao:lappend _x _y _z))
   (tao:assertz (tao:lappend () _x _x)))
 
