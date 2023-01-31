@@ -30,13 +30,17 @@
   (cond ((equal (deref x) (deref y)) t)
         ((var-p x) (set-binding! x y))
         ((var-p y) (set-binding! y x))
-        ((and (consp x) (consp y))
+        ;; list
+        ((null x) (null y))
+        ((and #|(consp x)|# (consp y))
          (and (unify! (first x) (first y))
               (unify! (rest x) (rest y))))
-        ((= (length x) (length y))
+        ;; sequence
+        ((and (typep x 'sequence)
+              (typep y 'sequence)
+              (= (length x) (length y)))
          (every #'unify! x y))
         (t nil)))
-
 
 #+nil
 (defun set-binding! (var value)
