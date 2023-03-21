@@ -7,6 +7,7 @@
 
 (in-package :tao.logic)
 
+
 ;;;; Implementation-Specific Details
 
 ;;;; REQUIRES
@@ -21,7 +22,7 @@
 ;;;; Macros (formerly in auxmacs.lisp: that file no longer needed)
 
 (eval-when (:compile-toplevel :load-toplevel :execute)
-  (defmacro once-only (variables &rest body)
+  (defmacro once-only (variables &body body)
     "Returns the code built by BODY.  If any of VARIABLES
   might have side effects, they are evaluated once and stored
   in temporary variables that are then passed to BODY."
@@ -48,7 +49,7 @@
 
   (defmacro funcall-if (fn arg)
     (once-only (fn)
-	       `(if ,fn (funcall ,fn ,arg) ,arg)))
+      `(if ,fn (funcall ,fn ,arg) ,arg)))
 
   (defmacro read-time-case (first-case &rest other-cases)
     "Do the first case, where normally cases are
@@ -72,9 +73,11 @@
     (and (consp list) (eql (first list) x)))
   )
 
+
 ;;;; Auxiliary Functions
 
 (setf (symbol-function 'find-all-if) #'remove-if-not)
+
 
 (defun find-all (item sequence &rest keyword-args
                  &key (test #'eql) test-not &allow-other-keys)
@@ -85,6 +88,7 @@
              :test-not (complement test-not) keyword-args)
       (apply #'remove item sequence
              :test (complement test) keyword-args)))
+
 
 (defun partition-if (pred list)
   "Return 2 values: elements of list that satisfy pred,
@@ -97,6 +101,7 @@
           (push item no-list)))
     (values (nreverse yes-list) (nreverse no-list))))
 
+
 (defun maybe-add (op exps &optional if-nil)
   "For example, (maybe-add 'and exps t) returns
   t if exps is nil, exps if there is only one,
@@ -104,6 +109,7 @@
   (cond ((null exps) if-nil)
         ((length=1 exps) (first exps))
         (t (cons op exps))))
+
 
 ;;; ==============================
 
@@ -115,6 +121,7 @@
               (setq ,seq (the list (rest ,seq))))
        (aref ,seq ,index)))
 
+
 (defun maybe-set-fill-pointer (array new-length)
   "If this is an array with a fill pointer, set it to
   new-length, if that is longer than the current length."
@@ -122,6 +129,7 @@
            (array-has-fill-pointer-p array))
       (setf (fill-pointer array) 
             (max (fill-pointer array) new-length))))
+
 
 ;;; ==============================
 
@@ -134,13 +142,16 @@
   "Concatenate symbols or strings to form an interned symbol"
   (intern (format nil "~:@(~{~A~}~)" args) "TAO.LOGIC"))
 
+
 (defun new-symbol (&rest args)
   "Concatenate symbols or strings to form an uninterned symbol"
   (make-symbol (format nil "~{~A~}" args)))
 
+
 (defun last1 (list)
   "Return the last element (not last cons cell) of list"
   (first (last list)))
+
 
 ;;; ==============================
 
@@ -149,22 +160,27 @@
   Like mapcon, but uses append instead of nconc."
   (apply #'append (mapcar fn list)))
 
+
 (defun mklist (x) 
   "If x is a list return it, otherwise return the list of x"
   (if (listp x) x (list x)))
+
 
 (defun flatten (exp)
   "Get rid of imbedded lists (to one level only)."
   (mappend #'mklist exp))
 
+
 (defun random-elt (seq) 
   "Pick a random element out of a sequence."
   (elt seq (random (length seq))))
+
 
 ;;; ==============================
 
 (defun member-equal (item list)
   (member item list :test #'equal))
+
 
 ;;; ==============================
 
@@ -172,9 +188,11 @@
   #'(lambda (x)
       (reduce #'funcall functions :from-end t :initial-value x)))
 
+
 ;;;; The Debugging Output Facility:
 
 (defvar *dbg-ids* nil "Identifiers used by dbg")
+
 
 (defun dbg (id format-string &rest args)
   "Print debugging info if (DEBUG ID) has been specified."
@@ -182,14 +200,17 @@
     (fresh-line *debug-io*)
     (apply #'format *debug-io* format-string args)))
 
+
 (defun debug* (&rest ids)
   "Start dbg output on the given ids."
   (setf *dbg-ids* (union ids *dbg-ids*)))
+
 
 (defun undebug (&rest ids)
   "Stop dbg on the ids.  With no ids, stop dbg altogether."
   (setf *dbg-ids* (if (null ids) nil
                       (set-difference *dbg-ids* ids))))
+
 
 ;;; ==============================
 
@@ -200,12 +221,16 @@
     (dotimes (i indent) (princ "  " *debug-io*))
     (apply #'format *debug-io* format-string args)))
 
+
 ;;;; PATTERN MATCHING FACILITY
 
 (defconstant fail nil)
+
+
 (defconstant no-bindings (if (boundp 'no-bindings)
 			     (symbol-value 'no-bindings)
 			     '((t . t))))
+
 
 (defun pat-match (pattern input &optional (bindings no-bindings))
   "Match pattern against input in the context of the bindings"
@@ -217,6 +242,7 @@
                     (pat-match (first pattern) (first input) bindings)))
         (t fail)))
 
+
 (defun match-variable (var input bindings)
   "Does VAR match input?  Uses (or updates) and returns bindings."
   (let ((binding (get-binding var bindings)))
@@ -224,23 +250,29 @@
           ((equal input (binding-val binding)) bindings)
           (t fail))))
 
+
 (defun make-binding (var val) (cons var val))
+
 
 (defun binding-var (binding)
   "Get the variable part of a single binding."
   (car binding))
 
+
 (defun binding-val (binding)
   "Get the value part of a single binding."
   (cdr binding))
+
 
 (defun get-binding (var bindings)
   "Find a (variable . value) pair in a binding list."
   (assoc var bindings))
 
+
 (defun lookup (var bindings)
   "Get the value part (for var) from a binding list."
   (binding-val (get-binding var bindings)))
+
 
 (defun extend-bindings (var val bindings)
   "Add a (var . value) pair to a binding list."
@@ -251,9 +283,11 @@
             nil
             bindings)))
 
+
 (defun variable-p (x)
   "Is x a variable (a symbol beginning with `?')?"
   (and (symbolp x) (equal (elt (symbol-name x) 0) #\_)))
+
 
 ;;; ==============================
 
@@ -262,6 +296,7 @@
 (defmacro defun-memo (fn args &body body)
   "Define a memoized function."
   `(memoize (defun ,fn ,args . ,body)))
+
 
 (defun memo (fn &key (key #'first) (test #'eql) name)
   "Return a memo-function of fn."
@@ -274,6 +309,7 @@
             (if found-p val
                 (setf (gethash k table) (apply fn args))))))))
 
+
 (defun memoize (fn-name &key (key #'first) (test #'eql))
   "Replace fn-name's global definition with a memoized version."
   (clear-memoize fn-name)
@@ -281,18 +317,22 @@
         (memo (symbol-function fn-name)
               :name fn-name :key key :test test)))
 
+
 (defun clear-memoize (fn-name)
   "Clear the hash table from a memo function."
   (let ((table (get fn-name 'memo)))
     (when table (clrhash table))))
 
+
 ;;;; Delayed computation:
 
 (defstruct delay value (computed? nil))
 
+
 (defmacro delay (&rest body)
   "A computation that can be executed later by FORCE."
   `(make-delay :value #'(lambda () . ,body)))
+
 
 (defun force (delay)
   "Do a delayed computation, or fetch its previously-computed value."
@@ -300,6 +340,7 @@
       (delay-value delay)
       (prog1 (setf (delay-value delay) (funcall (delay-value delay)))
              (setf (delay-computed? delay) t))))
+
 
 ;;;; Defresource:
 
@@ -323,6 +364,7 @@
                                        collect (,allocate))))
        ',name)))
 
+
 (defmacro with-resource ((var resource &optional protect) &rest body)
   "Execute body with VAR bound to an instance of RESOURCE."
   (let ((allocate (symbol+ 'allocate- resource))
@@ -335,16 +377,19 @@
            ,@body
            (,deallocate var)))))
 
+
 ;;;; Queues:
 
 ;;; A queue is a (last . contents) pair
 
 (defun queue-contents (q) (cdr q))
 
+
 (defun make-queue ()
   "Build a new queue, with no elements."
   (let ((q (cons nil nil)))
     (setf (car q) q)))
+
 
 (defun enqueue (item q)
   "Insert item at the end of the queue."
@@ -353,20 +398,25 @@
               (cons item nil)))
   q)
 
+
 (defun dequeue (q)
   "Remove an item from the front of the queue."
   (pop (cdr q))
   (if (null (cdr q)) (setf (car q) q))
   q)
 
+
 (defun front (q) (first (queue-contents q)))
 
+
 (defun empty-queue-p (q) (null (queue-contents q)))
+
 
 (defun queue-nconc (q list)
   "Add the elements of LIST to the end of the queue."
   (setf (car q)
         (last (setf (rest (car q)) list))))
+
 
 ;;;; Other:
 
@@ -374,11 +424,13 @@
   "Sort without altering the sequence"
   (sort (copy-seq seq) pred :key key))
 
+
 (defun reuse-cons (x y x-y)
   "Return (cons x y), or reuse x-y if it is equal to (cons x y)"
   (if (and (eql x (car x-y)) (eql y (cdr x-y)))
       x-y
       (cons x y)))
+
 
 ;;; ==============================
 
@@ -386,13 +438,15 @@
   "Is x a list of length 1?"
   (and (consp x) (null (cdr x))))
 
+
 (defun rest3 (list)
   "The rest of a list after the first THREE elements."
   (cdddr list))
 
+
 ;;; ==============================
 
-(defun unique-find-if-anywhere (predicate tree
+#|(defun unique-find-if-anywhere (predicate tree
                                 &optional found-so-far)
   "Return a list of leaves of tree satisfying predicate,
   with duplicates removed."
@@ -404,14 +458,71 @@
         predicate
         (first tree)
         (unique-find-if-anywhere predicate (rest tree)
-                                 found-so-far))))
+                                 found-so-far))))|#
 
-(defun find-if-anywhere (predicate tree)
+
+(defgeneric unique-find-if-anywhere (predicate tree &optional found-so-far)
+  (:documentation "return a list of leaves of tree satisfying predicate,
+  with duplicates removed."))
+
+
+(defmethod unique-find-if-anywhere (predicate (tree cl:cons) &optional found-so-far)
+  (unique-find-if-anywhere predicate
+                           (first tree)
+                           (unique-find-if-anywhere predicate (rest tree)
+                                                    found-so-far)))
+
+
+(defmethod unique-find-if-anywhere (predicate (tree vector) &optional found-so-far)
+  (let ((tree (coerce tree 'list)))
+    (unique-find-if-anywhere predicate
+                             (first tree)
+                             (unique-find-if-anywhere predicate (rest tree)
+                                                      found-so-far))))
+
+
+(defmethod unique-find-if-anywhere (predicate (tree string) &optional found-so-far)
+  (if (funcall predicate tree)
+      (adjoin tree found-so-far)
+      found-so-far))
+
+
+(defmethod unique-find-if-anywhere (predicate tree &optional found-so-far)
+  (if (funcall predicate tree)
+      (adjoin tree found-so-far)
+      found-so-far))
+
+
+#|(defun find-if-anywhere (predicate tree)
   "Does predicate apply to any atom in the tree?"
   (if (atom tree)
       (funcall predicate tree)
       (or (find-if-anywhere predicate (first tree))
-          (find-if-anywhere predicate (rest tree)))))
+          (find-if-anywhere predicate (rest tree)))))|#
+
+
+(defgeneric find-if-anywhere (predicate tree)
+  (:documentation "Does predicate apply to any atom in the tree?"))
+
+
+(defmethod find-if-anywhere (predicate (tree cons))
+  (or (find-if-anywhere predicate (first tree))
+      (find-if-anywhere predicate (rest tree))))
+
+
+(defmethod find-if-anywhere (predicate (tree vector))
+  (let ((tree (coerce tree 'list)))
+    (or (find-if-anywhere predicate (first tree))
+        (find-if-anywhere predicate (rest tree)))))
+
+
+(defmethod find-if-anywhere (predicate (tree string))
+  (funcall predicate tree))
+
+
+(defmethod find-if-anywhere (predicate tree)
+  (funcall predicate tree))
+
 
 ;;; ==============================
 
@@ -427,14 +538,20 @@
              for i from 0
              collect `(defconstant ,element ,i))))
 
+
 ;;; ==============================
 
 (defun not-null (x) (not (null x)))
+
 
 (defun first-or-nil (x)
   "The first element of x if it is a list; else nil."
   (if (consp x) (first x) nil))
 
+
 (defun first-or-self (x)
   "The first element of x, if it is a list; else x itself."
   (if (consp x) (first x) x))
+
+
+;;; *EOF*

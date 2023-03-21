@@ -5,6 +5,8 @@
 ;;;; File prologc.lisp: Final version of the compiler,
 ;;;; including all improvements from the chapter.
 (tao:common-lisp)
+
+
 (in-package :tao.logic)
 
 
@@ -30,9 +32,13 @@
   (cond ((equal (deref x) (deref y)) t)
         ((var-p x) (set-binding! x y))
         ((var-p y) (set-binding! y x))
+        ((and (typep x '(vector (not string)))
+              (typep y '(vector (not string)))
+              (= (length x) (length y)))
+         (every #'unify! x y))
         ((and (consp x) (consp y))
-         (and (unify! (first x) (first y))
-              (unify! (rest x) (rest y))))
+         (and (unify! (rest x) (rest y)) ;rest first.
+              (unify! (first x) (first y))))
         (t nil)))
 
 
@@ -203,35 +209,36 @@
 (defun anon-vars-in (tree seen-once seen-more)
   "Walk the data structure TREE, returning a list of variabless
    seen once, and a list of variables seen more than once."
-  (cond
-    ((consp tree)
-     (multiple-value-bind (new-seen-once new-seen-more)
-         (anon-vars-in (first tree) seen-once seen-more)
-       (anon-vars-in (rest tree) new-seen-once new-seen-more)))
-    ((not (variable-p tree)) (values seen-once seen-more))
-    ((member tree seen-once)
-     (values (delete tree seen-once) (cons tree seen-more)))
-    ((member tree seen-more)
-     (values seen-once seen-more))
-    (t (values (cons tree seen-once) seen-more))))
+  (cond ((consp tree)
+         (multiple-value-bind (new-seen-once new-seen-more)
+                              (anon-vars-in (first tree) seen-once seen-more)
+           (anon-vars-in (rest tree) new-seen-once new-seen-more)))
+        ((typep tree '(vector (not string)))
+         (anon-vars-in (coerce tree 'list) seen-once seen-more))
+        ((not (variable-p tree)) (values seen-once seen-more))
+        ((member tree seen-once)
+         (values (delete tree seen-once) (cons tree seen-more)))
+        ((member tree seen-more)
+         (values seen-once seen-more))
+        (t (values (cons tree seen-once) seen-more))))
 
 
 (defun compile-unify (x y bindings)
   "Return 2 values: code to test if x and y unify,
   and a new binding list."
   (cond
-    ;; Unify constants and conses:                       ; Case
-    ((not (or (has-variable-p x) (has-variable-p y)))    ; 1,2
-     (values (equal x y) bindings))
-    ((and (consp x) (consp y))                           ; 3
-     (multiple-value-bind (code1 bindings1)
-         (compile-unify (first x) (first y) bindings)
-       (multiple-value-bind (code2 bindings2)
-           (compile-unify (rest x) (rest y) bindings1)
-         (values (compile-if code1 code2) bindings2))))
-    ;; Here x or y is a variable.  Pick the right one:
-    ((variable-p x) (compile-unify-variable x y bindings))
-    (t              (compile-unify-variable y x bindings))))
+   ;; Unify constants and conses:                       ; Case
+   ((not (or (has-variable-p x) (has-variable-p y)))    ; 1,2
+    (values (equal x y) bindings))
+   ((and (consp x) (consp y))                           ; 3
+    (multiple-value-bind (code1 bindings1)
+                         (compile-unify (first x) (first y) bindings)
+      (multiple-value-bind (code2 bindings2)
+                           (compile-unify (rest x) (rest y) bindings1)
+        (values (compile-if code1 code2) bindings2))))
+   ;; Here x or y is a variable.  Pick the right one:
+   ((variable-p x) (compile-unify-variable x y bindings))
+   (t              (compile-unify-variable y x bindings))))
 
 
 (defun compile-if (pred then-part)
@@ -287,6 +294,16 @@
             b))))
 
 
+(defun compound-term-vector-p (obj)
+  (and (typep obj 'vector)
+       (< 0 (length obj))
+       (typep (elt obj 0) '(and symbol (not null)))))
+
+
+(deftype compound-term-vector ()
+  `(satisfies compound-term-vector-p))
+
+
 (defun compile-arg (arg bindings)
   "Generate code for an argument to a goal in the body."
   (cond ((eq arg '_) '(_))
@@ -296,9 +313,12 @@
                     (not (eq arg (binding-val binding))))
                (compile-arg (binding-val binding) bindings)
                arg)))
+        ((compound-term-vector-p arg)
+         `(vector ,@(map 'list (lambda (a) (compile-arg a bindings))
+                         arg)))
         ((not (find-if-anywhere #'variable-p arg)) `',arg)
         ((proper-listp arg)
-         `(list .,(mapcar #'(lambda (a) (compile-arg a bindings))
+         `(list ,@(mapcar (lambda (a) (compile-arg a bindings))
                           arg)))
         (t `(cons ,(compile-arg (first arg) bindings)
                   ,(compile-arg (rest arg) bindings)))))
@@ -348,6 +368,7 @@
 
 (defun self-cons (x) (cons x x))
 
+
 ;;; todo
 (def-prolog-compiler-macro tao:== (goal body cont bindings)
   (declare (ignore body cont bindings))
@@ -362,6 +383,7 @@
                                             bindings)
           (compile-if code1
                       (compile-body body cont bindings1)))|#)))
+
 
 (def-prolog-compiler-macro tao:& (goal body cont bindings)
   (if (null (cdr goal))
@@ -491,14 +513,34 @@
   (funcall cont))
 
 
-(defun deref-exp (exp)
+#|(defun deref-exp (exp)
   "Build something equivalent to EXP with variables dereferenced."
   (if (atom (deref exp))
       exp
       (reuse-cons
         (deref-exp (first exp))
         (deref-exp (rest exp))
-        exp)))
+        exp)))|#
+
+
+(defgeneric deref-exp (exp)
+  (:documentation "Build something equivalent to EXP with variables dereferenced."))
+
+
+(defmethod deref-exp (exp)
+  (if (atom (deref exp))
+      exp
+      (reuse-cons (deref-exp (first exp))
+                  (deref-exp (rest exp))
+                  exp)))
+
+
+(defmethod deref-exp ((exp string))
+  exp)
+
+
+(defmethod deref-exp ((exp vector))
+  (map-into exp #'deref-exp exp))
 
 
 (defvar *predicate* nil
@@ -621,12 +663,14 @@
   `(member ,(find-package "CL")
            ,(find-package "TAO")))
 
+
 (defun nil->fail (body)
   (mapcar (lambda (x)
             (if (null x)
                 '(fail)
                 x))
           body))
+
 
 (defun goal-tail-p (body)
   (null (cdr body)))
@@ -636,6 +680,7 @@
   (and (symbolp goal)
        (macro-function goal)
        (get goal :logic-macro)))
+
 
 (defun compile-body (body cont bindings)
   "Compile the body of a clause."
@@ -671,7 +716,11 @@
                                            (cons (caddr goal) (rest body))
                                            cont bindings))))
                     (block nil
-                      ,(compile-body (list (cadr goal)) '(lambda () (funcall cont) (return nil)) bindings)))))
+                      ,(compile-body (list (cadr goal))
+                                     '(lambda () 
+                                        (funcall cont)
+                                        (return nil))
+                                     bindings)))))
               ((goal-if-then-else-p goal)
                (let ((bindings (bind-new-variables bindings goal)))
                  (multiple-value-bind (if then else)
@@ -682,7 +731,11 @@
                                     (rest body)
                                     cont bindings))))
                       (block nil
-                        ,(compile-body (list if) `(lambda () ,(compile-body (list then) cont bindings) (return nil)) bindings)
+                        ,(compile-body (list if)
+                                       `(lambda () 
+                                          ,(compile-body (list then) cont bindings)
+                                          (return nil))
+                                       bindings)
                         (undo-bindings! old-trail)
                         ,(compile-body (list else) 'cont bindings))))))
               (t
@@ -723,9 +776,9 @@
                                   `(fail/0 ,(if (null (rest body))
                                                 cont
                                                 `(lambda ()
-                                                   ,(compile-body 
-                                                     (rest body) cont
-                                                     (bind-new-variables bindings goal)))))
+                                                   ,(compile-body (rest body)
+                                                                  cont
+                                                                  (bind-new-variables bindings goal)))))
                                   `(,(make-predicate (predicate goal)
                                                      (relation-arity goal))
                                     ,@(mapcar (lambda (arg)
@@ -734,9 +787,9 @@
                                     ,(if (null (rest body))
                                          cont
                                          `(lambda ()
-                                            ,(compile-body 
-                                              (rest body) cont
-                                              (bind-new-variables bindings goal)))))))))))))))
+                                            ,(compile-body (rest body)
+                                                           cont
+                                                           (bind-new-variables bindings goal)))))))))))))))
 
 
 (defun translate-&+ (expr)
@@ -763,6 +816,7 @@
                        (compile-clause parameters (translate-&+ clause) 'cont))
                       (T (compile-clause parameters clause 'cont))))
                   clauses)))))
+
 
 (defun compile-anonymous-predicate (arity clauses)
   (compile nil (make-anonymous-predicate-expr arity clauses))

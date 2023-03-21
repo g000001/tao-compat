@@ -12,6 +12,12 @@
 (defun unquotify (expr)
   (typecase expr
     (null '())
+    ((and vector (not string))
+     (cons 'vector
+           (map 'list
+                (lambda (elt)
+                  (unquotify elt))
+                expr)))
     (atom (if (var-name-p expr) ;TODO
               expr
               `',expr))

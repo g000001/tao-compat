@@ -4,28 +4,42 @@
 
 ;;;; File prolog.lisp: prolog from (11.3), with interactive backtracking.
 (tao:common-lisp)
+
+
 (in-package :tao.logic)
 
+
 (defvar *negation-as-failure* nil)
+
 
 (defun tao:negation-as-failure (&optional (negation-as-failure? nil negation-as-failure?-sup?))
   (if negation-as-failure?-sup?
       (setq *negation-as-failure* negation-as-failure?)
       *negation-as-failure*))
 
+
 ;;;; does not include destructive unification (11.6); see prologc.lisp
 
 ;; clauses are represented as (head . body) cons cells
 (defun clause-head (clause) (first clause))
+
+
 (defun clause-body (clause) (rest clause))
+
 
 ;; clauses are stored on the predicate's plist
 (defun get-clauses (pred) (get pred 'clauses))
+
+
 (defun (setf get-clauses) (val pred) (setf (get pred 'clauses) val))
+
+
 (defun predicate (relation)
   (if (atom relation)
       relation
       (first relation)))
+
+
 #|(defun args (x)
   "The arguments of a relation"
   (if (atom x)
@@ -35,9 +49,11 @@
 (defvar *db-predicates* nil
   "a list of all predicates stored in the database.")
 
+
 (defmacro <- (&rest clause)
   "add a clause to the data base."
   `(add-clause ',(replace-_-vars clause)))
+
 
 (defun add-clause (clause)
   "add a clause to the data base, indexed by head's predicate."
@@ -49,13 +65,16 @@
           (nconc (get-clauses pred) (list clause)))
     pred))
 
+
 (defun clear-db ()
   "remove all clauses (for all predicates) from the data base."
   (mapc #'clear-predicate *db-predicates*))
 
+
 (defun clear-predicate (predicate)
   "remove the clauses for a single predicate."
   (setf (get predicate 'clauses) nil))
+
 
 (defun rename-variables (x)
   "replace all variables in x with new ones."
@@ -63,28 +82,20 @@
                   (variables-in x))
           x))
 
-(defun unique-find-anywhere-if (predicate tree
-                                &optional found-so-far)
-  "return a list of leaves of tree satisfying predicate,
-  with duplicates removed."
-  (if (atom tree)
-      (if (funcall predicate tree)
-          (adjoin tree found-so-far)
-          found-so-far)
-      (unique-find-anywhere-if
-        predicate
-        (first tree)
-        (unique-find-anywhere-if predicate (rest tree)
-                                 found-so-far))))
 
+;; cf. unique-find-if-anywhere 
+(defun unique-find-anywhere-if (predicate tree &optional found-so-far)
+  (unique-find-if-anywhere predicate tree found-so-far))
+
+
+;; cf. find-if-anywhere
 (defun find-anywhere-if (predicate tree)
-  "does predicate apply to any atom in the tree?"  
-  (if (atom tree)
-      (funcall predicate tree)
-      (or (find-anywhere-if predicate (first tree))
-          (find-anywhere-if predicate (rest tree)))))
+  (find-if-anywhere predicate tree))
+
 
 (defmacro ?- (&rest goals) `(top-level-prove ',(replace-_-vars goals)))
+
+
 (defmacro ?-all (&rest goals) `(top-level-prove-all ',(replace-_-vars goals)))
 
 
@@ -93,6 +104,7 @@
   (cond ((eq bindings fail) fail)
         ((null goals) bindings)
         (t (prove (first goals) bindings (rest goals)))))
+
 
 (defun prove (goal bindings other-goals)
   "Return a list of possible solutions to goal."
@@ -109,6 +121,7 @@
         ;; a primitive function to call
         (funcall clauses (rest goal) bindings
                  other-goals))))
+
 
 (defun top-level-prove (goals)
   (prove-all `(,@goals (show-prolog-vars ,@(variables-in goals)))
@@ -147,8 +160,12 @@
   (force-output)
   fail)
 
+
 (setf (get 'show-prolog-vars 'clauses) 'show-prolog-vars)
+
+
 (setf (get 'show-all-prolog-vars 'clauses) 'show-all-prolog-vars)
+
 
 (defun continue-p ()
   "Ask user if we should continue looking for solutions."
@@ -160,12 +177,15 @@
       (format t " Type ; to see more or . to stop")
       (continue-p))))
 
+
 (defun variables-in (exp)
   "Return a list of all the variables in EXP."
   (unique-find-anywhere-if #'non-anon-variable-p exp))
 
+
 (defun non-anon-variable-p (x)
   (and (variable-p x) (not (eq x '_))))
+
 
 (defun replace-_-vars (exp)
     "Replace any _ within exp with a var of the form _123."
@@ -174,3 +194,6 @@
 	  (t (reuse-cons (replace-_-vars (first exp))
 			 (replace-_-vars (rest exp))
 			 exp))))
+
+
+;;; *EOF*
