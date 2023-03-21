@@ -32,15 +32,17 @@
   (cond ((equal (deref x) (deref y)) t)
         ((var-p x) (set-binding! x y))
         ((var-p y) (set-binding! y x))
-        ((and (typep x '(vector (not string)))
-              (typep y '(vector (not string)))
+        ;; list
+        ((null x) (null y))
+        ((and #|(consp x)|# (consp y))
+         (and (unify! (first x) (first y))
+              (unify! (rest x) (rest y))))
+        ;; sequence
+        ((and (typep x 'sequence)
+              (typep y 'sequence)
               (= (length x) (length y)))
          (every #'unify! x y))
-        ((and (consp x) (consp y))
-         (and (unify! (rest x) (rest y)) ;rest first.
-              (unify! (first x) (first y))))
         (t nil)))
-
 
 #+nil
 (defun set-binding! (var value)
@@ -348,8 +350,11 @@
                             arg)))
                      ((not (find-if-anywhere #'variable-p arg)) arg)
                      ((proper-listp arg)
-                      (mapcar (lambda (a) (compile-unquote-arg a bindings))
-                              arg))
+                      (let ((expr (mapcar (lambda (a) (compile-unquote-arg a bindings))
+                                          arg)))
+                        (if (consp (car arg))
+                            (cons 'list expr)
+                            expr)))
                      (t `(cons ,(compile-unquote-arg (first arg) bindings)
                                ,(compile-unquote-arg (rest arg) bindings))))))
       (let* ((xpr (compile-unquote-arg arg bindings))
@@ -357,8 +362,7 @@
         `(let (,@(mapcar (lambda (v) `(,v ,v)) vars))
            ,@(mapcar (lambda (v) `(setq ,v (deref-exp ,v))) vars)
            ,xpr)))))
-
-
+ 
 (defun bind-new-variables (bindings goal)
   "Extend bindings to include any unbound variables in goal."
   (let ((variables (remove-if #'(lambda (v) (assoc v bindings))
@@ -658,6 +662,20 @@
                 goal
                 :key (lambda (x) (and (consp x) (car x)))))))
 
+(defun find-unquote-expr (expr)
+  (typecase expr
+    (atom nil)
+    ((cons (eql tao:unquote) list) T)
+    (T (or (find-unquote-expr (car expr))
+           (find-unquote-expr (cdr expr))))))
+
+(defun goal-has-unquote-p (goal)
+  '(etypecase goal
+    (atom nil)
+    (cons (find 'tao:unquote
+                goal
+                :key (lambda (x) (and (consp x) (car x))))))
+  (find-unquote-expr goal))
 
 (deftype tao-package ()
   `(member ,(find-package "CL")
@@ -749,8 +767,7 @@
                             `(,(make-predicate (predicate goal)
                                                (relation-arity goal))
                               ,@(mapcar (lambda (x)
-                                          (if (and (consp x)
-                                                   (eq 'tao:unquote (car x)))
+                                          (if (find-unquote-expr x)
                                               (compile-unquote-arg x bindings)
                                               (compile-arg x bindings)))
                                         (args goal))
