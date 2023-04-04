@@ -776,21 +776,21 @@ p-list は破壊される。
   `(tao:putprop ',p-list ',val ',ind))
 
 (defmacro tao:defrel (name &body clauses)
-  #.(string '#:|defrel                                 関数[#!expr]
+  "defrel                                 関数[#!expr]
 
  <説明>
-   形式 : defrel p ((A1") (P11 B11") (P12 B12") ... (P1m B1m"))
-          	  ((A2") (P21 B21") (P22 B22") ... (P2m B2m"))
+   形式 : defrel p ((A1\") (P11 B11\") (P12 B12\") ... (P1m B1m\"))
+          	  ((A2\") (P21 B21\") (P22 B22\") ... (P2m B2m\"))
           	  ...
-          	  ((An") (Pn1 Bn1") (Pn2 Bn2") ... (Pnm Bnm"))
+          	  ((An\") (Pn1 Bn1\") (Pn2 Bn2\") ... (Pnm Bnm\"))
  主ファンクタが p である n 個のホーン節を定義する。
  assert を n 回実行するのと同じ。
- Pij は主ファンクタ、Aij" と Bij" はそれぞれ Aij と Bij から得たもの。
+ Pij は主ファンクタ、Aij\" と Bij\" はそれぞれ Aij と Bij から得たもの。
  DEC10-Prolog では次のように記述される。
- p(A1") :- P11(B11"), P12(B12"), ... (P1m(B1m").
- p(A2") :- P21(B21"), P22(B22"), ... (P2m(B2m").
+ p(A1\") :- P11(B11\"), P12(B12\"), ... (P1m(B1m\").
+ p(A2\") :- P21(B21\"), P22(B22\"), ... (P2m(B2m\").
     ....
- p(An") :- Pn1(B1n"), Pn2(Bn2"), ... (Pnm(Bnm").
+ p(An\") :- Pn1(B1n\"), Pn2(Bn2\"), ... (Pnm(Bnm\").
 
  <例>
           (defrel concat ((() _x _x))
@@ -806,26 +806,31 @@ p-list は破壊される。
           _x = ()
           no
 
-          (defrel p ((A1") (P11 B11") (P12 B12")...(P1m B1m"))
-                    ((A2") (P21 B21") (P22 B22")...(P2m B2m"))
+          (defrel p ((A1\") (P11 B11\") (P12 B12\")...(P1m B1m\"))
+                    ((A2\") (P21 B21\") (P22 B22\")...(P2m B2m\"))
                     ....
-                    ((An") (Pn1 Bn1") (Pn2 Bn2")...(Pnm Bnm")))
+                    ((An\") (Pn1 Bn1\") (Pn2 Bn2\")...(Pnm Bnm\")))
           =
-          (define p (hclauses (&+ (A1") (P11 B11") (P12 B12")
-                                     ...(P1m B1m"))
-                              (&+ (A2") (P21 B21") (P22 B22")
-                                     ...(P2m B2m"))
+          (define p (hclauses (&+ (A1\") (P11 B11\") (P12 B12\")
+                                     ...(P1m B1m\"))
+                              (&+ (A2\") (P21 B21\") (P22 B22\")
+                                     ...(P2m B2m\"))
                        ....
-                              (&+ (An") (Pn1 Bn1") (Pn2 Bn2")
-                                     ...(Pnm Bnm")))|)
+                              (&+ (An\") (Pn1 Bn1\") (Pn2 Bn2\")
+                                     ...(Pnm Bnm\")))" 
   `(progn
      (tao:abolish ,name ,(length (caar clauses)))
+     (define-predicate-in-lisp-world ,name)
      ,@(mapcar (lambda (cl)
-                 (cons 'tao:assert
-                       (cons
-                        (cons name (car cl))
-                        (cdr cl))))
-               clauses)))
+                 (list 'tao.logic::add-clause
+                       (list 'quote
+                             (cons
+                              (cons name (car cl))
+                              (cdr cl)))
+                       :asserta nil))
+               clauses)
+     (tao.logic::prolog-compile ',name)
+     ',name))
 
 (defclsynonym tao:defsetf
     "defsetf                                関数[#!macro]
