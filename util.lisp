@@ -1,3 +1,6 @@
+(tao:common-lisp)
+
+
 (in-package #:tao-internal)
 
 
@@ -90,5 +93,6 @@
                           (tao.logic::variables-in (cons bvl vars)))
                 (return-from ,pred-name T)))
          ,@body))))
+
 
 ;;; *EOF*

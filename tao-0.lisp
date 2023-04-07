@@ -113,7 +113,8 @@ B1, B2, ... または、Bn で使われる局所変数、特に論理変数は�
       `(tao:let (,@aux-vars)
          (with-return-from-pred ,tao.logic::*predicate* ,cont (nil ,@aux-vars)
            ,(tao.logic::compile-body
-             (mapcar #'macroexpand forms)
+             ;(mapcar #'macroexpand forms) ;???
+             forms
              `#',cont
              tao.logic::no-bindings))))))
 
