@@ -45,7 +45,8 @@
 	       (:file "tao-v")
                (:file "tao-w")
 	       (:file "tao-x")
-	       (:file "tao-z"))
+	       (:file "tao-z")
+               (:file "tao-ext"))
   :depends-on (#:cl-ppcre #:babel #:closer-mop))
 
 

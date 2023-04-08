@@ -595,3 +595,9 @@
 (defpackage tao.logic 
   (:use cl)
   (:shadowing-import-from tao _))
+
+
+(defpackage tao.ext
+  (:use tao)
+  (:shadowing-import-from tao _)
+  (:export &arithmetic-function))
