@@ -32,17 +32,15 @@
   (cond ((equal (deref x) (deref y)) t)
         ((var-p x) (set-binding! x y))
         ((var-p y) (set-binding! y x))
-        ;; list
-        ((null x) (null y))
-        ((and #|(consp x)|# (consp y))
-         (and (unify! (first x) (first y))
-              (unify! (rest x) (rest y))))
-        ;; sequence
-        ((and (typep x 'sequence)
-              (typep y 'sequence)
+        ((and (typep x '(vector (not string)))
+              (typep y '(vector (not string)))
               (= (length x) (length y)))
          (every #'unify! x y))
+        ((and (consp x) (consp y))
+         (and (unify! (rest x) (rest y)) ;rest first.
+              (unify! (first x) (first y))))
         (t nil)))
+
 
 #+nil
 (defun set-binding! (var value)
@@ -655,13 +653,6 @@
     (t (error "Goal not an IF-THEN-ELSE: ~S" goal))))
 
 
-(defun goal-has-unquote-p (goal)
-  (etypecase goal
-    (atom nil)
-    (cons (find 'tao:unquote
-                goal
-                :key (lambda (x) (and (consp x) (car x)))))))
-
 (defun find-unquote-expr (expr)
   (typecase expr
     (atom nil)
@@ -669,13 +660,10 @@
     (T (or (find-unquote-expr (car expr))
            (find-unquote-expr (cdr expr))))))
 
+
 (defun goal-has-unquote-p (goal)
-  '(etypecase goal
-    (atom nil)
-    (cons (find 'tao:unquote
-                goal
-                :key (lambda (x) (and (consp x) (car x))))))
   (find-unquote-expr goal))
+
 
 (deftype tao-package ()
   `(member ,(find-package "CL")
