@@ -376,6 +376,23 @@ pkg が省略されると、カレントパッケージにリンクされる全�
         (!(aref a 1) '1) -> 1
         (aref a 1) -> 1")
 
+(progn
+  (setf (fdefinition '(setf tao:aref))
+        (fdefinition '(setf aref)))
+  (setf (documentation '(setf tao:aref) 'function)
+        "aref                                   関数[#!subr]
+
+<説明>
+  形式 : aref array &rest data
+配列 array の要素 data をアクセスし、その値を返す。
+
+<例>
+        (!a (make-array 10)) ->
+        	{vector}1791495(common:simple-general-vector . 10)
+        (aref a 1) -> nil
+        (!(aref a 1) '1) -> 1
+        (aref a 1) -> 1"))
+
 (defun tao:array (&rest dimensions)
   "array                                  関数[#!expr]
 

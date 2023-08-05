@@ -163,9 +163,24 @@
   (and (symbolp mesg)
        (eql 0 (position #\& (string mesg)))))
 
+(defvar *left-associative-operators*
+  '(tao:+ tao:- tao:* tao:/ tao:= tao:< tao:> tao:<= tao:>= tao:/=))
 
-(defun infix-to-prefix (obj mesg &rest args)
-  (cond ((eq 'tao:++ obj)
+(defun inffix-to-prefix (obj mesg &rest args)
+  (cond ((member mesg *left-associative-operators*)
+         (typecase (length args)
+           ((integer 1 1)
+            `(,mesg ,obj ,@args))
+           ((integer 3 *)
+            (apply #'infix-to-prefix
+                   `(,mesg ,obj ,(car args))
+                   (cadr args)
+                   (cddr args)))
+           (integer
+            (warn "Invalid arguments ~S for left-associative-operator ~S."
+                  args
+                  mesg))))
+        ((eq 'tao:++ obj)
          `(tao-internal::++n ,mesg))
         ((eq 'tao:+ mesg)
          (if (null (cdr args))
