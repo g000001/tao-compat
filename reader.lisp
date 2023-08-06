@@ -166,7 +166,7 @@
 (defvar *left-associative-operators*
   '(tao:+ tao:- tao:* tao:/ tao:= tao:< tao:> tao:<= tao:>= tao:/=))
 
-(defun inffix-to-prefix (obj mesg &rest args)
+(defun infix-to-prefix (obj mesg &rest args)
   (cond ((member mesg *left-associative-operators*)
          (typecase (length args)
            ((integer 1 1)
