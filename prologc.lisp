@@ -568,7 +568,11 @@
                                       (compile-clause parameters clause 'cont))
                                   clauses)))))
     (setf (get symbol arity) pred-expr)
-    (compile (eval pred-expr))))
+    (let ((pred (eval pred-expr)))
+      (unless (and (fboundp pred)
+                   (compiled-function-p (fdefinition pred)))
+        (compile pred))
+      pred)))
 
 
 (defun compile-local-predicate (symbol arity clauses aux-vars)
