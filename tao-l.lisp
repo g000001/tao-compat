@@ -1,4 +1,4 @@
-(tao:tao)
+(tao:common-lisp)
 (in-package #:tao-internal)
 
 ;;; ＠
@@ -82,12 +82,10 @@
 ")
 
 (eval-when (:compile-toplevel :load-toplevel :execute)
-  (when (and (fboundp 'tao:lappend)
-             (boundp 'tao:lappend))
-    (tao:retract tao:lappend))
-  (tao:assertz (tao:lappend (_a . _x) _y (_a . _z)) (tao:lappend _x _y _z))
-  (tao:assertz (tao:lappend () _x _x)))
-
+  (tao:defrel tao:lappend
+    ((     (_a . _x) _y (_a . _z))
+     (tao:lappend _x _y _z))
+    ((     () _x _x))))
 
 ;;; #### CL ####
 ;;; last                                   関数[#!subr]
@@ -1183,10 +1181,10 @@ form1 form2 ... を順に評価する。そして、:until 文が成立、また
         (exit-result (gensym))
         aux init newbody)
     (dolist (l body)
-        (case (car l)
-          (&aux   (!aux (cdr l)))
-          (:init  (!init (cdr l)))
-          (otherwise (push l newbody))))
+      (case (car l)
+        (&aux   (setq aux (cdr l)))
+        (:init  (setq init (cdr l)))
+        (otherwise (push l newbody))))
     `(macrolet ((tao:cycle (&optional exit-id)
                   ;;--- TODO exit-id
                   (declare (cl:ignore exit-id))
@@ -1196,17 +1194,17 @@ form1 form2 ... を順に評価する。そして、:until 文が成立、また
        (block ,exit-id
          (tao:let (,@aux)
            (tagbody
-             (progn ,@init)
-             ,loop-tag
-             ,@(mapcar
-                (lambda (x)
-                  (cond ((eq :while (car x))
-                         `(or ,(cadr x) (tao:exit (progn ,@(cddr x)))))
-                        ((eq :until (car x))
-                         `(and ,(cadr x) (tao:exit (progn ,@(cddr x)))))
-                        ('T x)))
-                (nreverse newbody))
-             (go ,loop-tag)))))))
+            (progn ,@init)
+            ,loop-tag
+            ,@(mapcar
+               (lambda (x)
+                 (cond ((eq :while (car x))
+                        `(or ,(cadr x) (tao:exit (progn ,@(cddr x)))))
+                       ((eq :until (car x))
+                        `(and ,(cadr x) (tao:exit (progn ,@(cddr x)))))
+                       ('T x)))
+               (nreverse newbody))
+            (go ,loop-tag)))))))
 
 
 #|(defun f (n)

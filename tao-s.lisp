@@ -1,4 +1,4 @@
-(tao:tao)
+(tao:common-lisp)
 (in-package #:tao-internal)
 
 (defun tao:sass (pred item a-list func)

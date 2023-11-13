@@ -272,4 +272,105 @@
           (error "Unknown codnum: #!~A." codnum)))))
 
 
+#|(defvar *standard-readtable* (copy-readtable nil))|#
+
+
+(defvar *nest-level* 0)
+
+
+(defun make-marker/next-form-alist (markers next-forms)
+  (let ((marker/next-form-alist '()))
+    (dolist (next next-forms)
+      (push (cons (find (named-paren-name next) markers
+                        :key #'next-form-marker-name)
+                  next)
+            marker/next-form-alist))
+    marker/next-form-alist))
+
+
+(defun replace-mark (marker/next-form-alist form)
+  (dolist (m/nf marker/next-form-alist)
+    (destructuring-bind (m . nf)
+                        m/nf
+      (setq form
+            (if (next-form-marker-named-paren? m)
+                (if (next-form-marker-splicing? m)
+                    (subst/splicing (named-paren-form nf) m form)
+                    (subst (named-paren-form nf) m form))
+                (subst (named-paren-form nf) m form)))))
+  form)
+
+
+(defun tao-read-list/heredoc (srm chr)
+  (let* ((form (let ((*nest-level* (1+ *nest-level*)))
+                 (tao-read-list srm chr)))
+         (flat-form (alexandria:flatten form)))
+    (if (and (zerop *nest-level*)
+             (find-if (lambda (form)
+                        (typep form 'next-form-marker))
+                      flat-form))
+        (flet ((make-canonicalized-next-form (mark)
+                 (let ((next (read srm T nil T)))
+                   (typecase next
+                     (named-paren next)
+                     (next-form-marker
+                      (make-named-paren :name (next-form-marker-name next)
+                                        :form (read srm T nil T)))
+                     (T (make-named-paren :name (next-form-marker-name mark)
+                                          :form next))))))
+          (let* ((markers (remove-if-not #'next-form-marker-p flat-form))
+                 (next-forms (mapcar #'make-canonicalized-next-form markers)))
+            (replace-mark (make-marker/next-form-alist markers next-forms)
+                          form)))
+        form)))
+
+
+(defun terminating-char-p (char)
+  (multiple-value-bind (macro? terminating?)
+                       (get-macro-character char)
+    (and macro? (not terminating?))))
+
+
+(defstruct next-form-marker name splicing? named-paren?)
+
+
+(defun subst/splicing (new old list)
+  (cond ((null list) '())
+        ((atom list) list)
+        ((eql old (car list))
+         (append new
+                 (subst/splicing new old (cdr list))))
+        (T (cons (subst/splicing new old (car list))
+                 (subst/splicing new old (cdr list))))))
+
+
+(defun read-\#_ (srm chr arg)
+  (declare (ignore chr arg))
+  (let ((next-char (peek-char nil srm T nil T)))
+    (make-next-form-marker :name (if (or (terminating-char-p next-char)
+                                         (find next-char '(#\Space #\Tab #\Newline)))
+                                     '||
+                                     (read srm T nil T)))))
+
+
+(defstruct named-paren name form)
+
+
+(defun named-paren-reader (srm chr arg)
+  (declare (ignore arg chr))
+  (let ((mark (read srm T nil T)))
+    (if (zerop *nest-level*)
+        (let* ((end-mark (intern (concatenate 'string "END-OF-" (string mark)))))
+          (make-named-paren :name mark
+                            :form (loop :for form := (read srm T nil T)
+                                        :until (eq end-mark form)
+                                        :collect form)))
+        (make-next-form-marker :name mark
+                               :splicing? T
+                               :named-paren? T))))
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+
 ;;; *EOF*

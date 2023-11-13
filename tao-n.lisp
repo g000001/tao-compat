@@ -1,4 +1,4 @@
-(tao:tao)
+(tao:common-lisp)
 (in-package #:tao-internal)
 
 ;;; ＠

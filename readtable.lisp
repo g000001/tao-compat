@@ -1,11 +1,12 @@
+;;; -*- mode: Lisp; coding: utf-8  -*-
 (tao:common-lisp)
 (cl:in-package :tao-internal)
 
-
 (eval-when (:compile-toplevel :load-toplevel :execute)
+
 (defvar tao:tao-standard-readtable (copy-readtable nil))
 (let ((*readtable* tao:tao-standard-readtable))
-  (set-macro-character #\( #'tao-internal::tao-read-list)
+  (set-macro-character #\( #'tao-internal::tao-read-list/heredoc)
   (set-macro-character #\^ #'tao-internal::tao-read-toga)
   (set-macro-character #\@ #'tao-internal::read-@)
   (set-macro-character #\'
@@ -29,7 +30,9 @@
                        (lambda (stream char)
                          (declare (cl:ignore char))
                          (list (quote tao::quasiquote)
-                               (cl:read stream t nil t) )))))
+                               (cl:read stream t nil t) )))
+  (set-dispatch-macro-character #\# #\_ #'tao-internal::read-\#_)
+  (set-dispatch-macro-character #\# #\. #'tao-internal::named-paren-reader)))
 
 
 (eval-when (:compile-toplevel :load-toplevel :execute)
@@ -53,6 +56,5 @@
                                     (unread-char d srm))
                                   (read srm T nil T))))))
                          :non-terminating)))
-
 
 ;;; *EOF*

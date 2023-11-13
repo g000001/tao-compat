@@ -143,8 +143,8 @@
 
 (defmacro &instance-fact (obj args)
   (let ((cont (gensym "cont")))
-    `(tao-internal::with-return-from-reval cont (,args)
-       (&instance-fact/2 ,obj ',args #'cont))))
+    `(tao-internal::with-return-from-reval ,cont (,args)
+       (&instance-fact/2 ,obj ',args #',cont))))
 
 
 (defun unify-with-occurs-check/2 (_arg1 _arg2 cont)
