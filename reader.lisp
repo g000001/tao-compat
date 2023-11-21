@@ -164,7 +164,7 @@
        (eql 0 (position #\& (string mesg)))))
 
 (defvar *left-associative-operators*
-  '(tao:+ tao:- tao:* tao:/ tao:= tao:< tao:> tao:<= tao:>= tao:/=))
+  '(tao:+ tao:- tao:* tao:/ tao:// tao:= tao:< tao:> tao:<= tao:>= tao:/=))
 
 (defun infix-to-prefix (obj mesg &rest args)
   (cond ((member mesg *left-associative-operators*)
