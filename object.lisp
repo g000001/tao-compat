@@ -142,12 +142,12 @@
 (defun make-setter-definition (slotd)
   (let ((slot-name (slot-definition-name slotd))
         (setter-fn (car (slot-definition-writers slotd))))
-    `(setf (fdefinition ',(intern (concatenate 'string
-                                               (string '#:set-)
-                                               (string slot-name))
-                                  (symbol-package slot-name)))
-           (lambda (obj val) (funcall #',setter-fn val obj)))))
-
+    `(defgeneric ,(intern (concatenate 'string
+                                       (string '#:set-)
+                                       (string slot-name))
+                          (symbol-package slot-name))
+         (obj val)
+       (:method (obj val) (funcall #',setter-fn val obj)))))
 
 (defun compute-accessor (slot gettable)
   (let ((gettable (mapcar (lambda (g) 
