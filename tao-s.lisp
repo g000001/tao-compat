@@ -679,8 +679,10 @@ list1 には含まれているが、list2 ... listN には含まれていない�
         (set-loc-offset b 1) ->
             {locbit}{memblk}489557(#!8b-memblk . {dnil}16) . {dnil}1)
         (loc-offset b) -> 1"
-  (setf (fli::pointer-%offset loc) 0)
-  (fli:incf-pointer loc offset))
+  #+lispworks
+  (progn
+    (setf (fli::pointer-%offset loc) 0)
+    (fli:incf-pointer loc offset)))
 
 ;;; set-macro-character                    関数[#!expr]
 ;;;

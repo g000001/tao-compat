@@ -897,6 +897,7 @@ throw のように働く。"
 
 
 (defmacro ++n (locbit)
+  #+lispworks
   `(fli:incf-pointer ,locbit))
 
 ;;; ++                                     関数[#!subr]

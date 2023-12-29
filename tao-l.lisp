@@ -319,6 +319,7 @@ nil を返す。
         (!x 2) -> 2
         (let ((x 3) (y (* x x)))
               (* x y y)) -> 48"
+  #+lispworks
   (if (locative-declaration-p (car body))
       (let ((type (locative-declaration-p (car body)))
             (locative-vars (cdr (car body))))
@@ -326,13 +327,16 @@ nil を返す。
                                                         (check-type b (and symbol (not null)))
                                                         `(,b ,type))
                                                       locative-vars))
-           (cl:let (,@(remove-if (lambda (v)
-                                   (find (car v) locative-vars))
-                                 (canonicalize-bvl bindings)))
-             (locally/deref
-              ,@body))))
+                                           (cl:let (,@(remove-if (lambda (v)
+                                                                   (find (car v) locative-vars))
+                                                                 (canonicalize-bvl bindings)))
+                                                   (locally/deref
+                                                     ,@body))))
       `(cl:let (,@(canonicalize-bvl bindings))
-         ,@body)))
+               ,@body))
+  #-lispworks
+  `(cl:let (,@(canonicalize-bvl bindings))
+           ,@body))
 
 
 (defmacro tao:let* ((&rest bindings) &body body)

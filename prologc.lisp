@@ -41,7 +41,6 @@
               (unify! (first x) (first y))))
         (t nil)))
 
-
 #+nil
 (defun set-binding! (var value)
   "Set var's binding to value.  Always succeeds (returns t)."
@@ -706,7 +705,8 @@
                     (goal-var-p goal))
                `(return-from ,*predicate* (deref-exp ,goal)))
               ((goal-var-p goal)
-               `(and ,goal ,(compile-body (rest body) cont bindings)))
+               ;;`(and ,goal ,(compile-body (rest body) cont bindings))
+               (compile-body (cons `(values ,goal) (rest body)) cont bindings))
               ((goal-lisp-macro-p (predicate goal))
                (compile-body (append (list (macroexpand-1 goal)) (rest body)) cont bindings))
               ((goal-conjunction-p goal)

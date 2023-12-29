@@ -1,4 +1,4 @@
-(tao:tao)
+(tao:common-lisp)
 (in-package #:tao-internal)
 
 (defun tao:gc ()
@@ -181,7 +181,6 @@
 ;;; readtable の既定値は現在の読み込み表 (変数 *readtable* の値) 。
 ;;; set-macro-charactor 参照。
 
-
 #+lispworks
 (defun tao:get-memblk (memblk-type size)
   "get-memblk                             関数[#!subr]
@@ -199,10 +198,10 @@ memblk-type で指定できる型は次のうちのいずれか。
                    {memblk}480764(#!8b-memblk . {dnil}16)
         a は新たに確保したメモリブロックを指すポインタ。"
   (fli:allocate-foreign-object :type (ecase memblk-type
-                                       (#!8b-memblk :uint8)
-                                       (#!16b-memblk :uint16)
-                                       (#!32b-memblk :uint32)
-                                       (#!64b-memblk :uint64))
+                                       (#o103 :uint8) ;#!8b-memblk
+                                       (#o104 :uint16) ;#!16b-memblk
+                                       (#o105 :uint32) ;#!32b-memblk
+                                       (#o106 :uint64)) ;#!64b-memblk
                                :nelems size))
 
 
