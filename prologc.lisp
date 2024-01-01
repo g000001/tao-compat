@@ -691,6 +691,10 @@
        (get goal :logic-macro)))
 
 
+(defun goal-assert-p (goal)
+  (member goal '(tao:assert tao:asserta tao:assertz)))
+
+
 (defun compile-body (body cont bindings)
   "Compile the body of a clause."
   (setq body (nil->fail body)) ;TODO
@@ -707,6 +711,10 @@
               ((goal-var-p goal)
                ;;`(and ,goal ,(compile-body (rest body) cont bindings))
                (compile-body (cons `(values ,goal) (rest body)) cont bindings))
+              ((goal-assert-p (predicate goal))
+               (compile-body (append (list (macroexpand-1 `(dynamic-assert ,(first goal) ,@(rest goal))))
+                                     (rest body))
+                             cont bindings))
               ((goal-lisp-macro-p (predicate goal))
                (compile-body (append (list (macroexpand-1 goal)) (rest body)) cont bindings))
               ((goal-conjunction-p goal)
@@ -769,6 +777,13 @@
                                       ,(compile-body 
                                         (rest body) cont
                                         (bind-new-variables bindings goal))))))
+                           ((goal-assert-p goal)
+                            `(progn
+                               (tao.logic::prolog-compile
+                                (tao.logic::add-clause 
+                                 ,(tao-internal::unquotify (rest body))
+                                 :asserta (eq goal 'tao:asserta)))
+                               T))
                            ((and (symbolp (car goal))
                                  (not (get-clauses (car goal)))
                                  (or (fboundp (car goal)) (member (car goal) '(call-method call-next-method)))

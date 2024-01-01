@@ -287,7 +287,7 @@
    :least-positive-normalized-single-float :least-positive-short-float
    :least-positive-single-float :length :let :let* :lisp-implementation-type
    :lisp-implementation-version :list :list* :list-all-packages :list-length
-   :listen :listp :load :load-logical-pathname-translations :load-time-value
+   :listing :listen :listp :load :load-logical-pathname-translations :load-time-value
    :locally :log :logand :logandc1 :logandc2 :logbitp :logcount :logeqv
    :logical-pathname :logical-pathname-translations :logior :lognand :lognor
    :lognot :logorc1 :logorc2 :logtest :logxor :long-float :long-float-epsilon

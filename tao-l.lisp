@@ -387,6 +387,13 @@ vector の偶数番目の要素に key があれば、その次の要素の値�
 なんか知らんが、arefの方がsvrefより速い。allegroでは。
 |#
 
+
+(defun tao:listing (predicates &optional (out *standard-output*))
+  (dolist (p predicates)
+    (dolist (c (get p 'tao.logic::clauses))
+      (pprint (cons 'tao:assert c) out))))
+
+
 (defclsynonym tao:lisp-implementation-type
     #.(string '#:|lisp-implementation-type               関数[#!expr]
 

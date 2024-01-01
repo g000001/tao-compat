@@ -740,6 +740,16 @@ pred を満足する要素を見つけたらその要素を返し、後はもう
             `#',cont
             tao.logic::no-bindings)))))
 
+(defmacro define-dynamic-predicate-in-lisp-world (name)
+  `(setf (macro-function ',name)
+         (lambda (&rest args)
+           (let ((cont (gensym "cont")))
+             `(with-return-from-reval ,cont (nil ,args)
+                ,(tao.logic::compile-body
+                  `((,',name ,@args))
+                  `#',cont
+                  tao.logic::no-bindings))))))
+
 (defmacro define-method-predicate-in-lisp-world (name)
   `(defmacro ,name (obj &rest args)
      (let ((cont (gensym "cont")))
@@ -796,6 +806,16 @@ pred を満足する要素を見つけたらその要素を返し、後はもう
        (tao.logic::prolog-compile 
         (tao.logic::add-clause ',(tao.logic::make-anonymous clauses)
                                :asserta T))
+       ',pred)))
+
+
+(defmacro tao.logic::dynamic-assert (type &rest clauses)
+  (let ((pred (caar clauses)))
+    `(progn
+       (define-predicate-in-lisp-world ,pred)
+       (tao.logic::prolog-compile 
+        (tao.logic::add-clause ,(unquotify clauses)
+                               :asserta ,(eq 'tao:asserta type)))
        ',pred)))
 
 
