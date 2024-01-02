@@ -1056,3 +1056,5 @@ t 、そうでなければ nil を返す。
         (atom 123456789) -> t
         (atom '(a b)) -> nil
         (atom (car '(a b c))) -> t")
+
+(deftype tao:atom () 'cl:atom)

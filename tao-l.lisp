@@ -209,22 +209,24 @@ integer がうるう年ならば 0 を返し、そうでなければ nil を返�
 ;;;   single-float 演算において取り得る最も小さい正の値を格納した
 ;;; システム定数であり、このシステムの場合は 4.94065645841247f-324。
 ;;; ＠
-;;; common:length                          関数[#!expr]
-;;;
-;;; <説明>
-;;;   形式 : common:length seq
-;;; シーケンス seq の長さ (要素数) を負以外の整数形式で返す。
-;;; seq がフィルポインタを持つベクタの場合は、フィルポインタによって
-;;; 示される実際の長さを返す。
-;;;
-;;; <例>
-;;;         (common:length "abcde") -> 5
-;;;         (common:length '(a b c))  -> 3
-;;;         (!v (vcons "vec" 5))
-;;;         	-> {vector}1839901("vector" . 5)
-;;;         (common:length v) -> 5
-;;;         (common:length #(a b c d)) -> 4
-;;; ＠
+
+(defsynonym common:length cl:length
+            "common:length                          関数[#!expr]
+
+<説明>
+  形式 : common:length seq
+シーケンス seq の長さ (要素数) を負以外の整数形式で返す。
+seq がフィルポインタを持つベクタの場合は、フィルポインタによって
+示される実際の長さを返す。
+
+<例>
+        (common:length \"abcde\") -> 5
+        (common:length '(a b c))  -> 3
+        (!v (vcons \"vec\" 5))
+        	-> {vector}1839901(\"vector\" . 5)
+        (common:length v) -> 5
+        (common:length #(a b c d)) -> 4")
+
 
 (defun tao:length (arg)
   "length                                 関数[#!subr]
@@ -239,10 +241,11 @@ arg がリストなら、その長さ (要素の数) を返し、そうでなけ
         (length nil) -> 0
         (length 123) -> 0
         (length \"abcde\") -> 0"
-  (and (listp arg)
-       (do ((l arg (cdr l))
-	    (cnt 0 (1+ cnt)))
-	   ((endp l) cnt))))
+  (typecase arg
+    (list (do ((l arg (cdr l))
+               (cnt 0 (1+ cnt)))
+              ((endp l) cnt)))
+    (T 0)))
 
 #|(defun length (arg)
   (and (listp arg)

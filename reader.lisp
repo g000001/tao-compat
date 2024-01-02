@@ -201,11 +201,22 @@
         ('T `(,mesg ,obj ,(apply #'infix-to-prefix args)))))
 
 
+(defun fix-cons (expr)
+  (cond ((atom expr) expr)
+        (T (if (and (symbolp (nth 1 expr))
+                    (string= "." (string (nth 1 expr))))
+               (cons (fix-cons (car expr))
+                     (fix-cons (caddr expr)))
+               (cons (fix-cons (car expr))
+                     (fix-cons (cdr expr)))))))
+
+
 (defun read-|[| (stream char)
   (declare (ignore char))
   (let ((*readtable* tao-no-dots-readtable))
     (let ((expr (read-delimited-list #\] stream 'T)))
-      (apply #'infix-to-prefix expr))))
+      (fix-cons (apply #'infix-to-prefix expr)) ;FIXME
+      )))
 
 
 (defun read-@ (stream char)
