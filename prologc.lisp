@@ -26,21 +26,6 @@
 
 (defun bound-p (var) (not (eq (var-binding var) unbound)))
 
-
-(defun unify! (x y)
-  "Destructively unify two expressions"
-  (cond ((equal (deref x) (deref y)) t)
-        ((var-p x) (set-binding! x y))
-        ((var-p y) (set-binding! y x))
-        ((and (typep x '(vector (not string)))
-              (typep y '(vector (not string)))
-              (= (length x) (length y)))
-         (every #'unify! x y))
-        ((and (consp x) (consp y))
-         (and (unify! (rest x) (rest y)) ;rest first.
-              (unify! (first x) (first y))))
-        (t nil)))
-
 #+nil
 (defun set-binding! (var value)
   "Set var's binding to value.  Always succeeds (returns t)."
@@ -328,6 +313,21 @@
   `(progn (loop while (and (var-p ,exp) (bound-p ,exp))
              do (setf ,exp (var-binding ,exp)))
           ,exp))
+
+
+(defun unify! (x y)
+  "Destructively unify two expressions"
+  (cond ((equal (deref x) (deref y)) t)
+        ((var-p x) (set-binding! x y))
+        ((var-p y) (set-binding! y x))
+        ((and (typep x '(vector (not string)))
+              (typep y '(vector (not string)))
+              (= (length x) (length y)))
+         (every #'unify! x y))
+        ((and (consp x) (consp y))
+         (and (unify! (rest x) (rest y)) ;rest first.
+              (unify! (first x) (first y))))
+        (t nil)))
 
 
 (defun compile-unquote-arg (arg bindings)

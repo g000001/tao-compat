@@ -465,13 +465,11 @@
   (:documentation "return a list of leaves of tree satisfying predicate,
   with duplicates removed."))
 
-
 (defmethod unique-find-if-anywhere (predicate (tree cl:cons) &optional found-so-far)
   (unique-find-if-anywhere predicate
                            (first tree)
                            (unique-find-if-anywhere predicate (rest tree)
                                                     found-so-far)))
-
 
 (defmethod unique-find-if-anywhere (predicate (tree vector) &optional found-so-far)
   (let ((tree (coerce tree 'list)))

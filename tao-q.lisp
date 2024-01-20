@@ -8,7 +8,6 @@
   (and (symbolp expr)
        (eql 0 (position #\_ (string expr)))))
 
-
 (defun unquotify (expr)
   (typecase expr
     (null '())

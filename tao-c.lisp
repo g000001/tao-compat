@@ -1940,7 +1940,9 @@ stream に復帰文字と改行文字を出力し、t を返す。stream が省�
 <例>
             (current-dir) -> \"bs:<dire>\""
   #+sbcl
-  (sb-unix:posix-getcwd))
+  (sb-unix:posix-getcwd)
+  #+lispworks
+  (hcl:get-working-directory))
 
 ;;; ＠
 ;;; current-package                        関数[#!expr]
@@ -1972,26 +1974,28 @@ stream に復帰文字と改行文字を出力し、t を返す。stream が省�
 おいて指定されるメソッドボディでのみ使用可能。結果として返される値への
 代入は可能。defclass-method 参照。")
 
-;;; ＠
-;;; cycle                                  関数[#!subr]
-;;;
-;;; <説明>
-;;;   形式 : cycle &opt exit-id
-;;; exit-id である loop 中の最初の文に強制的に戻す。exit-id が省略されて
-;;; いたら最も内側の loop が指定される。loop 中の条件式に不必要に深くネスト
-;;; するのを避けるのに使われる。
-;;;
-;;; <例>
-;;;         (loop (&aux x y)
-;;;               (:init (!x nil))
-;;;               (!y (read))
-;;;               (:until (eq y 99) (print x))
-;;;               (if (evenp y) (cycle))
-;;;               (!!cons y !x))
-;;;         1
-;;;         2
-;;;         3
-;;;         4
-;;;         5
-;;;         99 -> (5 3 1)
-;;; ＠
+
+(defmacro tao:cycle (&optional exit-id)
+  "cycle                                  関数[#!subr]
+
+<説明>
+  形式 : cycle &opt exit-id
+exit-id である loop 中の最初の文に強制的に戻す。exit-id が省略されて
+いたら最も内側の loop が指定される。loop 中の条件式に不必要に深くネスト
+するのを避けるのに使われる。
+
+<例>
+        (loop (&aux x y)
+              (:init (!x nil))
+              (!y (read))
+              (:until (eq y 99) (print x))
+              (if (evenp y) (cycle))
+              (!!cons y !x))
+        1
+        2
+        3
+        4
+        5
+        99 -> (5 3 1)"
+  (declare (ignore exit-id))
+  '(error "Attempt to use the TAO:CYCLE outside of an TAO:LOOP form."))

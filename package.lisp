@@ -577,6 +577,7 @@
            :prog*
            :read-line
            :length
+           :loop
            ))
 
 

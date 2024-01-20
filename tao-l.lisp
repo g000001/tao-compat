@@ -1190,19 +1190,22 @@ form1 form2 ... を順に評価する。そして、:until 文が成立、また
                   (:until (c = n) result)
                   (!result ((inc c) * result)) ))
         n の階乗を計算する。"
-  (let ((exit-id (and (atom (car body)) (pop body)))
-        (loop-tag (gensym))
-        (exit-result (gensym))
-        aux init newbody)
+  (let* ((exit-id (and (atom (car body)) (pop body)))
+         (cycle-id (intern (concatenate 'string
+                                        (string exit-id)
+                                        "$$CYCLE")))
+         (loop-tag (gensym))
+         (exit-result (gensym))
+         aux init newbody)
     (dolist (l body)
       (case (car l)
         (&aux   (setq aux (cdr l)))
         (:init  (setq init (cdr l)))
         (otherwise (push l newbody))))
     `(macrolet ((tao:cycle (&optional exit-id)
-                  ;;--- TODO exit-id
-                  (declare (cl:ignore exit-id))
-                  `(go ,',loop-tag))
+                  `(return-from ,(intern (concatenate 'string
+                                                      (string exit-id)
+                                                      "$$CYCLE"))))
                 (tao:exit (&optional ,exit-result)
                   `(return-from ,',exit-id ,,exit-result)))
        (block ,exit-id
@@ -1210,14 +1213,15 @@ form1 form2 ... を順に評価する。そして、:until 文が成立、また
            (tagbody
             (progn ,@init)
             ,loop-tag
-            ,@(mapcar
-               (lambda (x)
-                 (cond ((eq :while (car x))
-                        `(or ,(cadr x) (tao:exit (progn ,@(cddr x)))))
-                       ((eq :until (car x))
-                        `(and ,(cadr x) (tao:exit (progn ,@(cddr x)))))
-                       ('T x)))
-               (nreverse newbody))
+            (block ,cycle-id
+              ,@(mapcar
+                 (lambda (x)
+                   (cond ((eq :while (car x))
+                          `(or ,(cadr x) (tao:exit (progn ,@(cddr x)))))
+                         ((eq :until (car x))
+                          `(and ,(cadr x) (tao:exit (progn ,@(cddr x)))))
+                         ('T x)))
+                 (nreverse newbody)))
             (go ,loop-tag)))))))
 
 
@@ -1233,8 +1237,6 @@ form1 form2 ... を順に評価する。そして、:until 文が成立、また
         (:init (!c 0) (!result 1))
         (:until (= c n) result)
         (!result (* (incf c) result)) ))|#
-
-
 
 #|
 
@@ -1271,23 +1273,29 @@ form1 form2 ... を順に評価する。そして、:until 文が成立、また
      (setq l (cdr l))))
 ||#
 
-;;; ＠
-;;; common:loop                            関数[#!macro]
-;;;
-;;; <説明>
-;;;   形式 : common:loop &rest form1 form2 ... formN
-;;; nil ブロックを設定し、form1 form2 ... formN  を順に繰り返し実行する。
-;;; 普通 throw や return-from による非局所的な飛び出しにより繰り返しを終了
-;;; する。
-;;;
-;;; <例>
-;;;         (!x '(aho usunoro manuke wao))→(aho usunoro manuke wao)
-;;;         (common:loop (print x) (cdr! x) (if (null x) (return nil))) ->
-;;;         	(aho usunoro manuke wao)
-;;;         	(aho usunoro manuke)
-;;;         	(aho usunoro)
-;;;         	(aho) nil
-;;; ＠
+
+(defmacro common:loop (&body body)
+  "common:loop                            関数[#!macro]
+
+<説明>
+  形式 : common:loop &rest form1 form2 ... formN
+nil ブロックを設定し、form1 form2 ... formN  を順に繰り返し実行する。
+普通 throw や return-from による非局所的な飛び出しにより繰り返しを終了
+する。
+
+<例>
+        (!x '(aho usunoro manuke wao))→(aho usunoro manuke wao)
+        (common:loop (print x) (cdr! x) (if (null x) (return nil))) ->
+        	(aho usunoro manuke wao)
+        	(aho usunoro manuke)
+        	(aho usunoro)
+        	(aho) nil"
+  (let ((L (gensym)))
+    `(block nil
+       (tagbody
+        ,L (progn ,@body)
+        (go ,L)))))
+
 ;;; lower-case-p                           関数[#!subr]
 ;;;
 ;;; <説明>
