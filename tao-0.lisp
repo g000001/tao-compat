@@ -1,7 +1,6 @@
 (tao:common-lisp)
 (in-package #:tao-internal)
 
-;;  8:50pm Sunday,19 August 2007
 (defmacro tao:! (&body forms)
   "<説明>
   形式 : ! &rest body
@@ -15,31 +14,19 @@ Bn では body の最後が評価される。
 論理的 \"or\" の ! と特殊シンボルマクロの ! を混同しないよう注意。
 少なくとも、シンボル ! の後にスペースが 1 つ入っていれば、論理的 \"or\"
 の ! と考えられる。"
-  (let ((aux-vars (and (consp (car forms))
-                       (string-equal '&aux (string (caar forms)))
-                       (prog1 (cdar forms) (pop forms)) ))
-        (exit (gensym "EXIT-")) )
-    (cl:loop
-       :with cuts
-       :and tags := (list exit)
-       :and body
-       :and ans := (gensym "ANS-")
+  (let ((aux-vars (and (typep (car forms) '&aux-form)
+                       (prog1 (cdar forms) (pop forms)) )))
+    (let ((cont (gensym "cont"))
+          (tao.logic::*predicate* (gensym "anonymous-pred-")))
+      `(with-return-from-pred-- ,tao.logic::*predicate* ,cont ,aux-vars
+         ,(tao.logic::compile-body
+           (list (reduce (lambda (x xs)
+                           `(or ,x ,xs))
+                         forms
+                         :from-end T))
+           `#',cont
+           tao.logic::no-bindings)))))
 
-       :for x :in forms
-       :if (and (symbolp x) (string-equal '! x))
-       :do (progn
-             (push (gensym "CUT-") cuts)
-             (push `(if ,(car cuts) (go ,exit) (setq ,(car cuts) t))
-                   (cdr body) ))
-       :else
-       :do (progn
-             (push (gensym "TAG-") tags)
-             (push (car tags) body)
-             (push `(and (setq ,ans ,x) (go ,(cadr tags))) body) )
-       :finally (return `(prog* (,ans ,@aux-vars ,@cuts)
-                            ,@(nreverse body)
-                            ,exit
-                            (return ,ans) )))))
 
 ;;; !                                      特殊シンボルマクロ
 ;;;
@@ -96,27 +83,15 @@ B1, B2, ... または、Bn で使われる局所変数、特に論理変数は�
 <例>
         (& (&aux _x _y) (concatenate _x _y (1 2 1 2)) (== _x _y))
         (prog (_x _y) (& (concatenate _x _y (1 2 3)) (== _x _y)))"
-  #+old
-  (let ((aux-vars (and (typep (car forms) '&aux-form)
-                       (prog1 (cdar forms) (pop forms)) )))
-    (let ((exit (gensym "exit-")))
-      `(block ,exit
-         (tao:let (,@aux-vars)
-           ,(tao.logic::compile-body
-             forms
-             `(lambda () (return-from ,exit T))
-             tao.logic::no-bindings)))))
   (let ((aux-vars (and (typep (car forms) '&aux-form)
                        (prog1 (cdar forms) (pop forms)) )))
     (let ((cont (gensym "cont"))
           (tao.logic::*predicate* (gensym "anonymous-pred-")))
-      `(tao:let (,@aux-vars)
-         (with-return-from-pred ,tao.logic::*predicate* ,cont (nil ,@aux-vars)
-           ,(tao.logic::compile-body
-             ;(mapcar #'macroexpand forms) ;???
-             forms
-             `#',cont
-             tao.logic::no-bindings))))))
+      `(with-return-from-pred-- ,tao.logic::*predicate* ,cont ,aux-vars
+         ,(tao.logic::compile-body
+           forms
+           `#',cont
+           tao.logic::no-bindings)))))
 
 
 ;;; &                                      メッセージ

@@ -396,6 +396,16 @@
         (compile-body (append tail body) cont bindings))))
 
 
+(def-prolog-compiler-macro tao:! (goal body cont bindings)
+  (if (null (cdr goal))
+      (compile-body body cont bindings)
+      (let* ((tail (cdr goal))
+             (tail (if (typep (car tail) 'tao-internal::&aux-form)
+                       (cdr tail)
+                       tail)))
+        (compile-body (append tail body) cont bindings))))
+
+
 (defun compile-clause (parms clause cont)
   "Transform away the head, and compile the resulting body."
   (bind-unbound-vars parms                  
@@ -619,7 +629,7 @@
 
 (defun goal-or-p (goal)
   (and (consp goal)
-       (eq (car goal) 'or)))
+       (member (car goal) '(or tao:!))))
 
 
 (defun goal-if-p (goal)

@@ -95,4 +95,48 @@
          ,@body))))
 
 
+(defmacro with-return-from-pred-- (pred-name cont-name vars &body body)
+  `(block ,pred-name
+     (tao:let (,@vars)
+       (flet ((,cont-name ()
+                ,@(mapcar (lambda (v)
+                            `(when (and (tao.logic::var-p ,v)
+                                        (tao.logic::bound-p ,v))
+                               (setq ,v (tao.logic::deref-exp ,v))))
+                          vars)
+                (return-from ,pred-name T)))
+         ,@body))))
+
+
+(defmacro define (name def &key documentation example)
+  (let* ((*package* (find-package 'tao))
+         (tao-name (read-from-string name)))
+    `(progn
+       (setf (fdefinition ',tao-name)
+             ,def)
+       (setf (documentation ',tao-name 'function)
+             ,(format nil
+                      "<説明>~%~A~2%<例>~%        ~A~%"
+                      documentation
+                      example)))))
+
+
+(defmacro subr ((&rest args) &body body)
+  `(lambda (,@args) ,@body))
+
+
+(defmacro expr ((&rest args) &body body)
+  `(lambda (,@args) ,@body))
+
+
+(defmacro not-implemented (name (&rest args) &body body)
+  `(lambda (,@args)
+     ,@body
+     (error "Not Implemented: ~S" ,name)))
+
+
+(defmacro macro (name (&rest args) &body body)
+  `(defmacro ,name (,@args) ,@body))
+
+
 ;;; *EOF*

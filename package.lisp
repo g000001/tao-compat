@@ -30,13 +30,7 @@
    :array-has-fill-pointer-p :array-in-bounds-p :array-rank :array-rank-limit
    :array-row-major-index :array-total-size :array-total-size-limit :ash
    :asin :asinh 
-   :base-char :base-string :bignum :bit :bit-and :bit-andc1 :bit-andc2 :bit-eqv
-   :bit-ior :bit-nand :bit-nor :bit-not :bit-orc1 :bit-orc2 :bit-vector
-   :bit-vector-p :bit-xor :block :boole :boole-1 :boole-2 :boole-and :boole-andc1
-   :boole-andc2 :boole-c1 :boole-c2 :boole-clr :boole-eqv :boole-ior :boole-nand
-   :boole-nor :boole-orc1 :boole-orc2 :boole-set :boole-xor :boolean :both-case-p
-   :boundp :break :broadcast-stream :broadcast-stream-streams :built-in-class
-   :butlast :byte :byte-position :byte-size :caaaar :caaadr :caaar :caadar
+   :caaaar :caaadr :caaar :caadar
    :caaddr :caadr :caar :cadaar :cadadr :cadar :caddar :cadddr :caddr :cadr
    :call-arguments-limit :call-method :call-next-method :car :case :catch :ccase
    :cdaaar :cdaadr :cdaar :cdadar :cdaddr :cdadr :cdar :cddaar :cddadr :cddar
@@ -190,6 +184,48 @@
    :with-package-iterator :with-simple-restart :with-slots
    :with-standard-io-syntax :write-byte :write-char :write-line
    :write-sequence :write-string :write-to-string :y-or-n-p :yes-or-no-p)
+  (:export #|b|#
+   #:backquotedp
+   #:backquotify
+   #:backtrace
+   #:backtrace-stopper
+   #:belongs-to
+   #:bex-stream
+   #:bigfloatp
+   #:bigp
+   #:bins
+   #:bit
+   #:bit-and
+   #:bit-andc1
+   #:bit-andc2
+   #:bit-array-p
+   #:bit-eqv
+   #:bit-ior
+   #:bit-nand
+   #:bit-nor
+   #:bit-not
+   #:bit-off
+   #:bit-on
+   #:bit-orc1
+   #:bit-orc2
+   #:bit-test
+   #:bit-xor
+   #:blank
+   #:blanks
+   #:block
+   #:boole
+   #:both-case-p
+   #:boundp
+   #:bra-cons
+   #:bra-list
+   #:bracketp
+   #:break
+   #:broadcast
+   #:broadcast-stream
+   #:butlast
+   #:byte
+   #:byte-position
+   #:byte-size)
   (:export :tao :common-lisp)
   ;; Common Lisp
   (:export
@@ -214,13 +250,7 @@
    :array-has-fill-pointer-p :array-in-bounds-p :array-rank :array-rank-limit
    :array-row-major-index :array-total-size :array-total-size-limit :arrayp :ash
    :asin :asinh :assert :assoc :assoc-if :assoc-if-not :atan :atanh :atom
-   :base-char :base-string :bignum :bit :bit-and :bit-andc1 :bit-andc2 :bit-eqv
-   :bit-ior :bit-nand :bit-nor :bit-not :bit-orc1 :bit-orc2 :bit-vector
-   :bit-vector-p :bit-xor :block :boole :boole-1 :boole-2 :boole-and :boole-andc1
-   :boole-andc2 :boole-c1 :boole-c2 :boole-clr :boole-eqv :boole-ior :boole-nand
-   :boole-nor :boole-orc1 :boole-orc2 :boole-set :boole-xor :boolean :both-case-p
-   :boundp :break :broadcast-stream :broadcast-stream-streams :built-in-class
-   :butlast :byte :byte-position :byte-size :caaaar :caaadr :caaar :caadar
+   :caaaar :caaadr :caaar :caadar
    :caaddr :caadr :caar :cadaar :cadadr :cadar :caddar :cadddr :caddr :cadr
    :call-arguments-limit :call-method :call-next-method :car :case :catch :ccase
    :cdaaar :cdaadr :cdaar :cdadar :cdaddr :cdadr :cdar :cddaar :cddadr :cddar
@@ -578,6 +608,9 @@
            :read-line
            :length
            :loop
+           #:bit-vector-p
+           #:boundp
+           
            ))
 
 
