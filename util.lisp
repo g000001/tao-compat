@@ -112,6 +112,14 @@
   (let* ((*package* (find-package 'tao))
          (tao-name (read-from-string name)))
     (typecase def
+      ((cons (eql variable) *)
+       `(progn
+          (defvar ,tao-name ,(elt def 1))
+          (setf (documentation ',tao-name 'variable)
+                ,(format nil
+                         "<説明>~%~A~2%<例>~%        ~A~%"
+                         documentation
+                         example))))
       ((cons (eql constant) *)
        `(progn
           (defconstant ,tao-name ,(elt def 1))

@@ -165,16 +165,30 @@
    :structure-object :style-warning :sublis :subseq :subst :subst-if
    :subst-if-not :substitute :substitute-if :substitute-if-not :subtypep :svref
    :sxhash :symbol :symbol-function :symbol-macrolet :symbol-name :symbol-package
-   :symbol-plist :symbol-value :symbolp :synonym-stream :synonym-stream-symbol :t
-   :tagbody :tailp :tan :tanh :tenth :terpri :the :third :throw :time :trace
-   :translate-logical-pathname :translate-pathname :tree-equal :truename
-   :truncate :two-way-stream :two-way-stream-input-stream
-   :two-way-stream-output-stream :type :type-error :type-error-datum
-   :type-error-expected-type :type-of :typecase :typep :unbound-slot
-   :unbound-slot-instance :unbound-variable :undefined-function 
+   :symbol-plist :symbol-value :symbolp :synonym-stream :synonym-stream-symbol
    :unsigned-byte :upgraded-array-element-type
    :upgraded-complex-part-type  :use-value
    :wild-pathname-p)
+  (:export #|t|#
+   #:t
+   #:tailp
+   #:tan
+   #:tanh
+   #:tenth
+   #:terpri
+   #:the
+   #:third
+   #:throw
+   #:time
+   #:trace
+   #:tree-equal
+   #:truename
+   #:truncate
+   #:two-way-stream
+   #:type
+   #:type-of
+   #:typecase
+   #:typep)
   (:export #|u|#
    #:user-homedir-pathname
    #:use-package
@@ -642,6 +656,7 @@
            #:write-to-string
            #:write
            #:vectorp
+           #:tagbody
            ))
 
 

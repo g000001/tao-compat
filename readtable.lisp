@@ -4,7 +4,9 @@
 
 (eval-when (:compile-toplevel :load-toplevel :execute)
 
-(defvar tao:tao-standard-readtable (copy-readtable nil))
+(defvar tao:tao-standard-readtable (copy-readtable nil)
+  "TAO の標準読み込み表のポインタをさす。
+*readtable* = tao-standard-readtable")
 (let ((*readtable* tao:tao-standard-readtable))
   (set-macro-character #\( #'tao-internal::tao-read-list/heredoc)
   (set-macro-character #\^ #'tao-internal::tao-read-toga)
