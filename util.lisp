@@ -112,6 +112,14 @@
   (let* ((*package* (find-package 'tao))
          (tao-name (read-from-string name)))
     (typecase def
+      ((cons (eql constant) *)
+       `(progn
+          (defconstant ,tao-name ,(elt def 1))
+          (setf (documentation ',tao-name 'variable)
+                ,(format nil
+                         "<説明>~%~A~2%<例>~%        ~A~%"
+                         documentation
+                         example))))
       ((cons (eql macro) *)
        `(progn
           (defmacro ,tao-name ,@(cdr def))
@@ -155,6 +163,10 @@
 
 
 (defmacro expr ((&rest args) &body body)
+  `(lambda (,@args) ,@body))
+
+
+(defmacro exprdyn ((&rest args) &body body)
   `(lambda (,@args) ,@body))
 
 

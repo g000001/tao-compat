@@ -133,7 +133,7 @@ pathname での指定した全てのファイルについての情報が、ア�
         {vector}48381(common:simple-general-vector . 4)")
 
 
-'(define
+(define
  "vector"
  #'vector
  :documentation

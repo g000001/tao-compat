@@ -171,13 +171,22 @@
    :truncate :two-way-stream :two-way-stream-input-stream
    :two-way-stream-output-stream :type :type-error :type-error-datum
    :type-error-expected-type :type-of :typecase :typep :unbound-slot
-   :unbound-slot-instance :unbound-variable :undefined-function :unexport
-   :unintern :union :unless :unread-char :unsigned-byte :untrace :unuse-package
-   :unwind-protect :update-instance-for-different-class
-   :update-instance-for-redefined-class :upgraded-array-element-type
-   :upgraded-complex-part-type :upper-case-p :use-package :use-value
-   :user-homedir-pathname  
+   :unbound-slot-instance :unbound-variable :undefined-function 
+   :unsigned-byte :upgraded-array-element-type
+   :upgraded-complex-part-type  :use-value
    :wild-pathname-p)
+  (:export #|u|#
+   #:user-homedir-pathname
+   #:use-package
+   #:upper-case-p
+   #:unwind-protect
+   #:unuse-package
+   #:untrace
+   #:unread-char
+   #:unless
+   #:unintern
+   #:unexport
+   #:union)
   (:export #|b|#
    #:backquotedp
    #:backquotify
