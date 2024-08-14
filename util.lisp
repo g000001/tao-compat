@@ -111,14 +111,32 @@
 (defmacro define (name def &key documentation example)
   (let* ((*package* (find-package 'tao))
          (tao-name (read-from-string name)))
-    `(progn
-       (setf (fdefinition ',tao-name)
-             ,def)
-       (setf (documentation ',tao-name 'function)
-             ,(format nil
-                      "<説明>~%~A~2%<例>~%        ~A~%"
-                      documentation
-                      example)))))
+    (typecase def
+      ((cons (eql macro) *)
+       `(progn
+          (defmacro ,tao-name ,@(cdr def))
+          (setf (documentation ',tao-name 'function)
+                ,(format nil
+                         "<説明>~%~A~2%<例>~%        ~A~%"
+                         documentation
+                         example))))
+      ((cons (eql cl-macro) *)
+       `(progn
+          (setf (macro-function ',tao-name)
+                (macro-function ',(elt def 1)))
+          (setf (documentation ',tao-name 'function)
+                ,(format nil
+                         "<説明>~%~A~2%<例>~%        ~A~%"
+                         documentation
+                         example))))
+      (T `(progn
+            (setf (fdefinition ',tao-name)
+                  ,def)
+            (setf (documentation ',tao-name 'function)
+                  ,(format nil
+                           "<説明>~%~A~2%<例>~%        ~A~%"
+                           documentation
+                           example)))))))
 
 
 (defmacro subr ((&rest args) &body body)

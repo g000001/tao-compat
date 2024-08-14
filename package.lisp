@@ -177,13 +177,8 @@
    :update-instance-for-redefined-class :upgraded-array-element-type
    :upgraded-complex-part-type :upper-case-p :use-package :use-value
    :user-homedir-pathname :values :values-list :variable :vector :vector-pop
-   :vector-push :vector-push-extend :vectorp :warn :warning :when
-   :wild-pathname-p :with-accessors :with-compilation-unit
-   :with-condition-restarts :with-hash-table-iterator :with-input-from-string
-   :with-open-file :with-open-stream :with-output-to-string
-   :with-package-iterator :with-simple-restart :with-slots
-   :with-standard-io-syntax :write-byte :write-char :write-line
-   :write-sequence :write-string :write-to-string :y-or-n-p :yes-or-no-p)
+   :vector-push :vector-push-extend :vectorp 
+   :wild-pathname-p)
   (:export #|b|#
    #:backquotedp
    #:backquotify
@@ -226,6 +221,22 @@
    #:byte
    #:byte-position
    #:byte-size)
+  (:export #|w|#
+   #:write-to-string
+   #:write-string
+   #:write-line
+   #:write-char
+   #:write-byte
+   #:warn
+   #:with-output-to-string
+   #:with-open-file
+   #:with-open-stream
+   #:with-input-from-string
+   #:when
+   #:warn)
+  (:export #|y|#
+   #:y-or-n-p
+   #:yes-or-no-p)
   (:export :tao :common-lisp)
   ;; Common Lisp
   (:export
@@ -610,7 +621,8 @@
            :loop
            #:bit-vector-p
            #:boundp
-           
+           #:write-to-string
+           #:write
            ))
 
 
