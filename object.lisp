@@ -109,7 +109,11 @@
 
 (defclass tao:vanilla-class () 
   ()
-  (:metaclass tao::abstract-class))
+  (:metaclass tao::abstract-class)
+  (:documentation
+   "defclass を用いてクラスを定義するとき、:no-vanilla-class が指定されな
+ければ、vanilla-class が常に、そのとき定義されるクラスのスーパクラスと
+なる。vanilla-class は、抽象クラスで、スーパクラスは持たない。"))
 
 
 (defclass tao::logical-class (tao::tao-class)

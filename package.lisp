@@ -176,8 +176,7 @@
    :unwind-protect :update-instance-for-different-class
    :update-instance-for-redefined-class :upgraded-array-element-type
    :upgraded-complex-part-type :upper-case-p :use-package :use-value
-   :user-homedir-pathname :values :values-list :variable :vector :vector-pop
-   :vector-push :vector-push-extend :vectorp 
+   :user-homedir-pathname  
    :wild-pathname-p)
   (:export #|b|#
    #:backquotedp
@@ -221,6 +220,16 @@
    #:byte
    #:byte-position
    #:byte-size)
+  (:export #|v|#
+   #:values
+   values-list
+   vector
+   vector-pop
+   vector-push
+   vector-push-extend
+   vectorp
+   )
+  
   (:export #|w|#
    #:write-to-string
    #:write-string
@@ -623,6 +632,7 @@
            #:boundp
            #:write-to-string
            #:write
+           #:vectorp
            ))
 
 

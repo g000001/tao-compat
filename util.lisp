@@ -129,6 +129,17 @@
                          "<説明>~%~A~2%<例>~%        ~A~%"
                          documentation
                          example))))
+      ((cons (eql class) *)
+       `(progn
+          (deftype ,tao-name ()
+            ',(elt def 1))
+          (setf (find-class ',tao-name)
+                (find-class ',(elt def 1)))
+          (setf (documentation ',tao-name 'class)
+                ,(format nil
+                         "<説明>~%~A~2%<例>~%        ~A~%"
+                         documentation
+                         example))))
       (T `(progn
             (setf (fdefinition ',tao-name)
                   ,def)
