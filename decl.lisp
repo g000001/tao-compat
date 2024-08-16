@@ -46,10 +46,6 @@
 
 
 ;; types & classes
-(setf (find-class 'tao:string) (find-class 'cl:string))
-(deftype tao:string (&optional arg)
-  `(cl:string ,arg))
-
 (setf (find-class 'tao:list) (find-class 'cl:list))
 (deftype tao:list () 'cl:list)
 

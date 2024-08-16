@@ -140,10 +140,20 @@
    :remove-if :remove-if-not :remove-method :remprop :rename-file :rename-package
    :replace :require :rest :restart :restart-bind :restart-case :restart-name
    :return :return-from :revappend :reverse :room :rotatef :round :row-major-aref
-   :rplaca :rplacd :safety :satisfies :sbit :scale-float
+   :rplaca :rplacd :safety :satisfies
    :sequence :serious-condition
-   :set-dispatch-macro-character :set-exclusive-or :set-macro-character
-   :set-pprint-dispatch :set-syntax-from-char :setf :setq :seventh :shadow
+   :unsigned-byte :upgraded-array-element-type
+   :upgraded-complex-part-type  :use-value
+   :wild-pathname-p)
+  (:export #|s|#
+   #:standard-char-p
+   #:sbit
+   #:scale-float
+   #:set-dispatch-macro-character
+   #:set-exclusive-or
+   #:set-macro-character
+   #:set-syntax-from-char
+   :set-pprint-dispatch :setf :setq :seventh :shadow
    :shadowing-import :shared-initialize :shiftf :short-float :short-float-epsilon
    :short-float-negative-epsilon :short-site-name :signal :signed-byte :signum
    :simple-array :simple-base-string :simple-bit-vector :simple-bit-vector-p
@@ -154,7 +164,7 @@
    :sixth :sleep :slot-boundp :slot-exists-p :slot-makunbound :slot-missing
    :slot-unbound :slot-value :software-type :software-version :some :space
    :special :special-operator-p :speed :sqrt :stable-sort :standard
-   :standard-char :standard-char-p :standard-class :standard-generic-function
+   :standard-char :standard-class :standard-generic-function
    :standard-method :standard-object :step :storage-condition :store-value
    :stream :stream-element-type :stream-error :stream-error-stream
    :stream-external-format :streamp :string-downcase
@@ -166,9 +176,7 @@
    :subst-if-not :substitute :substitute-if :substitute-if-not :subtypep :svref
    :sxhash :symbol :symbol-function :symbol-macrolet :symbol-name :symbol-package
    :symbol-plist :symbol-value :symbolp :synonym-stream :synonym-stream-symbol
-   :unsigned-byte :upgraded-array-element-type
-   :upgraded-complex-part-type  :use-value
-   :wild-pathname-p)
+   )
   (:export #|t|#
    #:t
    #:tailp
@@ -657,6 +665,30 @@
            #:write
            #:vectorp
            #:tagbody
+           #:simple-array-p
+           #:simple-bit-vector-p
+           #:simple-string-p
+           #:simple-vector-p
+           #:string-downcase
+           #:string-equal
+           #:string-fill
+           #:string-greaterp
+           #:string-left-trim
+           #:string-lessp
+           #:string-not-equal
+           #:string-not-greaterp
+           #:string-not-lessp
+           #:string-right-trim
+           #:string-trim
+           #:string-upcase
+           #:string/=
+           #:string<
+           #:string<=
+           #:string=
+           #:string>
+           #:string>=
+           #:string>=
+           #:stringp
            ))
 
 
