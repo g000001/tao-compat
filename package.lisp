@@ -131,8 +131,9 @@
    :prin1 :prin1-to-string :princ :princ-to-string :print :print-not-readable
    :print-not-readable-object :print-object :print-unreadable-object :probe-file
    :proclaim :prog :prog* :prog1 :prog2 :program-error
-   :quote
    )
+  (:export #|q|#
+   #:qd #:qdt #:quit-spy #:quote #:quotedp #:quotient #:quotify)
   (:export #|r|#
    #:random
    #:random-state
@@ -736,6 +737,7 @@
   (:export
    :prestk-memblk :id-hash-memblk :64bloc-memblk :strhead-memblk :locbit-memblk
    :cell-memblk :vector-memblk :id-memblk :str-memblk :bad-memblk :free-memblk)
+  (:export #:quantum-remaining)
   (:export :key-package)
   (:export :bigfloat :float :de :dye :shortfloat))
 
