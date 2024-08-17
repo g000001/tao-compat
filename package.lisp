@@ -131,20 +131,51 @@
    :prin1 :prin1-to-string :princ :princ-to-string :print :print-not-readable
    :print-not-readable-object :print-object :print-unreadable-object :probe-file
    :proclaim :prog :prog* :prog1 :prog2 :program-error
-   :quote :random :random-state :random-state-p
-   :rassoc :rassoc-if :rassoc-if-not :ratio :rational :rationalize :rationalp
-   :read-byte :read-char :read-char-no-hang :read-delimited-list
-   :read-from-string :read-preserving-whitespace :read-sequence
-   :reader-error :readtable :readtable-case :readtablep :real :realp :realpart
-   :reduce :reinitialize-instance :remf :remhash :remove :remove-duplicates
-   :remove-if :remove-if-not :remove-method :remprop :rename-file :rename-package
-   :replace :require :rest :restart :restart-bind :restart-case :restart-name
-   :return :return-from :revappend :reverse :room :rotatef :round :row-major-aref
-   :rplaca :rplacd :safety :satisfies
-   :sequence :serious-condition
-   :unsigned-byte :upgraded-array-element-type
-   :upgraded-complex-part-type  :use-value
-   :wild-pathname-p)
+   :quote
+   )
+  (:export #|r|#
+   #:random
+   #:random-state
+   #:random-state-p
+   #:rassoc
+   #:rassoc-if
+   #:rassoc-if-not
+   #:ratio
+   #:rational
+   #:rationalize
+   #:rationalp
+   #:read-byte
+   #:read-char
+   #:read-char-no-hang
+   #:read-delimited-list
+   #:read-from-string
+   #:read-preserving-whitespace
+   #:readtablep
+   #:real
+   #:realp
+   #:realpart
+   #:reduce
+   #:remf
+   #:remhash
+   #:remove
+   #:remove-duplicates
+   #:remove-if
+   #:remove-if-not
+   #:remprop
+   #:rename-file
+   #:rename-package
+   #:replace
+   #:require
+   #:rest
+   #:return
+   #:return-from
+   #:revappend
+   #:reverse
+   #:room
+   #:rotatef
+   #:round
+   #:rplaca
+   #:rplacd)
   (:export #|s|#
    #:standard-char-p
    #:sbit
@@ -689,6 +720,10 @@
            #:string>=
            #:string>=
            #:stringp
+           #:read
+           #:read-from-string
+           #:remprop
+           #:reverse
            ))
 
 
