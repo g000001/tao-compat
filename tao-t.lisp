@@ -20,7 +20,7 @@
         	bas:as-shadow vanilla-error backtrace-stopper)")
 
 
-(setf (find-class 'tao:t) (find-class 't))
+(define "t" (class T))
 
 
 (define
@@ -69,7 +69,7 @@ body がリストならそれをフォームとみなし、リスト以外なら
 
 
 (define
- "|sys:tagep|"
+ "tao.sys:tagep"
  (subr nil)
  :documentation
  "形式 : sys:tagep arg
@@ -131,8 +131,8 @@ number (単位:ラジアン) に対する双曲的正接値を返す。"
 
 
 (define
- "|sys:tao-package|"
- (constant (find-package 'tao))
+ "tao.sys:tao-package"
+ (constant (load-time-value (find-package 'tao)))
  :documentation
  "パッケージ \"tao\" へのポインタ。\"tao\" は、パッケージ \"univ\" の
 サブパッケージ。\"tao\" には、パッケージ \"bas\" に同じ名前の TAO 関数が
@@ -331,7 +331,8 @@ stream に改行文字と復帰文字を出力し、t を返す。stream が省�
 
 (define
  "the"
- #'the
+ (macro (value-type form)
+     `(cl:the ,value-type ,form))
  :documentation
  "形式 : the type form
 form を評価し、その結果がデータ型 type と一致した場合は評価結果を返す
@@ -354,7 +355,8 @@ list の 3 番目の要素の値を返す。"
 
 (define
  "throw"
- #'throw
+ (macro (catch-tag values-form)
+     `(cl:throw ,catch-tag ,values-form))
  :documentation
  "形式 : throw tag val
 最も内側にある catch, catcher, catcher-case から強制的に脱出させる。

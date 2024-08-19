@@ -468,7 +468,8 @@ package はパッケージ、はパッケージ名、パッケージのリスト
 
 (define
  "unwind-protect"
- #'unwind-protect
+ (macro (protected-form &rest cleanup-forms)
+     `(cl:unwind-protect ,protected-form ,@cleanup-forms))
  :documentation
  "形式 : unwind-protect form1 &rest form2 ... formN
 form1 を評価し、その評価結果を返す。評価が正常に終わろうと、非局所的な

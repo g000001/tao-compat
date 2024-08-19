@@ -72,16 +72,14 @@
    :get-dispatch-macro-character :get-internal-real-time :get-internal-run-time
    :get-macro-character :get-output-stream-string :get-properties
    :get-setf-expansion :get-universal-time :getf :gethash :go :graphic-char-p
-   :handler-bind :handler-case :hash-table :hash-table-count :hash-table-p
-   :hash-table-rehash-size :hash-table-rehash-threshold :hash-table-size
-   :hash-table-test :host-namestring :identity :ignorable ;; :ignore
+   :identity :ignorable ;; :ignore
    :ignore-errors :imagpart :import :incf :initialize-instance
    :inline :input-stream-p :inspect :integer :integer-decode-float
    :integer-length :integerp :interactive-stream-p :intern
    :in-package
    :internal-time-units-per-second :intersection :invalid-method-error
-   :invoke-debugger :invoke-restart :invoke-restart-interactively :isqrt :keyword
-   :keywordp :labels :lambda :lambda-list-keywords :lambda-parameters-limit :last
+   :invoke-debugger :invoke-restart :invoke-restart-interactively :isqrt
+   :labels :lambda :lambda-list-keywords :lambda-parameters-limit :last
    :lcm :ldb :ldb-test :ldiff :least-negative-double-float
    :least-negative-long-float :least-negative-normalized-double-float
    :least-negative-normalized-long-float :least-negative-normalized-short-float
@@ -118,8 +116,7 @@
    :nreconc :nset-difference :nset-exclusive-or :nstring-capitalize
    :nstring-downcase :nstring-upcase :nsublis :nsubst :nsubst-if :nsubst-if-not
    :nsubstitute :nsubstitute-if :nsubstitute-if-not :nth :nth-value :nthcdr :null
-   :number :numberp :numerator :nunion :oddp :open :open-stream-p :optimize :or
-   :otherwise :output-stream-p :package :package-error :package-error-package
+   :number :numberp :numerator :nunion :package :package-error :package-error-package
    :package-nicknames :package-shadowing-symbols :package-use-list
    :package-used-by-list :packagep :pairlis :parse-error :parse-integer
    :parse-namestring :pathname :pathname-device :pathname-directory
@@ -132,6 +129,17 @@
    :print-not-readable-object :print-object :print-unreadable-object :probe-file
    :proclaim :prog :prog* :prog1 :prog2 :program-error
    )
+  (:export #|h|#
+   #:hash
+   #:hash-table-count
+   #:hash-table-p
+   #:hclauses
+   #:hidar
+   #:host-fullname
+   #:host-name
+   #:host-namestring)
+  (:export #|k|# #:keywordp)
+  (:export #|j|# #:jcharp #:jstringp)
   (:export #|q|#
    #:qd #:qdt #:quit-spy #:quote #:quotedp #:quotient #:quotify)
   (:export #|r|#
@@ -736,7 +744,10 @@
   (:use)
   (:export
    :prestk-memblk :id-hash-memblk :64bloc-memblk :strhead-memblk :locbit-memblk
-   :cell-memblk :vector-memblk :id-memblk :str-memblk :bad-memblk :free-memblk)
+   :cell-memblk :vector-memblk :id-memblk :str-memblk :bad-memblk :free-memblk
+   :kill-job :key-package
+   :tagep :tao-package
+   )
   (:export #:quantum-remaining)
   (:export :key-package)
   (:export :bigfloat :float :de :dye :shortfloat))

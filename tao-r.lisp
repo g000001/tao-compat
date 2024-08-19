@@ -1190,7 +1190,9 @@ val があれば val を返し、それ以外なら {undef}0 を返す。
 
 (define
  "return-from"
- #'return-from
+ (macro (name &optional result)
+     `(return-from ,name ,result))
+ 
  :documentation
  "形式 : return-from name value
 prog, do-named, do*-named, block いずれかから強制的に脱出させる。

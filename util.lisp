@@ -156,7 +156,7 @@
                          "<説明>~%~A~2%<例>~%        ~A~%"
                          documentation
                          example))))
-      (T `(progn
+      (T `(eval-when (:compile-toplevel :load-toplevel :execute)
             (setf (fdefinition ',tao-name)
                   ,def)
             (setf (documentation ',tao-name 'function)
