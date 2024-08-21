@@ -819,7 +819,7 @@ Lisp 読み込み表からの構文を用いることを意味している。"
 
 
 (define
- "|sys:set-tage|"
+ "tao.sys:set-tage"
  (subr nil)
  :documentation
  "形式 : sys:set-tage x
@@ -1057,7 +1057,8 @@ number が shortfloat なら、number を返し、それ以外なら nil を返�
 
 (define
  "shortnump"
- (subr nil)
+ (subr (number)
+   (typep number (load-time-value `(integer ,(expt -2 23) ,(1- (expt 2 23))))))
  :documentation
  "形式 : shortnump number
 number が shortnum ( -2**23 から 2**23-1) ならば、number を返し、それ
@@ -2695,6 +2696,7 @@ string1 と string2 を辞書順的に比較し、一致しなかった場合、
         (common:string/= y x) -> 1
         (common:string/= x x) -> nil
         (common:string/= \"さくら\" \"さく\") -> 2")
+
 
 (define
  "string<"

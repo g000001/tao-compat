@@ -7,7 +7,7 @@
 
 
 (define
- "|sys:v-sem|"
+ "tao.sys:v-sem"
  (subr nil)
  :documentation
  "形式 : sys:v-sem semaphore

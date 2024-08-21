@@ -254,7 +254,7 @@ package から symbol を取り除けたら t を返し、そうでなければ 
 
 
 (define
- "|sys:univ-package|"
+ "tao.sys:univ-package"
  (constant (find-package 'tao))
  :documentation
  "パッケージ \"univ\" へのポインタ。 \"univ\" は、根パッケージであり、

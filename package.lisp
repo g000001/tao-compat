@@ -53,32 +53,7 @@
    :define-setf-expander :define-symbol-macro
    :defpackage :delete-package :deposit-field :describe-object
    :destructuring-bind :division-by-zero :double-float :dpb
-   :dynamic-extent :ecase :echo-stream :echo-stream-input-stream
-   :echo-stream-output-stream :ed :eighth :elt :encode-universal-time
-   :end-of-file :endp :enough-namestring :ensure-directories-exist
-   :ensure-generic-function :eq :eql :equal :equalp :etypecase :eval
-   :eval-when :evenp :every :exp :export :expt :extended-char :fboundp :fceiling
-   :fdefinition :ffloor :fifth :file-author :file-error :file-error-pathname
-   :file-length :file-namestring :file-position :file-stream :file-string-length
-   :file-write-date :fill :fill-pointer :find :find-all-symbols :find-class
-   :find-if :find-if-not :find-method :find-package :find-restart :find-symbol
-   :finish-output :first :fixnum :flet :float :float-digits :float-precision
-   :float-radix :float-sign :floating-point-inexact
-   :floating-point-invalid-operation :floating-point-overflow
-   :floating-point-underflow :floatp :floor :fmakunbound :force-output :format
-   :formatter :fourth :fresh-line :fround :ftruncate :ftype :funcall :function
-   :function-keywords :function-lambda-expression :functionp :gcd
-   :generic-function :gensym :gentemp :get :get-decoded-time
-   :get-dispatch-macro-character :get-internal-real-time :get-internal-run-time
-   :get-macro-character :get-output-stream-string :get-properties
-   :get-setf-expansion :get-universal-time :getf :gethash :go :graphic-char-p
-   :identity :ignorable ;; :ignore
-   :ignore-errors :imagpart :import :incf :initialize-instance
-   :inline :input-stream-p :inspect :integer :integer-decode-float
-   :integer-length :integerp :interactive-stream-p :intern
-   :in-package
-   :internal-time-units-per-second :intersection :invalid-method-error
-   :invoke-debugger :invoke-restart :invoke-restart-interactively :isqrt
+   :dynamic-extent
    :labels :lambda :lambda-list-keywords :lambda-parameters-limit :last
    :lcm :ldb :ldb-test :ldiff :least-negative-double-float
    :least-negative-long-float :least-negative-normalized-double-float
@@ -129,6 +104,173 @@
    :print-not-readable-object :print-object :print-unreadable-object :probe-file
    :proclaim :prog :prog* :prog1 :prog2 :program-error
    )
+  (:export #|f|#
+   #:fatjstringp
+   #:fatstringp
+   #:fboundp
+   #:fceiling
+   #:ffloor
+   #:fgrep
+   #:fifth
+   #:file-author
+   #:file-conc
+   #:file-length
+   #:file-namestring
+   #:file-position
+   #:file-stream
+   #:file-write-date
+   #:fill
+   #:fill-pointer
+   #:filstring
+   #:filter-copy
+   #:find
+   #:find-all-symbols
+   #:find-if
+   #:find-if-not
+   #:find-package
+   #:find-position-in-list
+   #:find-position-in-list-equal
+   #:find-symbol
+   #:find-symbol-local
+   #:finish-output
+   #:first
+   #:firstn
+   #:fix-all-dir
+   #:fix-dir
+   #:fixp
+   #:flatsize
+   #:flet
+   #:float
+   #:float-digits
+   #:float-locative-arrays
+   #:float-locatives
+   #:float-precision
+   #:float-radix
+   #:float-sign
+   #:floatp
+   #:floor
+   #:fmakunbound
+   #:for
+   #:force-output
+   #:format
+   #:forn
+   #:fourth
+   #:fresh-line
+   #:fround
+   #:ftruncate
+   #:funcall
+   #:funcall-init
+   #:function
+   #:functionp
+   #:fundamental
+   #:fundamental-stream)
+  (:export #|g|#
+   #:gc
+   #:gcd
+   #:gcdr
+   #:gensym
+   #:gentemp
+   #:get
+   #:get-decoded-time
+   #:get-dispatch-macro-character
+   #:get-handler-for
+   #:get-internal-real-time
+   #:get-internal-run-time
+   #:get-kanji-code
+   #:get-macro-character
+   #:get-memblk
+   #:get-output-stream-string
+   #:get-properties
+   #:get-setf-method
+   #:get-setf-method-multiple-value
+   #:get-sysmode
+   #:get-universal-time
+   #:getcharn
+   #:getf
+   #:gethash
+   #:getl
+   #:global-package
+   #:go
+   #:goal
+   #:goal-all
+   #:goal-all-list
+   #:graphic-char-p
+   #:greaterp
+   #:grep
+   #:growlistp)
+  (:export #|e|#
+   #:ecase
+   #:echo-stream
+   #:ed
+   #:eighth
+   #:elapse-time
+   #:elt
+   #:encode-universal-time
+   #:endp
+   #:enough-namestring
+   #:environment
+   #:eq
+   #:eql
+   #:equal
+   #:equalp
+   #:error
+   #:etypecase
+   #:eval
+   #:eval-in-upper-env
+   #:eval-inside-yourself
+   #:eval-when
+   #:evalhook
+   #:evalp
+   #:evenp
+   #:every
+   #:exit
+   #:exit-for
+   #:exit-image
+   #:exit-loop
+   #:exit-progi
+   #:exp
+   #:exploden
+   #:export
+   #:expr
+   #:expt
+   #:expunge-files)
+  (:export #|i|#
+   #:i/=
+   #:i<
+   #:i<=
+   #:i=
+   #:i>
+   #:i>=
+   #:id
+   #:identity
+   #:idp
+   #:if
+   #:ifundef
+   #:ignore
+   #:image
+   #:image-can
+   #:imagen
+   #:imagpart
+   #:import
+   #:in-package
+   #:inc
+   #:incf
+   #:index
+   #:input-stream-p
+   #:inspect
+   #:int-char
+   #:integer
+   #:integer-decode-float
+   #:integer-length
+   #:integerp
+   #:intern
+   #:intern-local
+   #:intern-local*
+   #:internal-time-units-per-second
+   #:interprocess-closure
+   #:intersection
+   #:intersectionq
+   #:isqrt)
   (:export #|h|#
    #:hash
    #:hash-table-count
@@ -384,19 +526,11 @@
    :floating-point-invalid-operation :floating-point-overflow
    :floating-point-underflow :floatp :floor :fmakunbound :force-output :format
    :formatter :fourth :fresh-line :fround :ftruncate :ftype :funcall :function
-   :function-keywords :function-lambda-expression :functionp :gcd
-   :generic-function :gensym :gentemp :get :get-decoded-time
-   :get-dispatch-macro-character :get-internal-real-time :get-internal-run-time
-   :get-macro-character :get-output-stream-string :get-properties
-   :get-setf-expansion :get-universal-time :getf :gethash :go :graphic-char-p
+   :function-keywords :function-lambda-expression :functionp 
    :handler-bind :handler-case :hash-table :hash-table-count :hash-table-p
    :hash-table-rehash-size :hash-table-rehash-threshold :hash-table-size
-   :hash-table-test :host-namestring :identity :if :ignorable :ignore
-   :ignore-errors :imagpart :import :in-package :incf :initialize-instance
-   :inline :input-stream-p :inspect :integer :integer-decode-float
-   :integer-length :integerp :interactive-stream-p :intern
-   :internal-time-units-per-second :intersection :invalid-method-error
-   :invoke-debugger :invoke-restart :invoke-restart-interactively :isqrt :keyword
+   :hash-table-test :host-namestring
+   :keyword
    :keywordp :labels :lambda :lambda-list-keywords :lambda-parameters-limit :last
    :lcm :ldb :ldb-test :ldiff :least-negative-double-float
    :least-negative-long-float :least-negative-normalized-double-float
@@ -435,8 +569,8 @@
    :nreconc :nreverse :nset-difference :nset-exclusive-or :nstring-capitalize
    :nstring-downcase :nstring-upcase :nsublis :nsubst :nsubst-if :nsubst-if-not
    :nsubstitute :nsubstitute-if :nsubstitute-if-not :nth :nth-value :nthcdr :null
-   :number :numberp :numerator :nunion :oddp :open :open-stream-p :optimize :or
-   :otherwise :output-stream-p :package :package-error :package-error-package
+   :number :numberp :numerator :nunion
+   :package :package-error :package-error-package
    :package-name :package-nicknames :package-shadowing-symbols :package-use-list
    :package-used-by-list :packagep :pairlis :parse-error :parse-integer
    :parse-namestring :pathname :pathname-device :pathname-directory
@@ -733,6 +867,8 @@
            #:read-from-string
            #:remprop
            #:reverse
+           #:gcd
+           #:funcall
            ))
 
 
@@ -746,8 +882,12 @@
    :prestk-memblk :id-hash-memblk :64bloc-memblk :strhead-memblk :locbit-memblk
    :cell-memblk :vector-memblk :id-memblk :str-memblk :bad-memblk :free-memblk
    :kill-job :key-package
-   :tagep :tao-package
-   )
+   :tagep :tao-package :v-sem
+   :univ-package
+   :error-in-error
+   :set-tage
+   :error-in-error
+   :export :gt)
   (:export #:quantum-remaining)
   (:export :key-package)
   (:export :bigfloat :float :de :dye :shortfloat))

@@ -5,7 +5,6 @@
 (in-package #:tao-internal)
 
 
-
 (define
  "octal-numberp"
  (subr nil)
@@ -17,6 +16,8 @@ number が先頭に # 記号を付与された 8 進数ならば、その値を�
  "(octal-numberp #1) -> #1
         (octal-numberp #1112222) -> #1112222
         (octal-numberp 1) -> nil")
+
+
 (define
  "octnum"
  (expr nil)
@@ -26,6 +27,8 @@ number を 8 進数に変換し、それを返す。"
  :example
  "(octnum 12) -> #14
         (octnum 2) -> #2")
+
+
 (define
  "oddp"
  #'oddp
@@ -36,9 +39,12 @@ integer が整数でない場合、エラー。"
  :example
  "(oddp 2) -> nil
         (oddp 3) -> 3")
+
+
 (define
  "off#"
- (locative-operator nil)
+ ;;(locative-operator nil)
+ (subr nil)
  :documentation
  "形式 : loc off# n
 ロカティブ loc1 の n 番目のビットがクリアされる。"
@@ -48,9 +54,12 @@ integer が整数でない場合、エラー。"
         (s <- (p off# 1 )) -> 2728 (#5250)
         (s <- (p off# 3 )) -> 2722 (#5242)
         (s <- (p off# 5 )) -> 2698 (#5212)")
+
+
 (define
  "on#"
- (locative-operator nil)
+ ;;(locative-operator nil)
+ (subr nil)
  :documentation
  "形式 : loc on# n
 ロカティブ loc の n 番目のビットがセットされる。"
@@ -60,6 +69,8 @@ integer が整数でない場合、エラー。"
         (s <- (p on# 0 )) -> 2731 (#5253)
         (s <- (p on# 2 )) -> 2722 (#5256)
         (s <- (p on# 4 )) -> 27 (#5272)")
+
+
 (define
  "open"
  #'open
@@ -136,15 +147,20 @@ file をオープンし、そのファイルに結合されたストリームを
         (!cc (open \"test2.tao\" :direction :output :if-does-not-exist 
         	:create))
         	-> {udo}1825190file-stream")
+
+
 (define
  "operation-handle-p"
- (message nil)
+ ;;(message nil)
+ (subr nil)
  :documentation
  "形式 : operation-handle-p message
 operation-handle-p のレシーバは、message を受け取ることができるなら、
 message のアドレスを返し、できなければ nil を返す。"
  :example
  "")
+
+
 (define
  "or"
  (cl-macro cl:or)
@@ -158,9 +174,12 @@ nil でない値がなければ、or は nil を返す。"
         (x = 0 ならば)
         (or (x = 1) (x = 2) (x = 3) (x = 4)) -> nil
         (or (x = 7) (x = 8) (x = 9) (x = 0)) -> t")
+
+
 (define
  "or#"
- (locative-operator nil)
+ ;;(locative-operator nil)
+ (subr nil)
  :documentation
  "形式 : loc1 or# loc2
 loc1 と loc2  のビット or 操作を行う。"
@@ -170,7 +189,10 @@ loc1 と loc2  のビット or 操作を行う。"
         (q <- #7070) -> 3640
         (r <- (p or# q )) -> 3770 (#7272)
         r -> 3770")
-(define
+
+
+;; TODO
+'(define
  "otherwise"
  #'otherwise
  :documentation
@@ -181,6 +203,8 @@ loc1 と loc2  のビット or 操作を行う。"
              ((1 2) 'foo)
              ((3 4) 'bar)
              (otherwise nil)) -> bar")
+
+
 (define
  "output-stream-p"
  #'output-stream-p
@@ -193,6 +217,8 @@ stream が出力操作を扱えるのであれば真、そうでなければ偽�
         			-> (udo}66087file-stream
         (outut-stream-p aa) -> ()
         (outut-stream-p bb) -> {udo}66087file-stream")
+
+
 (define
  "own-file"
  (expr nil)
