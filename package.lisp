@@ -104,6 +104,18 @@
    :print-not-readable-object :print-object :print-unreadable-object :probe-file
    :proclaim :prog :prog* :prog1 :prog2 :program-error
    )
+  (:export #|o|#
+   #:octal-numberp
+   #:octnum
+   #:oddp
+   #:off\#
+   #:on\#
+   #:open
+   #:operation-handle-p
+   #:or
+   #:or\#
+   #:output-stream-p
+   #:own-file)
   (:export #|f|#
    #:fatjstringp
    #:fatstringp
