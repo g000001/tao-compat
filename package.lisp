@@ -4,7 +4,6 @@
 (defpackage #:tao
   (:use)
   (:import-from :cl
-   :nil
    :&allow-other-keys :&aux :&body :&environment :&key :&optional :&rest :&whole
    :* :+
    :*** :*break-on-signals* :*compile-file-pathname*
@@ -85,13 +84,8 @@
    :most-positive-double-float :most-positive-fixnum :most-positive-long-float
    :most-positive-short-float :most-positive-single-float :muffle-warning
    :multiple-value-bind :multiple-value-call :multiple-value-list
-   :multiple-value-prog1 :multiple-value-setq :multiple-values-limit :name-char
-   :namestring :nbutlast :next-method-p :nintersection :ninth
-   :no-applicable-method :no-next-method :not :notany :notevery :notinline
-   :nreconc :nset-difference :nset-exclusive-or :nstring-capitalize
-   :nstring-downcase :nstring-upcase :nsublis :nsubst :nsubst-if :nsubst-if-not
-   :nsubstitute :nsubstitute-if :nsubstitute-if-not :nth :nth-value :nthcdr :null
-   :number :numberp :numerator :nunion :package :package-error :package-error-package
+   :multiple-value-prog1 :multiple-value-setq :multiple-values-limit
+   :package :package-error :package-error-package
    :package-nicknames :package-shadowing-symbols :package-use-list
    :package-used-by-list :packagep :pairlis :parse-error :parse-integer
    :parse-namestring :pathname :pathname-device :pathname-directory
@@ -104,6 +98,75 @@
    :print-not-readable-object :print-object :print-unreadable-object :probe-file
    :proclaim :prog :prog* :prog1 :prog2 :program-error
    )
+  (:export #|n|#
+   #:nambra-cons
+   #:nambra-list
+   #:nambracketp
+   #:namcell-cons
+   #:namcell-list
+   #:namcellp
+   #:name-char
+   #:named-for
+   #:namep
+   #:namestring
+   #:nand\#
+   #:nbutlast
+   #:ncadblep
+   #:nconc
+   #:nconc!
+   #:ncons
+   #:neg
+   #:neq
+   #:nidp
+   #:nil
+   #:nintersection
+   #:ninth
+   #:nleft
+   #:nlistp
+   #:no-dumb
+   #:no-local-echo
+   #:no-more
+   #:no-screen
+   #:no-wrap
+   #:nor\#
+   #:normal-stream-p
+   #:not
+   #:notany
+   #:notevery
+   #:nreconc
+   #:nreverse
+   #:nset-difference
+   #:nset-exclusive-or
+   #:nstring-capitalize
+   #:nstring-downcase
+   #:nstring-fill
+   #:nstring-left-trim
+   #:nstring-right-trim
+   #:nstring-trim
+   #:nstring-upcase
+   #:nsublis
+   #:nsublisq
+   #:nsubst
+   #:nsubst-if
+   #:nsubst-if-not
+   #:nsubstitute
+   #:nsubstitute-if
+   #:nsubstitute-if-not
+   #:nsubstqu
+   #:nsubstring
+   #:nsymbolp
+   #:nth
+   #:nthcdr
+   #:nthm
+   #:nthv
+   #:ntrim
+   #:null
+   #:null-stream
+   #:null-string
+   #:numberp
+   #:numerator
+   #:nunion
+   #:nxor\#)
   (:export #|o|#
    #:octal-numberp
    #:octnum
@@ -881,6 +944,13 @@
            #:reverse
            #:gcd
            #:funcall
+           #:nstring-capitalize
+           #:nstring-downcase
+           #:nstring-fill
+           #:nstring-left-trim
+           #:nstring-right-trim
+           #:nstring-trim
+           #:nstring-upcase
            ))
 
 
