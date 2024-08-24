@@ -1,5 +1,5 @@
 (in-package #:cl-user)
-;(g1::delete-package* :tao)
+
 
 (defpackage #:tao
   (:use)
@@ -53,21 +53,6 @@
    :defpackage :delete-package :deposit-field :describe-object
    :destructuring-bind :division-by-zero :double-float :dpb
    :dynamic-extent
-   :labels :lambda :lambda-list-keywords :lambda-parameters-limit :last
-   :lcm :ldb :ldb-test :ldiff :least-negative-double-float
-   :least-negative-long-float :least-negative-normalized-double-float
-   :least-negative-normalized-long-float :least-negative-normalized-short-float
-   :least-negative-normalized-single-float :least-negative-short-float
-   :least-negative-single-float :least-positive-double-float
-   :least-positive-long-float :least-positive-normalized-double-float
-   :least-positive-normalized-long-float :least-positive-normalized-short-float
-   :least-positive-normalized-single-float :least-positive-short-float
-   :least-positive-single-float :list* :list-all-packages :list-length
-   :listen :load :load-logical-pathname-translations :load-time-value
-   :locally :log :logand :logandc1 :logandc2 :logbitp :logcount :logeqv
-   :logical-pathname :logical-pathname-translations :logior :lognand :lognor
-   :lognot :logorc1 :logorc2 :logtest :logxor :long-float :long-float-epsilon
-   :long-float-negative-epsilon :long-site-name :lower-case-p
    :machine-instance :machine-type :machine-version :macro-function :macroexpand
    :macroexpand-1 :macrolet :make-array :make-broadcast-stream
    :make-concatenated-stream :make-condition :make-dispatch-macro-character
@@ -98,6 +83,89 @@
    :print-not-readable-object :print-object :print-unreadable-object :probe-file
    :proclaim :prog :prog* :prog1 :prog2 :program-error
    )
+  (:export #|l|#
+   #:labels
+   #:lambda
+   #:lambda-list-keywords
+   #:lambda-parameters-limit
+   #:lappend
+   #:last
+   #:lcm
+   #:ldb
+   #:ldb-test
+   #:ldiff
+   #:leap-year-p
+   #:least-negative-double-float
+   #:least-negative-long-float
+   #:least-negative-short-float
+   #:least-negative-single-float
+   #:least-positive-double-float
+   #:least-positive-long-float
+   #:least-positive-short-float
+   #:least-positive-single-float
+   #:length
+   #:lessp
+   #:let
+   #:let*
+   #:lins
+   #:lisp-implementation-type
+   #:lisp-implementation-version
+   #:list
+   #:list*
+   #:list-all-global-packages
+   #:list-all-packages
+   #:list-length
+   #:list-stream
+   #:listen
+   #:listing
+   #:listp
+   #:listq
+   #:load
+   #:load-factor-min
+   #:load-factor-sec
+   #:load-if-non-existent
+   #:loc-diff
+   #:loc-equate
+   #:loc-greaterp
+   #:loc-lessp
+   #:loc-memblk
+   #:loc-offset
+   #:loc-size
+   #:loc-type
+   #:local-echo
+   #:locally
+   #:locativep
+   #:locbit
+   #:locbitp
+   #:log
+   #:logand
+   #:logandc1
+   #:logandc2
+   #:logbitp
+   #:logcount
+   #:logeqv
+   #:logic
+   #:logical-names
+   #:logicp
+   #:login
+   #:logior
+   #:logmask
+   #:lognand
+   #:lognand*
+   #:lognor
+   #:lognor*
+   #:lognot
+   #:logorc1
+   #:logorc2
+   #:logout
+   #:logtest
+   #:logxor
+   #:long-float-epsilon
+   #:long-float-negative-epsilon
+   #:long-site-name
+   #:loop
+   #:lower-case-p
+   #:lsh)
   (:export #|n|#
    #:nambra-cons
    #:nambra-list
@@ -883,8 +951,10 @@
   (:export :assert)
   (:export :&progn :query))
 
+
 (defpackage tao-user
   (:use tao))
+
 
 ;(delete-package :common)
 (defpackage common
@@ -951,10 +1021,18 @@
            #:nstring-right-trim
            #:nstring-trim
            #:nstring-upcase
+           #:lambda
+           #:length
+           #:logand
+           #:logior
+           #:lognot
+           #:logxor
+           #:loop
            ))
 
 
 (defpackage #:tao-internal
+  (:nicknames #:taoi)
   (:use #:cl))
 
 
@@ -969,6 +1047,8 @@
    :error-in-error
    :set-tage
    :error-in-error
+   :logout-him
+   :lt
    :export :gt)
   (:export #:quantum-remaining)
   (:export :key-package)
@@ -984,3 +1064,6 @@
   (:use tao)
   (:shadowing-import-from tao _)
   (:export &arithmetic-function))
+
+
+;;; *EOF*

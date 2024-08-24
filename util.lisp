@@ -136,6 +136,14 @@
                          "<説明>~%~A~2%<例>~%        ~A~%"
                          documentation
                          example))))
+      ((cons (eql rel) *)
+       `(progn
+          (tao::defrel ,tao-name ,@(cdr def))
+          (setf (documentation ',tao-name 'function)
+                ,(format nil
+                         "<説明>~%~A~2%<例>~%        ~A~%"
+                         documentation
+                         example))))
       ((cons (eql cl-macro) *)
        `(progn
           (setf (macro-function ',tao-name)
@@ -186,6 +194,10 @@
 
 (defmacro macro (name (&rest args) &body body)
   `(defmacro ,name (,@args) ,@body))
+
+
+(defmacro rel (name &body body)
+  `(tao:defrel ,name ,@body))
 
 
 ;;; *EOF*
