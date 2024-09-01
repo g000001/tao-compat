@@ -178,6 +178,9 @@
   `(lambda (,@args) ,@body))
 
 
+(defmacro locative-operator ((&rest args) &body body)
+  `(lambda (,@args) ,@body))
+
 (defmacro expr ((&rest args) &body body)
   `(lambda (,@args) ,@body))
 

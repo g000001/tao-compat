@@ -20,15 +20,6 @@
    :+++ :-
    :///
    :1+ :1-
-   :abort
-   :add-method :adjust-array :adjustable-array-p
-   :allocate-instance :alpha-char-p :alphanumericp :and :append
-   :arithmetic-error :arithmetic-error-operands
-   :arithmetic-error-operation :array-dimension-limit
-   :array-dimensions :array-displacement :array-element-type
-   :array-has-fill-pointer-p :array-in-bounds-p :array-rank :array-rank-limit
-   :array-row-major-index :array-total-size :array-total-size-limit :ash
-   :asin :asinh 
    :caaaar :caaadr :caaar :caadar
    :caaddr :caadr :caar :cadaar :cadadr :cadar :caddar :cadddr :caddr :cadr
    :call-arguments-limit :call-method :call-next-method :car :case :catch :ccase
@@ -54,6 +45,131 @@
    :destructuring-bind :division-by-zero :double-float :dpb
    :dynamic-extent
    )
+  (:export #|a|#
+   #:abolish
+   #:abort
+   #:abs
+   #:acons
+   #:acos
+   #:acosh
+   #:addprop
+   #:adjoin
+   #:adjust-array
+   #:adjustable-array-p
+   #:advise
+   #:all-deleted-files
+   #:all-directories
+   #:all-files
+   #:all-processes
+   #:alpha-char-p
+   #:alphanumericp
+   #:and
+   #:and\#
+   #:ansi$backspace
+   #:ansi$bell
+   #:ansi$caution
+   #:ansi$clear-all-tab-stop
+   #:ansi$clear-tab-stop
+   #:ansi$cr
+   #:ansi$crlf
+   #:ansi$cursor-down
+   #:ansi$cursor-home
+   #:ansi$cursor-left
+   #:ansi$cursor-position
+   #:ansi$cursor-position-p
+   #:ansi$cursor-right
+   #:ansi$cursor-up
+   #:ansi$enter-keypad-application-mode
+   #:ansi$enter-keypad-numeric-mode
+   #:ansi$erase-entire-line
+   #:ansi$erase-entire-screen
+   #:ansi$erase-from-tol
+   #:ansi$erase-from-tos
+   #:ansi$erase-to-eol
+   #:ansi$erase-to-eos
+   #:ansi$file-out
+   #:ansi$form-feed
+   #:ansi$get-character
+   #:ansi$get-line
+   #:ansi$index
+   #:ansi$init
+   #:ansi$lf
+   #:ansi$new-line
+   #:ansi$reset-cursor-application-mode
+   #:ansi$reset-to-normal-screen-mode
+   #:ansi$restore-cursor
+   #:ansi$reverse-index
+   #:ansi$rubout
+   #:ansi$save-cursor
+   #:ansi$screen-height
+   #:ansi$screen-width
+   #:ansi$scroll-down
+   #:ansi$scroll-up
+   #:ansi$set-caution-type
+   #:ansi$set-character-attribute
+   #:ansi$set-cursor-application-mode
+   #:ansi$set-cursor-attribute
+   #:ansi$set-line-attribute
+   #:ansi$set-scroll-region
+   #:ansi$set-tab-stop
+   #:ansi$set-to-reverse-screen-mode
+   #:ansi$special-graphics
+   #:ansi$standard-character
+   #:ansi$tab
+   #:ansi$vertical-tab
+   #:append
+   #:append!
+   #:append2
+   #:applobj
+   #:applobj-of
+   #:applobjp
+   #:apply
+   #:apply*
+   #:applyhook
+   #:apropos
+   #:apropos-list
+   #:aref
+   #:array
+   #:array-dimension
+   #:array-dimension-limit
+   #:array-dimensions
+   #:array-element-type
+   #:array-has-fill-pointer-p
+   #:array-in-bounds-p
+   #:array-info
+   #:array-rank
+   #:array-rank-limit
+   #:array-row-major-index
+   #:array-total-size
+   #:array-total-size-limit
+   #:array-type
+   #:arrayp
+   #:as-char
+   #:as-shortnum
+   #:ash
+   #:ashift
+   #:ashift
+   #:asin
+   #:asinh
+   #:ass
+   #:assert
+   #:asserta
+   #:assertz
+   #:assign-cons
+   #:assign-list
+   #:assign-logical-name
+   #:assignee-cons
+   #:assigneep
+   #:assignp
+   #:assoc
+   #:assoc-if
+   #:assoc-if-not
+   #:assq
+   #:assql
+   #:assqu
+   #:atan
+   #:atanh
+   #:atom)
   (:export #|m|#
    #:machine-instance
    #:machine-type
