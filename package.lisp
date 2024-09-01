@@ -53,36 +53,169 @@
    :defpackage :delete-package :deposit-field :describe-object
    :destructuring-bind :division-by-zero :double-float :dpb
    :dynamic-extent
-   :machine-instance :machine-type :machine-version :macro-function :macroexpand
-   :macroexpand-1 :macrolet :make-array :make-broadcast-stream
-   :make-concatenated-stream :make-condition :make-dispatch-macro-character
-   :make-echo-stream :make-hash-table :make-instances-obsolete
-   :make-list :make-load-form :make-load-form-saving-slots :make-method
-   :make-package :make-pathname :make-random-state :make-sequence
-   :make-string-input-stream :make-string-output-stream :make-symbol
-   :make-synonym-stream :make-two-way-stream :makunbound :map :map-into :mapc
-   :mapcan :mapcar :mapcon :maphash :mapl :maplist :mask-field :max :member
-   :member-if :member-if-not :merge :merge-pathnames :method :method-combination
-   :method-combination-error :method-qualifiers :min :minusp :mismatch :mod
-   :most-negative-double-float :most-negative-fixnum :most-negative-long-float
-   :most-negative-short-float :most-negative-single-float
-   :most-positive-double-float :most-positive-fixnum :most-positive-long-float
-   :most-positive-short-float :most-positive-single-float :muffle-warning
-   :multiple-value-bind :multiple-value-call :multiple-value-list
-   :multiple-value-prog1 :multiple-value-setq :multiple-values-limit
-   :package :package-error :package-error-package
-   :package-nicknames :package-shadowing-symbols :package-use-list
-   :package-used-by-list :packagep :pairlis :parse-error :parse-integer
-   :parse-namestring :pathname :pathname-device :pathname-directory
-   :pathname-host :pathname-match-p :pathname-name :pathname-type
-   :pathname-version :pathnamep :peek-char :phase :pi :plusp :pop :position
-   :position-if :position-if-not :pprint :pprint-dispatch
-   :pprint-exit-if-list-exhausted :pprint-fill :pprint-indent :pprint-linear
-   :pprint-logical-block :pprint-newline :pprint-pop :pprint-tab :pprint-tabular
-   :prin1 :prin1-to-string :princ :princ-to-string :print :print-not-readable
-   :print-not-readable-object :print-object :print-unreadable-object :probe-file
-   :proclaim :prog :prog* :prog1 :prog2 :program-error
    )
+  (:export #|m|#
+   #:machine-instance
+   #:machine-type
+   #:machine-version
+   #:macro-function
+   #:macroexpand
+   #:macroexpand-1
+   #:macrolet
+   #:mailbox
+   #:make-array
+   #:make-broadcast-stream
+   #:make-char
+   #:make-concatenated-stream
+   #:make-dispatch-macro-character
+   #:make-echo-stream
+   #:make-fatstring
+   #:make-hash-table
+   #:make-instance
+   #:make-kanji-char
+   #:make-list
+   #:make-mutant
+   #:make-package
+   #:make-pathname
+   #:make-process
+   #:make-random-state
+   #:make-row-buf
+   #:make-sequence
+   #:make-string
+   #:make-string-input-stream
+   #:make-string-output-stream
+   #:make-string-with-fill-pointer
+   #:make-symbol
+   #:make-synonym-stream
+   #:make-two-way-stream
+   #:makunbound
+   #:map
+   #:mapatoms
+   #:mapc
+   #:mapcan
+   #:mapcar
+   #:mapcatoms
+   #:mapcon
+   #:maphash
+   #:mapl
+   #:maplist
+   #:mask\#
+   #:mask-field
+   #:max
+   #:max2
+   #:memass
+   #:member
+   #:member-if
+   #:member-if-not
+   #:memblk-size
+   #:memblkp
+   #:memory-capacity
+   #:merge
+   #:merge-pathnames
+   #:mig
+   #:min
+   #:min2
+   #:minus
+   #:minusp
+   #:mismatch
+   #:mod
+   #:mod\#
+   #:month-string
+   #:more
+   #:most-negative-double-float
+   #:most-negative-fixnum
+   #:most-negative-long-float
+   #:most-negative-short-float
+   #:most-negative-single-float
+   #:most-positive-double-float
+   #:most-positive-fixnum
+   #:most-positive-long-float
+   #:most-positive-short-float
+   #:most-positive-single-float
+   #:multiple-value-bind
+   #:multiple-value-call
+   #:multiple-value-list
+   #:multiple-value-prog1
+   #:multiple-value-setq
+   #:multiple-values-limit)
+  (:export #|p|#
+   #:p-sem
+   #:p-sem-with-timeout
+   #:package-name
+   #:package-nicknames
+   #:package-shadowing-symbols
+   #:package-use-list
+   #:package-used-by-list
+   #:packagep
+   #:pairlis
+   #:parent-package
+   #:parent-package-chain
+   #:parse-integer
+   #:parse-namestring
+   #:parse-universal-time
+   #:pathname
+   #:pathname-device
+   #:pathname-directory
+   #:pathname-host
+   #:pathname-name
+   #:pathname-type
+   #:pathname-version
+   #:pathnamep
+   #:pc98k-terminal
+   #:peek-char
+   #:peelinv
+   #:phase
+   #:pi
+   #:pipe-stream
+   #:plist
+   #:plus
+   #:plusp
+   #:pname
+   #:pname-of-time
+   #:pop
+   #:position
+   #:position-if
+   #:position-if-not
+   #:pprint
+   #:prin1
+   #:prin1-to-string
+   #:princ
+   #:princ-to-string
+   #:prins
+   #:print
+   #:print-methods-of-class
+   #:print-time
+   #:probe-file
+   #:process
+   #:process-allow-schedule
+   #:process-fork
+   #:process-interrupt
+   #:process-kill
+   #:process-peep
+   #:process-preset
+   #:process-reset
+   #:proclaim
+   #:prog
+   #:prog1
+   #:prog2
+   #:progi
+   #:progn
+   #:progv
+   #:protect-file
+   #:provide
+   #:psetf
+   #:psetq
+   #:pure-jstring-p
+   #:purge
+   #:purge-spies
+   #:purge-spy
+   #:push
+   #:pushnew
+   #:put-alist
+   #:put-comma
+   #:put-toga
+   #:putplist
+   #:putprop)
   (:export #|l|#
    #:labels
    #:lambda
@@ -1028,6 +1161,9 @@
            #:lognot
            #:logxor
            #:loop
+           #:prog1
+           #:prog2
+           #:make-string
            ))
 
 
@@ -1049,7 +1185,9 @@
    :error-in-error
    :logout-him
    :lt
-   :export :gt)
+   :process-stop
+   :export :gt
+   )
   (:export #:quantum-remaining)
   (:export :key-package)
   (:export :bigfloat :float :de :dye :shortfloat))

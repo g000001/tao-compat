@@ -472,9 +472,6 @@ stream に読むものがなければ、:eof を返す。"
         {(readline)} {crlf} {crlf} とタイプすると結果は、() である.")
 
 
-(declaim (inline tao:readline-to-string))
-
-
 (define
  "readline-to-string"
  (subr (&optional stream)
@@ -493,9 +490,6 @@ stream に読まれるものがなければ :eof を返す。"
         返される値
         \"a b c d (a b) ((sd nil)) nil\" が、コンソールターミナル上に
         表示される.")
-
-
-(declaim (inline tao:reads))
 
 
 (define
