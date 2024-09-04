@@ -38,13 +38,93 @@
    :cons :consp :constantly :constantp :continue :control-error :copy-alist
    :copy-list :copy-pprint-dispatch :copy-readtable :copy-seq :copy-structure
    :copy-symbol :copy-tree :cos :cosh :count :count-if :count-if-not :ctypecase
-   :debug :declaim :declaration :declare :defgeneric
-   :define-compiler-macro :define-condition :define-method-combination
-   :define-setf-expander :define-symbol-macro
-   :defpackage :delete-package :deposit-field :describe-object
-   :destructuring-bind :division-by-zero :double-float :dpb
-   :dynamic-extent
+   :declare
    )
+  (:export #|d|#
+   #:dashift
+   #:day-of-week-string
+   #:dbit-off
+   #:dbit-on
+   #:dbp
+   #:dcu-terminal
+   #:de
+   #:debug
+   #:dec
+   #:decf
+   #:decnum
+   #:decode-float
+   #:decode-universal-time
+   #:defclass
+   #:defclass-method
+   #:defconstant
+   #:defglobal
+   #:define
+   #:define-modify-macro
+   #:define-setf-method
+   #:definition
+   #:deflogic-method
+   #:defmacro
+   #:defmethod
+   #:defparameter
+   #:defprop
+   #:defrel
+   #:defsetf
+   #:defstruct
+   #:deftype
+   #:defun
+   #:defvar
+   #:del
+   #:del-alist
+   #:del-if
+   #:del-if-not
+   #:delete
+   #:delete-dir
+   #:delete-duplicates
+   #:delete-file
+   #:delete-if
+   #:delete-if-not
+   #:delq
+   #:delql
+   #:delqu
+   #:denominator
+   #:deposit-field
+   #:deref
+   #:describe
+   #:describe
+   #:describe-operations
+   #:dev-dir-namestring
+   #:diff
+   #:digit-char
+   #:digit-char-p
+   #:directory
+   #:directory-namestring
+   #:dired
+   #:disassemble
+   #:dlogand
+   #:dlogior
+   #:dlognot
+   #:dlogxor
+   #:dlsh
+   #:dnil
+   #:do
+   #:do*
+   #:do*-named
+   #:do-all-symbols
+   #:do-external-symbols
+   #:do-forever
+   #:do-named
+   #:do-symbols
+   #:documentation
+   #:dolist
+   #:dotimes
+   #:double-float-epsilon
+   #:double-float-negative-epsilon
+   #:dribble
+   #:dsys
+   #:dumb
+   #:dumb-terminal
+   #:dump-to-floppy
+   #:dye)
   (:export #|a|#
    #:abolish
    #:abort
@@ -1303,6 +1383,7 @@
    :lt
    :process-stop
    :export :gt
+   :data-type
    )
   (:export #:quantum-remaining)
   (:export :key-package)
