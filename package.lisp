@@ -20,26 +20,149 @@
    :+++ :-
    :///
    :1+ :1-
-   :caaaar :caaadr :caaar :caadar
-   :caaddr :caadr :caar :cadaar :cadadr :cadar :caddar :cadddr :caddr :cadr
-   :call-arguments-limit :call-method :call-next-method :car :case :catch :ccase
-   :cdaaar :cdaadr :cdaar :cdadar :cdaddr :cdadr :cdar :cddaar :cddadr :cddar
-   :cdddar :cddddr :cdddr :cddr :cdr :ceiling :cell-error :cell-error-name
-   :cerror :change-class :char-code :char-code-limit :char-downcase
-   :char-equal :char-greaterp :char-int :char-lessp :char-name :char-not-equal
-   :char-not-greaterp :char-not-lessp :char-upcase :char/= :char< :char<= :char=
-   :char> :char>= :character :characterp :check-type :cis :class :class-name
-   :class-of :clear-input :clear-output :close :clrhash :code-char :coerce
-   :compilation-speed :compile :compile-file :compile-file-pathname
-   :compiled-function :compiled-function-p :compiler-macro
-   :compiler-macro-function :complement :complex :complexp
-   :compute-applicable-methods :compute-restarts :concatenate
-   :concatenated-stream :concatenated-stream-streams :cond :condition :conjugate
-   :cons :consp :constantly :constantp :continue :control-error :copy-alist
-   :copy-list :copy-pprint-dispatch :copy-readtable :copy-seq :copy-structure
-   :copy-symbol :copy-tree :cos :cosh :count :count-if :count-if-not :ctypecase
    :declare
    )
+  (:export #|c|#
+   #:caaaar
+   #:caaadr
+   #:caaar
+   #:caadar
+   #:caaddr
+   #:caadr
+   #:caar
+   #:cadaar
+   #:cadadr
+   #:cadar
+   #:cadblep
+   #:caddar
+   #:cadddr
+   #:caddr
+   #:cadr
+   #:call-arguments-limit
+   #:car
+   #:case
+   #:caseq
+   #:catch
+   #:catcher
+   #:catcher-case
+   #:caught-value
+   #:ccase
+   #:cdaaar
+   #:cdaadr
+   #:cdaar
+   #:cdadar
+   #:cdaddr
+   #:cdadr
+   #:cdar
+   #:cddaar
+   #:cddadr
+   #:cddar
+   #:cdddar
+   #:cddddr
+   #:cdddr
+   #:cddr
+   #:cdr
+   #:cdr!
+   #:ceiling
+   #:cell
+   #:cellp
+   #:cerror
+   #:change-font
+   #:char
+   #:char-bit
+   #:char-bits
+   #:char-bits-limit
+   #:char-code
+   #:char-code-limit
+   #:char-code-p
+   #:char-control-bit
+   #:char-downcase
+   #:char-equal
+   #:char-font
+   #:char-font-limit
+   #:char-greaterp
+   #:char-hyper-bit
+   #:char-int
+   #:char-lessp
+   #:char-meta-bit
+   #:char-name
+   #:char-not-equal
+   #:char-not-greaterp
+   #:char-not-lessp
+   #:char-super-bit
+   #:char-to-strh
+   #:char-upcase
+   #:char/=
+   #:char<
+   #:char<=
+   #:char=
+   #:char>
+   #:char>=
+   #:character
+   #:characterp
+   #:charp
+   #:check-type
+   #:circular-list
+   #:cis
+   #:cit101e-terminal
+   #:cit600-terminal
+   #:class-name-of
+   #:class-of
+   #:class-variable
+   #:clause
+   #:clear-input
+   #:clear-memblk
+   #:clear-output
+   #:close
+   #:closure
+   #:closurep
+   #:clrhash
+   #:code-char
+   #:codnum
+   #:codnump
+   #:coerce
+   #:comment
+   #:commentp
+   #:commonp
+   #:compile
+   #:compile-file
+   #:compiled-function-p
+   #:compiler-let
+   #:complex
+   #:complexp
+   #:concatenate
+   #:concatenated-stream
+   #:cond
+   #:conjugate
+   #:connect-dir
+   #:cons
+   #:cons!
+   #:consp
+   #:constantp
+   #:convert-to-jstring
+   #:copy
+   #:copy-alist
+   #:copy-file
+   #:copy-from-floppy
+   #:copy-list
+   #:copy-memblk
+   #:copy-readtable
+   #:copy-seq
+   #:copy-symbol
+   #:copy-tree
+   #:cos
+   #:cosh
+   #:count
+   #:count-if
+   #:count-if-not
+   #:create-dir
+   #:critical-section
+   #:crlf
+   #:ctypecase
+   #:current-dir
+   #:current-package
+   #:cvar
+   #:cycle)
   (:export #|d|#
    #:dashift
    #:day-of-week-string
@@ -1110,7 +1233,7 @@
   ;; TAO
   ;; lambda-list-keywords
   (:export :&optional :&optn :&opt :&rest :&key :&allow-other-keys 
-           :&aux :&whole :&body :&environment)
+   :&aux :&whole :&body :&environment)
   (:export
    :! :! :! :!! :& :& :&+ :&+dyn :&and :&assert :&cond :&cut :&repeat :&opt
    :&retract :*applyhook* :*break-on-warnings* :*catch :*evalhook*
@@ -1384,6 +1507,9 @@
    :process-stop
    :export :gt
    :data-type
+   :clear-tage
+   :common-package
+   :current-process
    )
   (:export #:quantum-remaining)
   (:export :key-package)
