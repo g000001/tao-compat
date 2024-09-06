@@ -164,6 +164,13 @@
                          "<説明>~%~A~2%<例>~%        ~A~%"
                          documentation
                          example))))
+      ((cons (eql doc) *)
+       `(eval-when (:compile-toplevel :load-toplevel :execute)
+        (setf (documentation ',tao-name T)
+              ,(format nil
+                       "<説明>~%~A~2%<例>~%        ~A~%"
+                       documentation
+                       example))))
       (T `(eval-when (:compile-toplevel :load-toplevel :execute)
             (setf (fdefinition ',tao-name)
                   ,def)

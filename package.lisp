@@ -3,25 +3,104 @@
 
 (defpackage #:tao
   (:use)
-  (:import-from :cl
+  (:import-from :cl :declare
    :&allow-other-keys :&aux :&body :&environment :&key :&optional :&rest :&whole
-   :* :+
-   :*** :*break-on-signals* :*compile-file-pathname*
-   :*compile-file-truename* :*compile-print* :*compile-verbose* :*debug-io*
-   :*debugger-hook* :*default-pathname-defaults* :*error-output* :*features*
+   :*break-on-signals*
+   :*debug-io*
+   :*default-pathname-defaults*
+   :*error-output*
+   :*features*
+   :*load-verbose*
+   :*macroexpand-hook*
+   :*modules*
+   :*package*
+   :*print-array*
+   :*print-base*
+   :*compile-file-pathname*
+   :*compile-file-truename* :*compile-print* :*compile-verbose* 
+   :*debugger-hook* 
    :*gensym-counter* :*load-pathname* :*load-print* :*load-truename*
-   :*load-verbose* :*macroexpand-hook* :*modules* :*package* :*print-array*
-   :*print-base* :*print-case* :*print-circle* :*print-escape* :*print-gensym*
-   :*print-length* :*print-level* :*print-lines* :*print-miser-width*
-   :*print-pprint-dispatch* :*print-pretty* :*print-radix* :*print-readably*
-   :*print-right-margin* :*query-io* :*random-state* :*read-base*
-   :*read-default-float-format* :*read-eval* :*read-suppress* :*readtable*
-   :*standard-input* :*standard-output* :*terminal-io* :*trace-output* 
-   :+++ :-
-   :///
-   :1+ :1-
-   :declare
-   )
+   :*print-case* :*print-circle* :*print-escape*
+   :*print-gensym*
+   :*print-length*
+   :*print-level*
+   :*print-pretty*
+   :*print-radix*
+   :*query-io*
+   :*read-base*
+   :*read-default-float-format*
+   :*read-suppress*
+   :*readtable*
+   :*standard-input*
+   :*standard-output*
+   :*terminal-io*
+   :*trace-output*)
+  (:export #|0|#
+   #:!
+   #:&
+   #:&+
+   #:&+dyn
+   #:&and
+   #:&assert
+   #:&cond
+   #:&repeat
+   #:&retract
+   #:*
+   #:**
+   #:***
+   #:*applyhook*
+   #:*catch
+   #:*evalhook*
+   #:*file-search-path*
+   #:*fn-notation*
+   #:*logical-name-alist*
+   #:*print-bigfloat-digit*
+   #:*print-float-digit*
+   #:*print-internal*
+   #:*print-nilnum*
+   #:*print-package*
+   #:*print-shortfloat-digit*
+   #:*print-string-marker*
+   #:*print-total-chars*
+   #:*throw
+   #:*trace-level*
+   #:*traced-fns*
+   #:*untraced-fns*
+   #:*user-packages*
+   #:+
+   #:++
+   #:-
+   #:--
+   #:/
+   #://
+   #:/=
+   #:1+
+   #:1-
+   #:64b-float
+   #:64b-floatp
+   #:64b-signed
+   #:64b-signedp
+   #:64b-unsigned
+   #:64b-unsignedp
+   #:64bfloc
+   #:64bsiloc
+   #:64builoc
+   #:<
+   #:<-
+   #:<=
+   #:=
+   #:==
+   #:>
+   #:>=
+   #:locbit
+   #:signed-integer-locatives
+   #:signed-integer-locatives
+   #:\\\\
+   #:\\\\\\\\
+   #:_
+   #:\|..\|
+   #:\|.\|
+   #:~)
   (:export #|c|#
    #:caaaar
    #:caaadr
@@ -1411,79 +1490,87 @@
 ;(delete-package :common)
 (defpackage common
   (:use)
-  (:export :sort
-           :stable-sort
-           :string-capitalize
-           :string-trim
-           :/
-           :/=
-           :<
-           :<=
-           :=
-           :>
-           :>=
-           :apply
-           :arrayp
-           :nreverse
-           :prog
-           :prog*
-           :read-line
-           :length
-           :loop
-           #:bit-vector-p
-           #:boundp
-           #:write-to-string
-           #:write
-           #:vectorp
-           #:tagbody
-           #:simple-array-p
-           #:simple-bit-vector-p
-           #:simple-string-p
-           #:simple-vector-p
-           #:string-downcase
-           #:string-equal
-           #:string-fill
-           #:string-greaterp
-           #:string-left-trim
-           #:string-lessp
-           #:string-not-equal
-           #:string-not-greaterp
-           #:string-not-lessp
-           #:string-right-trim
-           #:string-trim
-           #:string-upcase
-           #:string/=
-           #:string<
-           #:string<=
-           #:string=
-           #:string>
-           #:string>=
-           #:string>=
-           #:stringp
-           #:read
-           #:read-from-string
-           #:remprop
-           #:reverse
-           #:gcd
-           #:funcall
-           #:nstring-capitalize
-           #:nstring-downcase
-           #:nstring-fill
-           #:nstring-left-trim
-           #:nstring-right-trim
-           #:nstring-trim
-           #:nstring-upcase
-           #:lambda
-           #:length
-           #:logand
-           #:logior
-           #:lognot
-           #:logxor
-           #:loop
-           #:prog1
-           #:prog2
-           #:make-string
-           ))
+  (:export
+   :sort
+   :stable-sort
+   :string-capitalize
+   :string-trim
+   :/
+   :/=
+   :<
+   :<=
+   :=
+   :>
+   :>=
+   :apply
+   :arrayp
+   :nreverse
+   :prog
+   :prog*
+   :read-line
+   :length
+   :loop
+   #:bit-vector-p
+   #:boundp
+   #:write-to-string
+   #:write
+   #:vectorp
+   #:tagbody
+   #:simple-array-p
+   #:simple-bit-vector-p
+   #:simple-string-p
+   #:simple-vector-p
+   #:string-downcase
+   #:string-equal
+   #:string-fill
+   #:string-greaterp
+   #:string-left-trim
+   #:string-lessp
+   #:string-not-equal
+   #:string-not-greaterp
+   #:string-not-lessp
+   #:string-right-trim
+   #:string-trim
+   #:string-upcase
+   #:string/=
+   #:string<
+   #:string<=
+   #:string=
+   #:string>
+   #:string>=
+   #:string>=
+   #:stringp
+   #:read
+   #:read-from-string
+   #:remprop
+   #:reverse
+   #:gcd
+   #:funcall
+   #:nstring-capitalize
+   #:nstring-downcase
+   #:nstring-fill
+   #:nstring-left-trim
+   #:nstring-right-trim
+   #:nstring-trim
+   #:nstring-upcase
+   #:lambda
+   #:length
+   #:logand
+   #:logior
+   #:lognot
+   #:logxor
+   #:loop
+   #:prog1
+   #:prog2
+   #:make-string
+   #:/
+   #:/=
+   #:<
+   #:<=
+   #:=
+   #:>
+   #:>=
+   ))
 
 
 (defpackage #:tao-internal
