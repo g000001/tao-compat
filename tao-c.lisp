@@ -1042,6 +1042,13 @@ char1 が大きいか等しければ charN、そうでなければ nil を返す
 
 
 (define
+ "character"
+ (class character)
+ :documentation
+ "character object")
+
+
+(define
  "characterp"
  #'cl:characterp
  :documentation

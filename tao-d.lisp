@@ -806,7 +806,10 @@ p-list は破壊される。
                           (list 'quote
                                 (cons
                                  (cons name (car cl))
-                                 (cdr cl)))
+                                 ;(if (null (cdr cl)) nil (list (cons 'tao:&and (cdr cl))))
+                                 (list (cons 'tao:&and (cdr cl)))
+                                 ;(cdr cl)
+                                 ))
                           :asserta nil))
                   clauses)
         (tao.logic::prolog-compile ',name)

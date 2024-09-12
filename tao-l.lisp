@@ -340,16 +340,25 @@ nil を返す。"
   `(locally
      ,@(butlast body)
      (values-list (mapcar (lambda (v)
-                            (if (tao:locbitp v)
-                                (tao:deref v)
-                                v))
+                            (cond ((tao:locbitp v)
+                                   (tao:deref v))
+                                  ((tao.logic::var-p v)
+                                   (tao.logic::deref-exp v))
+                                  (T v)))
                           (multiple-value-list ,@(last body))))))
+
+
+(define-compiler-macro locally/deref (&whole w &body body)
+  (cond ((tao.logic::variable-p (car (last body)))
+         `(locally ,@(butlast body) (tao.logic::deref-exp ,@(last body))))
+        ((locative-declaration-p (car body)) w)
+        (T `(locally ,@body))))
 
 
 (define
  "let"
  (macro ((&rest bindings) &body body)
-     #+lispworks
+   #+lispworks
    (if (locative-declaration-p (car body))
        (let ((type (locative-declaration-p (car body)))
              (locative-vars (cdr (car body))))
@@ -363,7 +372,8 @@ nil を返す。"
               (locally/deref
                 ,@body))))
        `(cl:let (,@(canonicalize-bvl bindings))
-          ,@body))
+          (locally/deref
+            ,@body)))
    #-lispworks
    `(cl:let (,@(canonicalize-bvl bindings))
       ,@body))

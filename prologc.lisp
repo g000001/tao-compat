@@ -26,6 +26,7 @@
 
 (defun bound-p (var) (not (eq (var-binding var) unbound)))
 
+
 #+nil
 (defun set-binding! (var value)
   "Set var's binding to value.  Always succeeds (returns t)."
@@ -157,7 +158,7 @@
                   collect exp)))))
 
 
-(defun bind-unbound-vars (parameters exp)
+#|(defun bind-unbound-vars (parameters exp)
   "If there are any variables in exp (besides the parameters)
   then bind them to new vars."
   (let ((exp-vars (set-difference (variables-in exp)
@@ -166,7 +167,34 @@
         `(let ,(mapcar #'(lambda (var) `(,var (_)))
                        exp-vars)
            ,exp)
-        exp)))
+        exp)))|#
+
+(defun collect-unbound-vars (parameters exp &aux (vars '()))
+  (walker:walk-form exp
+                    nil
+                    (lambda (sub ctx env &aux (stop? nil))
+                      (declare (ignore env ctx))
+                      (typecase sub
+                        ((cons (eql ==/2) *)
+                         (when (member (elt sub 1) parameters)
+                           (let ((vs (variables-in// (elt sub 2))))
+                             (when vs
+                               (setq vars
+                                     (append vs vars)))))
+                         (values sub stop?))
+                        (T (values sub stop?)))))
+  (delete-duplicates vars :from-end T))
+
+
+(defun bind-unbound-vars (parameters exp)
+  "If there are any variables in exp (besides the parameters)
+  then bind them to new vars."
+  (let ((exp-vars (collect-unbound-vars parameters exp)))
+    (if exp-vars
+        `(let ,(mapcar (lambda (var) `(,var (_)))
+                       exp-vars)
+           ,exp)
+        `(block bind-unbound-vars ,exp))))
 
 
 (defmacro <- (&rest clause)
@@ -359,7 +387,8 @@
         `(let (,@(mapcar (lambda (v) `(,v ,v)) vars))
            ,@(mapcar (lambda (v) `(setq ,v (deref-exp ,v))) vars)
            ,xpr)))))
- 
+
+
 (defun bind-new-variables (bindings goal)
   "Extend bindings to include any unbound variables in goal."
   (let ((variables (remove-if #'(lambda (v) (assoc v bindings))
@@ -573,15 +602,19 @@
          (parameters (make-parameters arity))
          (pred-expr `(define-base-method ,*predicate* (,@parameters cont)
                        .,(maybe-add-undo-bindings
-                          (mapcar #'(lambda (clause)
-                                      (compile-clause parameters clause 'cont))
+                          (mapcar (lambda (clause)
+                                    (compile-clause parameters clause 'cont))
                                   clauses)))))
     (setf (get symbol arity) pred-expr)
+    ;;eval
     (let ((pred (eval pred-expr)))
       (unless (and (fboundp pred)
                    (compiled-function-p (fdefinition pred)))
         (compile pred))
-      pred)))
+      pred)
+    ;; compile
+    (compile nil `(lambda () ,pred-expr))
+    *predicate*))
 
 
 (defun compile-local-predicate (symbol arity clauses aux-vars)
@@ -620,6 +653,30 @@
 (defun goal-and-p (goal)
   (and (consp goal)
        (eq (car goal) 'and)))
+
+
+(defun goal-&-p (goal)
+  (typep goal '(cons (eql tao:&) list)))
+
+
+(defun goal-&and-p (goal)
+  (typep goal '(cons (eql tao:&and) list)))
+
+
+(defun parse-& (form)
+  (etypecase form
+    ((cons (member tao:& tao:&and)
+           (cons (cons (or (eql :aux)
+                           (eql &aux))
+                       list)
+                 list))
+     (values (nth 0 form)
+             (cdr (nth 1 form))
+             (cddr form)))
+    ((cons (member tao:& tao:&and) list)
+     (values (nth 0 form)
+             '()
+             (cdr form)))))
 
 
 (defun goal-disjunction-p (goal)
@@ -705,6 +762,131 @@
   (member goal '(tao:assert tao:asserta tao:assertz)))
 
 
+(defun compile-& (goal body cont bindings)
+  (multiple-value-bind (& aux-vars goal)
+                       (parse-& goal)
+    (declare (ignore &))
+    `(cl:let ,(mapcar (lambda (v)
+                        (list v '(tao:_)))
+                      aux-vars)
+       ,(compile-body (append goal (rest body) '(tao:!)) cont bindings))))
+
+
+(defun compile-&and (goal body cont bindings)
+  (multiple-value-bind (& aux-vars goal)
+                       (parse-& goal)
+    (declare (ignore &))
+    `(cl:let ,(mapcar (lambda (v)
+                        (list v '(tao:_)))
+                      aux-vars)
+       ,(compile-body (append goal (rest body)) cont bindings))))
+
+
+(defun compile-cut (goal body cont bindings)
+  (declare (ignore goal))
+  `(progn
+     ,(compile-body (rest body) cont bindings)
+     (return-from ,*predicate* nil)))
+
+
+(defun compile-disjunction (goal body cont bindings)
+  (let ((bindings ;;(bind-new-variables bindings goal)
+                  bindings
+                  ))
+    `(let ((old-trail (fill-pointer *trail*))
+           (cont (lambda () ,(compile-body
+                              (rest body)
+                              cont bindings))))
+       ,(compile-body (list (cadr goal)) 'cont bindings)
+       (undo-bindings! old-trail)
+       ,(compile-body (list (caddr goal)) 'cont bindings))))
+
+
+(defun compile-if-then (goal body cont bindings)
+  (let ((bindings ;;(bind-new-variables bindings goal)
+                  bindings))
+    `(let ((cont (lambda () ,(compile-body
+                              (cons (caddr goal) (rest body))
+                              cont bindings))))
+       (block nil
+         ,(compile-body (list (cadr goal))
+                        '(lambda () 
+                           (funcall cont)
+                           (return nil))
+                        bindings)))))
+
+
+(defun compile-if-then-else (goal body cont bindings)
+  (let ((bindings ;;(bind-new-variables bindings goal)
+                  bindings)
+        (block-name (gensym "if-then-else")))
+    (multiple-value-bind (if then else)
+                         (destructure-if-then-else goal)
+      `(let ((old-trail (fill-pointer *trail*))
+             (cont (lambda ()
+                     ,(compile-body
+                       (rest body)
+                       cont bindings))))
+         (block ,block-name
+           ,(compile-body (list if)
+                          `(lambda () 
+                             ,(compile-body (list then) cont bindings)
+                             (return-from ,block-name nil))
+                          bindings)
+           (undo-bindings! old-trail)
+           ,(compile-body (list else) 'cont bindings))))))
+
+
+(defun compile-assert (goal body cont bindings)
+  (compile-body (append (list (macroexpand-1 `(dynamic-assert ,(first goal) ,@(rest goal))))
+                        (rest body))
+                cont bindings))
+
+
+(defun compile-unquote (goal body cont bindings)
+  `(,(make-predicate (predicate goal)
+                     (relation-arity goal))
+    ,@(mapcar (lambda (x)
+                (if (find-unquote-expr x)
+                    (compile-unquote-arg x bindings)
+                    (compile-arg x bindings)))
+              (args goal))
+    ,(if (null (rest body))
+         cont
+         `(lambda ()
+            ,(compile-body (rest body)
+                           cont
+                           ;;(bind-new-variables bindings goal)
+                            bindings)))))
+
+(defun compile-dynamic-assert (goal body cont bindings)
+  (declare (ignore goal cont bindings))
+  `(progn
+     (tao.logic::prolog-compile
+      (tao.logic::add-clause 
+       ,(tao-internal::unquotify (rest body))
+       :asserta (eq goal 'tao:asserta)))
+     T))
+
+
+(defun lisp-operator-p (goal)
+  (and (symbolp (car goal))
+       (not (get-clauses (car goal)))
+       (or (fboundp (car goal)) (member (car goal) '(call-method call-next-method)))
+       ;;(typep (symbol-package (car goal)) 'tao-package)
+       ))
+
+
+(defun compile-lisp-operator (goal body cont bindings)
+  `(lispp-uq/1
+    ,(compile-unquote-arg goal bindings)
+    (lambda ()
+      ,(compile-body 
+        (rest body) cont
+        ;;(bind-new-variables bindings goal)
+        bindings))))
+
+
 (defun compile-body (body cont bindings)
   "Compile the body of a clause."
   (setq body (nil->fail body)) ;TODO
@@ -712,118 +894,87 @@
       `(funcall ,cont)
       (let ((goal (first body)))
 	(cond ((goal-cut-p goal)
-               `(progn
-                  ,(compile-body (rest body) cont bindings)
-                  (return-from ,*predicate* nil)))
+               (compile-cut goal body cont bindings))
               ((and (goal-tail-p body)
                     (goal-var-p goal))
                `(return-from ,*predicate* (deref-exp ,goal)))
               ((goal-var-p goal)
-               ;;`(and ,goal ,(compile-body (rest body) cont bindings))
                (compile-body (cons `(values ,goal) (rest body)) cont bindings))
               ((goal-assert-p (predicate goal))
-               (compile-body (append (list (macroexpand-1 `(dynamic-assert ,(first goal) ,@(rest goal))))
-                                     (rest body))
-                             cont bindings))
+               (compile-assert goal body cont bindings))
+              ((goal-&and-p goal)
+               (compile-&and goal body cont bindings))
+              ((goal-&-p goal)
+               (compile-& goal body cont bindings))
               ((goal-lisp-macro-p (predicate goal))
                (compile-body (append (list (macroexpand-1 goal)) (rest body)) cont bindings))
               ((goal-conjunction-p goal)
                (compile-body (append (cdr goal) (rest body)) cont bindings))
               ((goal-disjunction-p goal)
-               (let ((bindings (bind-new-variables bindings goal)))
-                 `(let ((old-trail (fill-pointer *trail*))
-                        (cont (lambda () ,(compile-body
-                                           (rest body)
-                                           cont bindings))))
-                    ,(compile-body (list (cadr goal)) 'cont bindings)
-                    (undo-bindings! old-trail)
-                    ,(compile-body (list (caddr goal)) 'cont bindings))))
+               (compile-disjunction goal body cont bindings))
               ((goal-if-then-p goal)
-               (let ((bindings (bind-new-variables bindings goal)))
-                 `(let ((cont (lambda () ,(compile-body
-                                           (cons (caddr goal) (rest body))
-                                           cont bindings))))
-                    (block nil
-                      ,(compile-body (list (cadr goal))
-                                     '(lambda () 
-                                        (funcall cont)
-                                        (return nil))
-                                     bindings)))))
+               (compile-if-then goal body cont bindings))
               ((goal-if-then-else-p goal)
-               (let ((bindings (bind-new-variables bindings goal)))
-                 (multiple-value-bind (if then else)
-                                      (destructure-if-then-else goal)
-                   `(let ((old-trail (fill-pointer *trail*))
-                          (cont (lambda ()
-                                  ,(compile-body
-                                    (rest body)
-                                    cont bindings))))
-                      (block nil
-                        ,(compile-body (list if)
-                                       `(lambda () 
-                                          ,(compile-body (list then) cont bindings)
-                                          (return nil))
-                                       bindings)
-                        (undo-bindings! old-trail)
-                        ,(compile-body (list else) 'cont bindings))))))
-              (t
-               (let* ((macro (prolog-compiler-macro (predicate goal)))
-                      (macro-val (if macro 
-                                     (funcall macro goal (rest body) 
-                                              cont bindings))))
-                 (if (and macro (not (eq macro-val :pass)))
-                     macro-val
-                     (cond ((goal-has-unquote-p goal)
-                            `(,(make-predicate (predicate goal)
-                                               (relation-arity goal))
-                              ,@(mapcar (lambda (x)
-                                          (if (find-unquote-expr x)
-                                              (compile-unquote-arg x bindings)
-                                              (compile-arg x bindings)))
-                                        (args goal))
-                              ,(if (null (rest body))
-                                   cont
-                                   `(lambda ()
-                                      ,(compile-body 
-                                        (rest body) cont
-                                        (bind-new-variables bindings goal))))))
-                           ((goal-assert-p goal)
-                            `(progn
-                               (tao.logic::prolog-compile
-                                (tao.logic::add-clause 
-                                 ,(tao-internal::unquotify (rest body))
-                                 :asserta (eq goal 'tao:asserta)))
-                               T))
-                           ((and (symbolp (car goal))
-                                 (not (get-clauses (car goal)))
-                                 (or (fboundp (car goal)) (member (car goal) '(call-method call-next-method)))
-                                 ;;(typep (symbol-package (car goal)) 'tao-package)
-                                 )
-                            `(lispp-uq/1
-                              ,(compile-unquote-arg goal bindings)
-                              (lambda ()
-                                ,(compile-body 
-                                  (rest body) cont
-                                  (bind-new-variables bindings goal)))))
-                           (T (if (and (tao:negation-as-failure)
-                                       (not (fboundp (make-predicate (predicate goal) (relation-arity goal)))))
-                                  `(fail/0 ,(if (null (rest body))
-                                                cont
-                                                `(lambda ()
-                                                   ,(compile-body (rest body)
-                                                                  cont
-                                                                  (bind-new-variables bindings goal)))))
-                                  `(,(make-predicate (predicate goal)
-                                                     (relation-arity goal))
-                                    ,@(mapcar (lambda (arg)
-                                                (compile-arg arg bindings))
-                                              (args goal))
-                                    ,(if (null (rest body))
-                                         cont
-                                         `(lambda ()
-                                            ,(compile-body (rest body)
-                                                           cont
-                                                           (bind-new-variables bindings goal)))))))))))))))
+               (compile-if-then-else goal body cont bindings))
+              (T (let* ((macro (prolog-compiler-macro (predicate goal)))
+                        (macro-val (if macro 
+                                       (funcall macro goal (rest body) 
+                                                cont bindings))))
+                   (if (and macro (not (eq macro-val :pass)))
+                       macro-val
+                       (cond ((goal-has-unquote-p goal)
+                              (compile-unquote goal body cont bindings))
+                             ((goal-assert-p goal)
+                              (compile-dynamic-assert goal body cont bindings))
+                             ((lisp-operator-p goal)
+                              (compile-lisp-operator goal body cont bindings))
+                             (T (if (and nil (tao:negation-as-failure)
+                                         (not (fboundp (make-predicate (predicate goal) (relation-arity goal)))))
+                                    `(fail/0 ,(if (null (rest body))
+                                                  cont
+                                                  `(lambda ()
+                                                     ,(compile-body (rest body)
+                                                                    cont
+                                                                    ;;(bind-new-variables bindings goal)
+                                                                    bindings
+                                                                    ))))
+                                    `(,(make-predicate (predicate goal)
+                                                       (relation-arity goal))
+                                      ,@(mapcar (lambda (arg)
+                                                  (compile-arg arg bindings))
+                                                (args goal))
+                                      ,(if (null (rest body))
+                                           cont
+                                           `(lambda ()
+                                              ,(compile-body (rest body)
+                                                             cont
+                                                             ;;(bind-new-variables bindings goal)
+                                                             bindings
+                                                             ))))))))))))))
+
+
+'(&+
+  :documentation
+ "形式 : &+ &rest 'x
+\(&+ A' [(&aux  var...)] B1 B2  ...  Bn) は、U-resolver と呼ばれる名前
+なしのホーン節を作る。
+シンボル A は、関数 assert においてはフォーム (p ...) の形をしている。
+ここで P は、主ファンクタ、つまりホーン節の名前である。
+シンボル A' は、A から主ファンクタ P を除いた残りのフォーム (...) で
+あり、 U-resolver のヘッダと呼ばれる。B1 B2 ... Bn は、ボディと呼ばれる。
+関数 &+ は、使い方については、関数 expr とほぼ同じで、機能については、
+関数 assert とほぼ同じ。スコープ境界型である。
+Lisp 関数の assert は、定義のボディを調べ自動的に補助変数宣言を行ない、
+主ファンクタに resolver を関連づける。
+関数 assert は、resolver がタイプ C なのか U なのかを自動的に決定する。
+タイプ C の resolver は C-resolver と呼ばれる。"
+ :example
+ "((&+  ((_x . _)) _x)  (1  2  3)) -> 1
+        リスト (1  2  3) をヘッダ (_x  .  _) に, ユニファイすることを
+        試み、x を 1 にすることによりうまくいく。
+        expr の表現とほぼ同じ。
+        ((expr (x) (car  x)) '(1  2  3)) -> 1")
+
 
 
 (defun translate-&+ (expr)

@@ -123,7 +123,8 @@
 (defun ==/2 (_arg1 _arg2 cont)
   "8.2.1"
   (typecase _arg2
-    (standard-object 
+    ((and standard-object
+          (not stream)) 
      (when (and (listp _arg1)
                 (unify! _arg1 (:unify-next-element _arg2)))
        (funcall cont)))

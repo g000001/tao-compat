@@ -13,9 +13,17 @@
 
 
 (defun tao:negation-as-failure (&optional (negation-as-failure? nil negation-as-failure?-sup?))
+  (print 'tao:negation-as-failure)
   (if negation-as-failure?-sup?
       (setq *negation-as-failure* negation-as-failure?)
       *negation-as-failure*))
+
+
+(define-compiler-macro tao:negation-as-failure (&whole w &optional (negation-as-failure? nil negation-as-failure?-sup?))
+  (declare (ignore negation-as-failure?))
+  (if negation-as-failure?-sup?
+      *negation-as-failure*
+      w))
 
 
 ;;;; does not include destructive unification (11.6); see prologc.lisp
@@ -177,10 +185,18 @@
       (format t " Type ; to see more or . to stop")
       (continue-p))))
 
-
 (defun variables-in (exp)
   "Return a list of all the variables in EXP."
+  (variables-in/ exp))
+
+(defun variables-in// (exp)
+  "Return a list of all the variables in EXP."
   (unique-find-anywhere-if #'non-anon-variable-p exp))
+
+
+(defun variables-in/ (exp)
+  (declare (ignore exp))
+  '())
 
 
 (defun non-anon-variable-p (x)
