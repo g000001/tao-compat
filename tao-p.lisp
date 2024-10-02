@@ -951,12 +951,13 @@ process がオープンしている全てのファイルは棄却される。
  "prog"
  (macro (binds &body tags-and-forms)
      (let ((value (gensym "value")))
-       `(let (,value
-              ,@binds)
-          (declare (dynamic-extent ,value))
-          (tagbody ,@(butlast tags-and-forms)
-                   (setq ,value (multiple-value-list ,@(last tags-and-forms))))
-          (values-list ,value))))
+       `(block cl:nil
+          (let (,value
+                ,@binds)
+            (declare (dynamic-extent ,value))
+            (tagbody ,@(butlast tags-and-forms)
+                     (setq ,value (multiple-value-list ,@(last tags-and-forms))))
+            (values-list ,value)))))
  :documentation
  "形式 : prog &rest [exit-id] var-list form1 form2 ... formN
 nil に束縛された var-list 内の変数で form1 form2 ... formN を
@@ -1130,10 +1131,11 @@ form1 form2 ... を逐次評価し、その最後の値を返す。
 
 
 (define
- "progv"
- (cl-macro progv)
- :documentation
- "形式 : progv '(var1 var2 ...) '(value1 value2 ...)
+  "progv"
+    (macro (vars vals &body body)
+        `(progv ,vars ,vals ,@body))
+  :documentation
+  "形式 : progv '(var1 var2 ...) '(value1 value2 ...)
                                   &rest form1 form2 ...
 var1 を value1 に、var2 を value2 に ... と束縛し、form1 form2 ... を
 評価し、最後のフォームの評価結果を返す。
@@ -1141,8 +1143,8 @@ var1, var2, ... はグローバル変数。ローカル変数スコープに影�
 この関数が、あるローカル変数のスコープ内であるなら、そのローカル変数を
 この関数内で参照できる。関数 progv は普通 関数 progv の環境内の変数と
 は異なったグローバル変数を使いたい時に使用。"
- :example
- "(!x 12) -> 12
+  :example
+  "(!x 12) -> 12
         (progv '(x) '(10) (+ x 20)) -> 30
         x -> 12
         (prog (p) (!p 100)

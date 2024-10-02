@@ -3260,6 +3260,7 @@ super によって送られたメッセージでは、もしメソッド結合�
             4 kdr: 5
         {vector}1844308(common:simple-general-vector . 5)")
 
+(defsetf tao:svref #+lispworks sys::set-svref #+sbcl sb-kernel:%svset)
 
 (define
  "sxhash"

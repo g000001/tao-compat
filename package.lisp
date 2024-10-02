@@ -3,7 +3,9 @@
 
 (defpackage #:tao
   (:use)
-  (:import-from :cl :declare
+  (:import-from :cl
+   :declare :declaim
+   :nil
    :&allow-other-keys :&aux :&body :&environment :&key :&optional :&rest :&whole
    :*break-on-signals*
    :*debug-io*
@@ -35,6 +37,9 @@
    :*standard-output*
    :*terminal-io*
    :*trace-output*)
+  (:export #|types|#
+   simple-vector
+   fixnum)
   (:export #|0|#
    #:!
    #:&

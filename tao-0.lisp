@@ -95,7 +95,7 @@ Bn では body の最後が評価される。
      (let ((aux-vars (and (typep (car forms) '&aux-form)
                           (prog1 (cdar forms) (pop forms)) )))
        (let ((cont (gensym "cont"))
-             (tao.logic::*predicate* (gensym "anonymous-pred-")))
+             (tao.logic::*predicate* (gensym "anonymous-&pred-")))
          `(with-return-from-pred-- ,tao.logic::*predicate* ,cont ,aux-vars
             ,(tao.logic::compile-body
               forms
@@ -175,7 +175,7 @@ Lisp 関数の assert は、定義のボディを調べ自動的に補助変数�
 関数 assert は、resolver がタイプ C なのか U なのかを自動的に決定する。
 タイプ C の resolver は C-resolver と呼ばれる。"
  :example
- "((&+  ((_x  _))_x)  (1  2  3)) -> 1
+ "((&+  ((_x . _))_x) (1 2 3)) -> 1
         リスト (1  2  3) をヘッダ (_x  .  _) に, ユニファイすることを
         試み、x を 1 にすることによりうまくいく。
         expr の表現とほぼ同じ。

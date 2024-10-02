@@ -13,7 +13,6 @@
 
 
 (defun tao:negation-as-failure (&optional (negation-as-failure? nil negation-as-failure?-sup?))
-  (print 'tao:negation-as-failure)
   (if negation-as-failure?-sup?
       (setq *negation-as-failure* negation-as-failure?)
       *negation-as-failure*))

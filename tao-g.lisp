@@ -120,6 +120,9 @@ symbol の属性リスト中のインディケータに、 ind と一致する�
         (!(get 'ntt 'foo) 'bar) = (putprop 'ntt 'foo 'bar)")
 
 
+(defsetf tao:get #+lispworks sys::%put #+sbcl sb-kernel:%put)
+
+
 (define
  "get-decoded-time"
  #'cl:get-decoded-time
