@@ -57,11 +57,6 @@
   "a list of all predicates stored in the database.")
 
 
-(defmacro <- (&rest clause)
-  "add a clause to the data base."
-  `(add-clause ',(replace-_-vars clause)))
-
-
 (defun add-clause (clause)
   "add a clause to the data base, indexed by head's predicate."
   ;; the predicate must be a non-variable symbol.

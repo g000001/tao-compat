@@ -10,53 +10,31 @@
 (in-package :tao.logic)
 
 
-(eval-when (:COMPILE-TOPLEVEL :LOAD-TOPLEVEL :EXECUTE)
-(defvar .unbound. "Unbound")
-(defconstant unbound .unbound.))
+(defmacro set-binding! (trail var value)
+  (let ((gvar (gensym))
+        (gval (gensym)))
+    `(let ((,gvar ,var)
+           (,gval ,value))
+       (taoi::fast
+         (unless (eq ,gvar ,gval)
+           (vec-push ,trail ,gvar)
+           (setf (var-binding ,gvar) ,gval))
+         t))))
 
 
-(defvar *var-counter* 0)
-
-
-(defstruct (var (:constructor _ ())
-                (:print-function print-var))
-  (name (incf *var-counter*))
-  (binding unbound))
-
-
-(defun bound-p (var) (not (eq (var-binding var) unbound)))
-
-
-#+nil
-(defun set-binding! (var value)
-  "Set var's binding to value.  Always succeeds (returns t)."
-  (setf (var-binding var) value)
-  t)
-
-(defun print-var (var stream depth)
-  (if (or (and *print-level*
-               (>= depth *print-level*))
-          (var-p (deref var)))
-      (format stream "{undef}~A" (var-name var))
-      (format stream "#<logvar: ~S>" var)))
-
-
-(defvar *trail* (make-array 200 :fill-pointer 0 :adjustable t))
-
-
-(defun set-binding! (var value)
-  "Set var's binding to value, after saving the variable
-  in the trail.  Always returns t."
-  (unless (eq var value)
-    (vector-push-extend var *trail*)
-    (setf (var-binding var) value))
-  t)
-
-
-(defun undo-bindings! (old-trail)
-  "Undo all bindings back to a given point in the trail."
-  (loop until (= (fill-pointer *trail*) old-trail)
-     do (setf (var-binding (vector-pop *trail*)) unbound)))
+(defmacro undo-bindings! (trail old-trail)
+  (let ((gvar (gensym)))
+    `(taoi::fast
+       (let* ((trail ,trail)
+              (,gvar ,old-trail)
+              (ndx (trail-ndx trail))
+              (vec (trail-vec trail)))
+         (declare (simple-vector vec)
+                  (type adim ndx ,gvar))
+         (loop :until (eql ndx ,gvar)
+               :do (setf (var-binding (svref vec (decf ndx)))
+                         (load-time-value unbound)))
+         (setf (trail-ndx trail) ndx)))))
 
 
 (defun prolog-compile (symbol &optional
@@ -151,10 +129,10 @@
   If there are any, bind the trail before we start."
   (if (length=1 compiled-exps)
       compiled-exps
-      `((let ((old-trail (fill-pointer *trail*)))
+      `((let ((old-trail (trail-ndx *trail*)))
           ,(first compiled-exps)
           ,@(loop for exp in (rest compiled-exps)
-                  collect '(undo-bindings! old-trail)
+                  collect '(undo-bindings! *trail* old-trail)
                   collect exp)))))
 
 
@@ -210,11 +188,6 @@
                        exp-vars)
            ,exp)
         `(block bind-unbound-vars ,exp))))
-
-
-(defmacro <- (&rest clause)
-  "Add a clause to the data base."
-  `(add-clause ',(make-anonymous clause)))
 
 
 (defun make-anonymous (exp &optional
@@ -351,18 +324,11 @@
                   ,(compile-arg (rest arg) bindings)))))
 
 
-(defmacro deref (exp)
-  "Follow pointers for bound variables."
-  `(progn (loop while (and (var-p ,exp) (bound-p ,exp))
-             do (setf ,exp (var-binding ,exp)))
-          ,exp))
-
-
 (defun unify! (x y)
   "Destructively unify two expressions"
   (cond ((equal (deref x) (deref y)) t)
-        ((var-p x) (set-binding! x y))
-        ((var-p y) (set-binding! y x))
+        ((var-p x) (set-binding! *trail* x y))
+        ((var-p y) (set-binding! *trail* y x))
         ((and (typep x '(vector (not string)))
               (typep y '(vector (not string)))
               (= (length x) (length y)))
@@ -527,7 +493,7 @@
   ;; First compile anything else that needs it
   (prolog-compile-symbols)
   ;; Reset the trail and the new variable counter
-  (setf (fill-pointer *trail*) 0)
+  (setf (trail-ndx *trail*) 0)
   (setf *var-counter* 0)
   ;; Finally, call the query
   (catch 'top-level-prove
@@ -566,16 +532,6 @@
             (format t "~&~a = ~a" name (deref-exp var))))
   (finish-output)
   (funcall cont))
-
-
-#|(defun deref-exp (exp)
-  "Build something equivalent to EXP with variables dereferenced."
-  (if (atom (deref exp))
-      exp
-      (reuse-cons
-        (deref-exp (first exp))
-        (deref-exp (rest exp))
-        exp)))|#
 
 
 (defgeneric deref-exp (exp)
@@ -819,14 +775,6 @@
   (funcall thunk))
 
 
-(defun compile-cut (goal body cont bindings)
-  (declare (ignore goal))
-  `(progn
-     ,(compile-body (rest body) cont bindings)
-     (%cut (lambda ()
-             (return-from ,*predicate* nil)))))
-
-
 (defun compile-cut (goal body cont bindings &aux (cut (gensym "!CUT")))
   (declare (ignore goal))
   `(flet ((,cut ()
@@ -844,7 +792,7 @@
                               (rest body)
                               cont bindings))))
        ,(compile-body (list (cadr goal)) 'cont bindings)
-       (undo-bindings! old-trail)
+       (undo-bindings! *trail* old-trail)
        ,(compile-body (list (caddr goal)) 'cont bindings))))
 
 
@@ -879,7 +827,7 @@
                              ,(compile-body (list then) cont bindings)
                              (return-from ,block-name nil))
                           bindings)
-           (undo-bindings! old-trail)
+           (undo-bindings! *trail* old-trail)
            ,(compile-body (list else) 'cont bindings))))))
 
 

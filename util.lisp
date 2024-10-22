@@ -188,6 +188,7 @@
 (defmacro locative-operator ((&rest args) &body body)
   `(lambda (,@args) ,@body))
 
+
 (defmacro expr ((&rest args) &body body)
   `(lambda (,@args) ,@body))
 
@@ -208,6 +209,42 @@
 
 (defmacro rel (name &body body)
   `(tao:defrel ,name ,@body))
+
+
+(defmacro nlet (name bindspec &body body)
+  (let ((gs (loop :for nil :in bindspec :collect (gensym)))
+        (gname (gensym "name"))
+        (gblock (gensym "block")))
+    `(macrolet ((,name ,gs
+                  `(progn
+                     (psetq
+                      ,@(apply #'nconc
+                               (mapcar #'list ',(mapcar #'car bindspec)
+                                       (list ,@gs))))
+                     (go ,',gname))))
+       (block ,gblock
+         (let ,bindspec
+           (tagbody
+            ,gname (return-from
+                       ,gblock (progn ,@body))))))))
+
+
+(defmacro tail-recursive-defun (name (&rest args) &body body)
+  `(defun ,name (,@args)
+     (nlet ,name (,@(mapcar (lambda (v) `(,v ,v)) args))
+       ,@body)))
+
+
+(defmacro fast (&body body)
+  `(locally
+       #+(or sbcl allegro) (declare (optimize (speed 3) (safety 0)))
+       ,@body))
+
+
+(defun ignorer (&rest args)
+  (declare (optimize (speed 3) (safety 0) (debug 0)))
+  (declare (ignore args))
+  nil)
 
 
 ;;; *EOF*

@@ -178,51 +178,10 @@
 
 ;;; ==============================
 
-(defun member-equal (item list)
-  (member item list :test #'equal))
-
-
-;;; ==============================
-
 (defun compose (&rest functions)
   #'(lambda (x)
       (reduce #'funcall functions :from-end t :initial-value x)))
 
-
-;;;; The Debugging Output Facility:
-
-(defvar *dbg-ids* nil "Identifiers used by dbg")
-
-
-(defun dbg (id format-string &rest args)
-  "Print debugging info if (DEBUG ID) has been specified."
-  (when (member id *dbg-ids*)
-    (fresh-line *debug-io*)
-    (apply #'format *debug-io* format-string args)))
-
-
-(defun debug* (&rest ids)
-  "Start dbg output on the given ids."
-  (setf *dbg-ids* (union ids *dbg-ids*)))
-
-
-(defun undebug (&rest ids)
-  "Stop dbg on the ids.  With no ids, stop dbg altogether."
-  (setf *dbg-ids* (if (null ids) nil
-                      (set-difference *dbg-ids* ids))))
-
-
-;;; ==============================
-
-(defun dbg-indent (id indent format-string &rest args)
-  "Print indented debugging info if (DEBUG ID) has been specified."
-  (when (member id *dbg-ids*)
-    (fresh-line *debug-io*)
-    (dotimes (i indent) (princ "  " *debug-io*))
-    (apply #'format *debug-io* format-string args)))
-
-
-;;;; PATTERN MATCHING FACILITY
 
 (defconstant fail nil)
 
@@ -291,39 +250,6 @@
 
 ;;; ==============================
 
-;;;; The Memoization facility:
-
-(defmacro defun-memo (fn args &body body)
-  "Define a memoized function."
-  `(memoize (defun ,fn ,args . ,body)))
-
-
-(defun memo (fn &key (key #'first) (test #'eql) name)
-  "Return a memo-function of fn."
-  (let ((table (make-hash-table :test test)))
-    (setf (get name 'memo) table)
-    #'(lambda (&rest args)
-        (let ((k (funcall key args)))
-          (multiple-value-bind (val found-p)
-              (gethash k table)
-            (if found-p val
-                (setf (gethash k table) (apply fn args))))))))
-
-
-(defun memoize (fn-name &key (key #'first) (test #'eql))
-  "Replace fn-name's global definition with a memoized version."
-  (clear-memoize fn-name)
-  (setf (symbol-function fn-name)
-        (memo (symbol-function fn-name)
-              :name fn-name :key key :test test)))
-
-
-(defun clear-memoize (fn-name)
-  "Clear the hash table from a memo function."
-  (let ((table (get fn-name 'memo)))
-    (when table (clrhash table))))
-
-
 ;;;; Delayed computation:
 
 (defstruct delay value (computed? nil))
@@ -340,83 +266,6 @@
       (delay-value delay)
       (prog1 (setf (delay-value delay) (funcall (delay-value delay)))
              (setf (delay-computed? delay) t))))
-
-
-;;;; Defresource:
-
-(defmacro defresource (name &key constructor (initial-copies 0)
-                       (size (max initial-copies 10)))
-  (let ((resource (symbol+ '* (symbol+ name '-resource*)))
-        (deallocate (symbol+ 'deallocate- name))
-        (allocate (symbol+ 'allocate- name)))
-    `(progn
-       (defparameter ,resource (make-array ,size :fill-pointer 0))
-       (defun ,allocate ()
-         "Get an element from the resource pool, or make one."
-         (if (= (fill-pointer ,resource) 0)
-             ,constructor
-             (vector-pop ,resource)))
-       (defun ,deallocate (,name)
-         "Place a no-longer-needed element back in the pool."
-         (vector-push-extend ,name ,resource))
-       ,(if (> initial-copies 0)
-            `(mapc #',deallocate (loop repeat ,initial-copies 
-                                       collect (,allocate))))
-       ',name)))
-
-
-(defmacro with-resource ((var resource &optional protect) &rest body)
-  "Execute body with VAR bound to an instance of RESOURCE."
-  (let ((allocate (symbol+ 'allocate- resource))
-        (deallocate (symbol+ 'deallocate- resource)))
-    (if protect
-        `(let ((,var nil))
-           (unwind-protect (progn (setf ,var (,allocate)) ,@body)
-             (unless (null ,var) (,deallocate ,var))))
-        `(let ((,var (,allocate)))
-           ,@body
-           (,deallocate var)))))
-
-
-;;;; Queues:
-
-;;; A queue is a (last . contents) pair
-
-(defun queue-contents (q) (cdr q))
-
-
-(defun make-queue ()
-  "Build a new queue, with no elements."
-  (let ((q (cons nil nil)))
-    (setf (car q) q)))
-
-
-(defun enqueue (item q)
-  "Insert item at the end of the queue."
-  (setf (car q)
-        (setf (rest (car q))
-              (cons item nil)))
-  q)
-
-
-(defun dequeue (q)
-  "Remove an item from the front of the queue."
-  (pop (cdr q))
-  (if (null (cdr q)) (setf (car q) q))
-  q)
-
-
-(defun front (q) (first (queue-contents q)))
-
-
-(defun empty-queue-p (q) (null (queue-contents q)))
-
-
-(defun queue-nconc (q list)
-  "Add the elements of LIST to the end of the queue."
-  (setf (car q)
-        (last (setf (rest (car q)) list))))
-
 
 ;;;; Other:
 
@@ -445,20 +294,6 @@
 
 
 ;;; ==============================
-
-#|(defun unique-find-if-anywhere (predicate tree
-                                &optional found-so-far)
-  "Return a list of leaves of tree satisfying predicate,
-  with duplicates removed."
-  (if (atom tree)
-      (if (funcall predicate tree)
-          (adjoin tree found-so-far)
-          found-so-far)
-      (unique-find-if-anywhere
-        predicate
-        (first tree)
-        (unique-find-if-anywhere predicate (rest tree)
-                                 found-so-far))))|#
 
 
 (defgeneric unique-find-if-anywhere (predicate tree &optional found-so-far)
@@ -489,14 +324,6 @@
   (if (funcall predicate tree)
       (adjoin tree found-so-far)
       found-so-far))
-
-
-#|(defun find-if-anywhere (predicate tree)
-  "Does predicate apply to any atom in the tree?"
-  (if (atom tree)
-      (funcall predicate tree)
-      (or (find-if-anywhere predicate (first tree))
-          (find-if-anywhere predicate (rest tree)))))|#
 
 
 (defgeneric find-if-anywhere (predicate tree)
