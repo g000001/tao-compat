@@ -80,6 +80,7 @@
                                            (setq ,v (tao.logic::deref-exp ,v))))
                             (tao.logic::variables-in (cons bvl vars)))
                   (return-from ,reval T)))
+           (declare (dynamic-extent #',cont-name))
            ,@body)))))
 
 
@@ -92,6 +93,7 @@
                                          (setq ,v (tao.logic::deref-exp ,v))))
                           (tao.logic::variables-in (cons bvl vars)))
                 (return-from ,pred-name T)))
+         (declare (dynamic-extent #',cont-name))
          ,@body))))
 
 
@@ -105,6 +107,7 @@
                                (setq ,v (tao.logic::deref-exp ,v))))
                           vars)
                 (return-from ,pred-name T)))
+         (declare (dynamic-extent #',cont-name))
          ,@body))))
 
 
