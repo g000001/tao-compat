@@ -464,7 +464,7 @@
   "Prove the list of goals by compiling and calling it."
   ;; First redefine top-level-query
   (clear-predicate 'top-level-query)
-  (let ((vars (delete '_ (variables-in goals))))
+  (let ((vars (delete '_ (variables-in// goals))))
     (add-clause `((top-level-query)
                   ,@goals
                   (show-prolog-vars ,(mapcar #'symbol-name vars)
@@ -479,7 +479,7 @@
   "Prove the list of all goals by compiling and calling it."
   ;; First redefine top-level-query
   (clear-predicate 'top-level-query)
-  (let ((vars (delete '_ (variables-in goals))))
+  (let ((vars (delete '_ (variables-in// goals))))
     (add-clause `((top-level-query)
                   ,@goals
                   (show-all-prolog-vars ,(mapcar #'symbol-name vars) ,vars))))
@@ -661,7 +661,7 @@
 
 (defun goal-or-p (goal)
   (and (consp goal)
-       (member (car goal) '(or tao:!))))
+       (member (car goal) '(or tao:! tao:or))))
 
 
 (defun goal-if-p (goal)
@@ -775,7 +775,7 @@
   (funcall thunk))
 
 
-(defun compile-cut (goal body cont bindings &aux (cut (gensym "!CUT")))
+(defun compile-cut (goal body cont bindings &aux (cut (gensym "CUT")))
   (declare (ignore goal))
   `(flet ((,cut ()
             (return-from ,*predicate* nil)))
@@ -783,17 +783,21 @@
      (,cut)))
 
 
+(declaim (declaration disjunction))
+
+
 (defun compile-disjunction (goal body cont bindings)
   (let ((bindings ;;(bind-new-variables bindings goal)
                   bindings
                   ))
-    `(let ((old-trail (fill-pointer *trail*))
+    `(let ((old-trail (trail-ndx *trail*))
            (cont (lambda () ,(compile-body
                               (rest body)
                               cont bindings))))
+       (declare (disjunction))
        ,(compile-body (list (cadr goal)) 'cont bindings)
        (undo-bindings! *trail* old-trail)
-       ,(compile-body (list (caddr goal)) 'cont bindings))))
+       ,(compile-body (cddr goal) 'cont bindings))))
 
 
 (defun compile-if-then (goal body cont bindings)
@@ -816,7 +820,7 @@
         (block-name (gensym "if-then-else")))
     (multiple-value-bind (if then else)
                          (destructure-if-then-else goal)
-      `(let ((old-trail (fill-pointer *trail*))
+      `(let ((old-trail (trail-ndx *trail*))
              (cont (lambda ()
                      ,(compile-body
                        (rest body)

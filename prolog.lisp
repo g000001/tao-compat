@@ -126,14 +126,14 @@
 
 
 (defun top-level-prove (goals)
-  (prove-all `(,@goals (show-prolog-vars ,@(variables-in goals)))
+  (prove-all `(,@goals (show-prolog-vars ,@(variables-in// goals)))
              no-bindings)
   (format t "~&no")
   (values))
 
 
 (defun top-level-prove-all (goals)
-  (prove-all `(,@goals (show-all-prolog-vars ,@(variables-in goals)))
+  (prove-all `(,@goals (show-all-prolog-vars ,@(variables-in// goals)))
              no-bindings)
   'tao::that\'s-all)
 
